@@ -2756,6 +2756,10 @@ namespace NewGameMode
                                 memeRequire.type = MemeRequireType.MEME;
                                 memeRequire.value = value;
                             }
+                            if (innerText2 == "true")
+                            {
+                                memeInfo.satisfy_all = true;
+                            }
 
                             memeInfo.requires.Add(memeRequire);
                         }
@@ -3043,12 +3047,150 @@ namespace NewGameMode
         public virtual void OnOwnerHeal(bool isMental, float amount)
         {
         }
+
+
+
+        public List<AgentModel> GetAgentsWithRequire(int equip_id = -1, RwbpType weapon_rwbp = (RwbpType)999999, SefiraEnum sefira = SefiraEnum.DUMMY, bool statisfy_all_require = false)
+        {
+            List<AgentModel> agents = new List<AgentModel>();
+            List<AgentModel> equip_agents = new List<AgentModel>();
+            List<AgentModel> rwbp_agents = new List<AgentModel>();
+            List<AgentModel> sefira_agents = new List<AgentModel>();
+
+            foreach (AgentModel agent in AgentManager.instance.GetAgentList())
+            {
+                if (agent.Equipment.weapon.metaInfo.id == equip_id)
+                {
+                    equip_agents.Add(agent);
+                }
+                if (agent.Equipment.armor.metaInfo.id == equip_id)
+                {
+                    equip_agents.Add(agent);
+                }
+                foreach (EGOgiftModel gift in agent.Equipment.gifts.addedGifts)
+                {
+                    if (gift.metaInfo.id == equip_id)
+                    {
+                        equip_agents.Add(agent);
+                    }
+                }
+
+                if (agent.Equipment.weapon.GetDamage(agent).type == weapon_rwbp)
+                {
+                    rwbp_agents.Add(agent);
+                }
+
+                if (agent.currentSefiraEnum == sefira )
+                {
+                    sefira_agents.Add(agent);
+                }
+            }
+
+            if (statisfy_all_require)
+            {
+                if (equip_agents.Count != 0)
+                {
+                    foreach (AgentModel agent2 in equip_agents)
+                    {
+                        if (rwbp_agents.Contains(agent2) && sefira_agents.Contains(agent2))
+                        {
+                            agents.Add(agent2);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                foreach (AgentModel agent3 in equip_agents)
+                {
+                    agents.Add(agent3);
+                }
+                foreach (AgentModel agent4 in rwbp_agents)
+                {
+                    if (!agents.Contains(agent4))
+                    {
+                        agents.Add (agent4);
+                    }
+                }
+                foreach (AgentModel agent5 in sefira_agents)
+                {
+                    if (!agents.Contains(agent5))
+                    {
+                        agents.Add(agent5);
+                    }
+                }
+            }
+            return agents;
+        }
+
+        public List<CreatureModel> GetCreaturesWithRequire(int qli_max = 999, int qli_current = 999, SefiraEnum sefira = SefiraEnum.DUMMY, bool statisfy_all_require = false)
+        {
+            List<CreatureModel> creatures = new List<CreatureModel>();
+            List<CreatureModel> qli_max_creatures = new List<CreatureModel>();
+            List<CreatureModel> qli_current_creatures = new List<CreatureModel>();
+            List<CreatureModel> sefira_creatures = new List<CreatureModel>();
+
+            foreach (CreatureModel creature in CreatureManager.instance.GetCreatureList())
+            {
+                if (creature.metaInfo.qliphothMax == qli_max)
+                {
+                    qli_max_creatures.Add(creature);
+                }
+
+                if (creature.qliphothCounter == qli_current)
+                {
+                    qli_current_creatures.Add(creature);
+                }
+
+                if (creature.sefira.sefiraEnum == sefira)
+                {
+                    sefira_creatures.Add(creature);
+                }
+            }
+
+            if (statisfy_all_require)
+            {
+                if (qli_max_creatures.Count != 0)
+                {
+                    foreach (CreatureModel creature in qli_max_creatures)
+                    {
+                        if (qli_current_creatures.Contains(creature) && sefira_creatures.Contains(creature))
+                        {
+                            creatures.Add(creature);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                foreach (CreatureModel creature in qli_max_creatures)
+                {
+                    creatures.Add(creature);
+                }
+                foreach (CreatureModel creature in qli_current_creatures)
+                {
+                    if (!creatures.Contains(creature))
+                    {
+                        creatures.Add(creature);
+                    }
+                }
+                foreach (CreatureModel creature in sefira_creatures)
+                {
+                    if (!creatures.Contains(creature))
+                    {
+                        creatures.Add(creature);
+                    }
+                }
+            }
+            return creatures;
+        }
     }
 
     public class MemeRequire
     {
         public MemeRequireType type;
         public int value;
+        public bool check = false;
     }
 
     public class MemeInfo
@@ -3057,6 +3199,7 @@ namespace NewGameMode
         public string sprite;
 
         public List<MemeRequire> requires;
+        public bool satisfy_all = false;
 
         public bool duplicate = false;
         public bool curse = false;
@@ -3084,6 +3227,75 @@ namespace NewGameMode
             }
             return false;
         }
+
+        public bool CheckRequire()
+        {
+            foreach (MemeRequire require in requires)
+            {
+                if (require.type == MemeRequireType.DAY)
+                {
+                    if (PlayerModel.instance.GetDay() + 1 >= require.value)//如果满足需求，直接返回false
+                    {
+                        require.check = true;
+                    }
+                }
+                if (require.type == MemeRequireType.EQUIP)
+                {
+                    foreach (EquipmentModel equipment in InventoryModel.Instance.equipList)
+                    {
+                        if (equipment.metaInfo.id == require.value)//如果需求满足，跳过本条需求
+                        {
+                            require.check = true;
+                        }
+                    }
+                }
+                if (require.type == MemeRequireType.ABNORMALITY)
+                {
+                    foreach (CreatureModel creature in CreatureManager.instance.GetCreatureList())
+                    {
+                        if (creature.metaInfo.id == require.value)//如果需求满足，跳过本条需求
+                        {
+                            require.check = true;
+                        }
+                    }
+                }
+                if (require.type == MemeRequireType.MEME)
+                {
+                    foreach (KeyValuePair<int, MemeModel> pair in MemeManager.instance.current_dic)
+                    {
+                        if (pair.Value.metaInfo.id == require.value)//如果模因的id正确
+                        {
+                            require.check = true;
+                        }
+                    }
+                }
+            }
+
+            if (satisfy_all)
+            {
+                foreach (MemeRequire require in requires)
+                {
+                    if (require.check == false)
+                    {
+                        return false;
+                    }
+                    return true;
+                }
+            }
+            else
+            {
+                foreach (MemeRequire require in requires)
+                {
+                    if (require.check == true)
+                    {
+                        return true;
+                    }
+                    return false;
+                }
+            }
+
+            return false;
+        }
     }
 
     public enum MemeRequireType
@@ -3091,7 +3303,7 @@ namespace NewGameMode
         DAY,
         EQUIP,
         ABNORMALITY,
-        MEME
+        MEME,
     }
 
     public class WonderModel
