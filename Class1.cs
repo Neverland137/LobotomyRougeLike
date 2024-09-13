@@ -512,11 +512,14 @@ namespace NewGameMode
             return true;
         }
 
-        public static void SaveRougeLikeDayData()
+        public static void SaveRougeLikeDayData()//存储某天的肉鸽相关内容，例如D35的模因和奇思
         {
+            //结构如下：dictionary的key表示存储的内容类型，例如wonder代表奇思，meme代表模因
+            //dictionary的value里是具体存储的内容
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
 
             dictionary.Add("wonder", WonderModel.instance.money);
+            dictionary.Add("meme", MemeManager.instance.current_dic);
 
             SaveUtil.WriteSerializableFile(path + "/Save/RougeLikeDayData.dat", dictionary);
         }
@@ -599,7 +602,7 @@ namespace NewGameMode
             }
         }
         //?
-        public static void LoadDayData(global::SaveType saveType)//加载天数存档
+        public static void LoadDayData(global::SaveType saveType)//加载原版天数存档
         {
             try
             {
@@ -698,7 +701,7 @@ namespace NewGameMode
             return;
         }
 
-        public static void LoadRougeLikeDayData()
+        public static void LoadRougeLikeDayData()//加载某天的肉鸽相关内容，例如D35的模因和奇思
         {
             if (!File.Exists(path + "/Save/RougeLikeDayData.dat"))
             {
@@ -709,6 +712,7 @@ namespace NewGameMode
                 Dictionary<string, object> dic = SaveUtil.ReadSerializableFile(path + "/Save/RougeLikeDayData.dat");
 
                 WonderModel.instance.LoadData(dic);
+                MemeManager.instance.LoadData(dic);
             }
         }
         public static void LoadDay(Dictionary<string, object> data)
@@ -2672,8 +2676,10 @@ namespace NewGameMode
     public class MemeManager
     {
         private static MemeManager _instance;
-        private static Dictionary<int, MemeInfo> all_dic = new Dictionary<int, MemeInfo>();//包含模组在内的所有模因
-        private static Dictionary<int, MemeInfo> current_dic = new Dictionary<int, MemeInfo>();//本局肉鸽目前拥有的模因
+
+        private static int _nextInstanceId = 0;
+        public Dictionary<int, MemeInfo> all_dic = new Dictionary<int, MemeInfo>();//包含模组在内的所有模因,key是模因id
+        public Dictionary<int, MemeModel> current_dic = new Dictionary<int, MemeModel>();//本局肉鸽目前拥有的模因,key是实例id
         public static MemeManager instance
         {
             get
@@ -2686,7 +2692,7 @@ namespace NewGameMode
             }
         }
 
-        public static Dictionary<int, MemeInfo> LoadSingleInfo(XmlDocument document)
+        public static Dictionary<int, MemeInfo> LoadSingleXmlInfo(XmlDocument document)//读取单个xml中的所有模因信息
         {
             Dictionary<int, MemeInfo> dictionary = new Dictionary<int, MemeInfo>();
             
@@ -2705,7 +2711,7 @@ namespace NewGameMode
                     XmlNode xmlNode2 = xmlNode.SelectSingleNode("name");
                     if (xmlNode2 != null)
                     {
-                        memeInfo.localizeData.Add("name", xmlNode2.InnerText.Trim());//名字在xml文件里的标签
+                        memeInfo.localizeData.Add("name", xmlNode2.InnerText.Trim());//名字在xml文件里的标签名（不是标签内容
                     }
                     else
                     {
@@ -2715,7 +2721,7 @@ namespace NewGameMode
                     XmlNode xmlNode4 = xmlNode.SelectSingleNode("desc");
                     if (xmlNode4 != null)
                     {
-                        memeInfo.localizeData.Add("desc", xmlNode4.InnerText.Trim());//描述在xml文件里的标签
+                        memeInfo.localizeData.Add("desc", xmlNode4.InnerText.Trim());//描述在xml文件里的标签名（不是标签内容
                     }
 
 
@@ -2832,22 +2838,22 @@ namespace NewGameMode
                 
                 string xml = File.ReadAllText(Application.dataPath + "/Meme/txts/BaseMeme.txt");
                 xmlDocument.LoadXml(xml);
-                Dictionary<int, MemeInfo> dictionary = LoadSingleInfo(xmlDocument);
-                Dictionary<string, Dictionary<int, MemeInfo>> dictionary2 = new Dictionary<string, Dictionary<int, MemeInfo>>();//还在嵌套
+                Dictionary<int, MemeInfo> dictionary = LoadSingleXmlInfo(xmlDocument);
+                //Dictionary<string, Dictionary<int, MemeInfo>> dictionary2 = new Dictionary<string, Dictionary<int, MemeInfo>>();//还在嵌套
                 LobotomyBaseMod.ModDebug.Log("RougeLike Load 2");
                 foreach (global::ModInfo modInfo in ((global::Add_On)global::Add_On.instance).ModList)
                 {
                     ModInfo modInfo2 = (global::ModInfo)modInfo;
                     DirectoryInfo directoryInfo = EquipmentDataLoader.CheckNamedDir(modInfo2.modpath, "Meme");//在模组里找叫Meme的文件夹
-                    bool flag2 = directoryInfo != null && Directory.Exists(directoryInfo.FullName + "/txts");
+                    bool flag2 = directoryInfo != null && Directory.Exists(directoryInfo.FullName + "/txts");//在Meme文件夹里找txt
                     if (flag2)
                     {
                         DirectoryInfo directoryInfo2 = new DirectoryInfo(directoryInfo.FullName + "/txts");
-                        bool flag3 = directoryInfo2.GetFiles().Length != 0;
+                        bool flag3 = directoryInfo2.GetFiles().Length != 0;//看这个txt是不是空的
                         if (flag3)
                         {
-                            bool flag4 = modInfo2.modid == string.Empty;
-                            if (flag4)
+                            //bool flag4 = modInfo2.modid == string.Empty;
+                            if (true)//把modid相关的东西注释掉了
                             {
                                 foreach (FileInfo fileInfo in directoryInfo2.GetFiles())
                                 {
@@ -2855,10 +2861,10 @@ namespace NewGameMode
                                     if (flag5)
                                     {
                                         XmlDocument xmlDocument2 = new XmlDocument();
-                                        xmlDocument2.LoadXml(File.ReadAllText(fileInfo.FullName));
-                                        foreach (KeyValuePair<int, MemeInfo> keyValuePair in LoadSingleInfo(xmlDocument))
+                                        xmlDocument2.LoadXml(File.ReadAllText(fileInfo.FullName));//把txt加载成xml
+                                        foreach (KeyValuePair<int, MemeInfo> keyValuePair in LoadSingleXmlInfo(xmlDocument))
                                         {
-                                            //读取模组文件夹里的所有模因
+                                            //读取xml里的所有模因信息
                                             bool flag6 = dictionary.ContainsKey(keyValuePair.Key);
                                             if (flag6)
                                             {
@@ -2874,7 +2880,7 @@ namespace NewGameMode
                     }
                 }
                 LobotomyBaseMod.ModDebug.Log("RougeLike Load 3");
-                all_dic = dictionary;
+                instance.all_dic = dictionary;
                 LobotomyBaseMod.ModDebug.Log("RougeLike Load 4");
             }
             catch (Exception ex)
@@ -2883,13 +2889,162 @@ namespace NewGameMode
             }
         }
         
+        public void LoadData(Dictionary<string, object> dic)//不用写存储，存储已经在Harmony_Patch的SaveRougeLikeDayData里了
+        {
+            GameUtil.TryGetValue<Dictionary<int, MemeModel>>(dic, "meme", ref instance.current_dic);
+        }
+        public MemeModel CreateMemeModel(int id)
+        {
+            MemeModel memeModel = new MemeModel();
+
+            foreach (KeyValuePair<int, MemeInfo> pair in instance.all_dic)
+            {
+                if (pair.Value.id == id)
+                {
+                    memeModel.metaInfo = pair.Value;
+                    memeModel.instanceId = _nextInstanceId;
+
+                    Type type = Type.GetType(pair.Value.script);//获取script字符串所指定的类型
+                    object obj = null;
+                    if (type != null)
+                    {
+                        obj = Activator.CreateInstance(type);
+                    }
+                    if (obj is MemeScriptBase)
+                    {
+                        memeModel.script = (MemeScriptBase)obj;
+                    }
+
+                    instance.current_dic.Add(_nextInstanceId, memeModel);
+                    _nextInstanceId++;
+                    break;
+
+                }
+            }
+
+            return memeModel;
+        }
     }
 
     public class MemeModel
     {
-        
+        public MemeInfo metaInfo;
+        public long instanceId;
+        public MemeScriptBase script = new MemeScriptBase();
+
     }
-    
+
+    public class MemeScriptBase
+    {
+        private MemeModel _model;
+        public MemeModel model
+        {
+            get
+            {
+                return _model;
+            }
+        }
+        public void SetModel(MemeModel m)
+        {
+            _model = m;
+        }
+
+        public virtual void OnGet(global::UnitModel actor)
+        {
+        }
+
+        public virtual void OnRelease()
+        {
+        }
+
+        public virtual void OnStageStart()
+        {
+        }
+
+        public virtual void OnStageRelease()
+        {
+        }
+
+        public virtual void OnPrepareWeapon(global::UnitModel actor)
+        {
+        }
+
+        public virtual void OnCancelWeapon(global::UnitModel actor)
+        {
+        }
+
+        public virtual void OnAttackStart(UnitModel actor, UnitModel target)
+        {
+        }
+
+        public virtual void OnAttackEnd(UnitModel actor, UnitModel target)
+        {
+        }
+
+        public virtual void OnKillMainTarget(UnitModel actor, UnitModel target)
+        {
+        }
+
+        public virtual void OnGiveDamage(UnitModel actor, UnitModel target, ref DamageInfo dmg)
+        {
+        }
+
+        public virtual void OnGiveDamageAfter(UnitModel actor, UnitModel target, DamageInfo dmg)
+        {
+        }
+
+        public virtual void OnTakeDamage(UnitModel actor, ref DamageInfo dmg)
+        {
+        }
+
+        // Token: 0x0600370E RID: 14094 RVA: 0x00153378 File Offset: 0x00151578
+        public virtual void OnTakeDamage_After(float value, RwbpType type)
+        {
+        }
+
+        // Token: 0x06003712 RID: 14098 RVA: 0x00153408 File Offset: 0x00151608
+        public virtual DefenseInfo GetDefense(UnitModel actor)
+        {
+            if (actor is WorkerModel)
+            {
+                return actor.Equipment.armor.metaInfo.defenseInfo.Copy();
+            }
+            else if (actor is CreatureModel)
+            {
+                return (actor as CreatureModel).metaInfo.defenseTable.GetDefenseInfo();
+            }
+            else
+            {
+                return (actor as RabbitModel).defense;
+            }
+        }
+
+        public virtual float GetDamageFactor()
+        {
+            return 1f;
+        }
+
+        /*
+        public virtual DamageInfo GetDamage(UnitModel actor)
+        {
+            
+        }
+        */
+
+        public virtual void OnFixedUpdate()
+        {
+        }
+
+        public virtual float GetWorkProbSpecialBonus(global::UnitModel actor, global::SkillTypeInfo skill)
+        {
+            return 0f;
+        }
+
+        public virtual void OnOwnerHeal(bool isMental, float amount)
+        {
+        }
+    }
+
     public class MemeRequire
     {
         public MemeRequireType type;
@@ -2964,6 +3119,7 @@ namespace NewGameMode
             this.money = 0;
         }
 
+        /*
         public Dictionary<string, object> GetSaveData()
         {
             return new Dictionary<string, object>
@@ -2974,10 +3130,11 @@ namespace NewGameMode
             }
         };
         }
+        */
 
         public void LoadData(Dictionary<string, object> dic)
         {
-            global::GameUtil.TryGetValue<int>(dic, "wonder", ref this.money);
+            GameUtil.TryGetValue<int>(dic, "wonder", ref this.money);
         }
         public bool EnoughCheck(int cost)
         {
