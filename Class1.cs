@@ -13,6 +13,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.UI;
+using static CreatureGenerate.CreatureGenerateData;
 
 namespace NewGameMode
 {
@@ -50,9 +51,7 @@ namespace NewGameMode
                 //屏蔽剧情
                 harmony.Patch(typeof(StoryUI).GetMethod("LoadStory", AccessTools.all),null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NoStory")),null);
                 //第40天（即肉鸽模式的第五天）开启挑战
-                new Challenge_Patch(harmony);
-                new EnergyAndOverload_Patch(harmony);
-                new EnergyAndOverload_Patch.RGRandomEventManager(harmony);
+                
                 //harmony.Patch(typeof(AlterTitleController).GetMethod("Awake", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NewGameModeButton_Awake")), null);
                 //harmony.Patch(typeof(AlterTitleController).GetMethod("OnClickButton", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NewGameModeButton_OnClick")), null);
                 //图鉴相关
@@ -61,6 +60,11 @@ namespace NewGameMode
                 harmony.Patch(typeof(AgentModel).GetMethod("OnStageStart", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("ObserveGetBouns")), null);
                 harmony.Patch(typeof(CreatureModel).GetMethod("GetCubeSpeed"), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("WorkSpeedBoost")));
                 harmony.Patch(typeof(CreatureEquipmentMakeInfo).GetMethod("GetCostAfterUpgrade", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("EquipmentCostDecrease")), null);
+
+                new Challenge_Patch(harmony);
+                new EnergyAndOverload_Patch(harmony);
+                new EnergyAndOverload_Patch.RGRandomEventManager(harmony);
+                new Meme_Patch(harmony);
             }
             catch (Exception ex)
             {
@@ -2673,13 +2677,94 @@ namespace NewGameMode
         }
     }
 
+    public class Meme_Patch
+    {
+        public static GameMode rougeLike = (GameMode)666666;
+        public Meme_Patch(HarmonyInstance instance)
+        {
+            int num = 0;
+            try
+            {
+                instance.Patch(typeof(GameStaticDataLoader).GetMethod("LoadStaticData"), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("LoadAllInfo"))); num++;
+
+                instance.Patch(typeof(ConsoleScript).GetMethod("GetHmmCommand", AccessTools.all), new HarmonyMethod(typeof(Meme_Patch).GetMethod("GetAllCommand", AccessTools.all)), null, null); num++;
+
+                instance.Patch(typeof(GameManager).GetMethod("StartStage"), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnStageStart"))); num++;
+                instance.Patch(typeof(GameManager).GetMethod("Release", AccessTools.all), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnStageRelease"))); num++;
+            }
+            catch (Exception ex)
+            {
+                File.WriteAllText(Harmony_Patch.path + "/MemePatchError.txt", num + Environment.NewLine + ex.Message + Environment.NewLine + ex.StackTrace);
+            }
+        }
+        public static void LoadAllInfo()
+        {
+            MemeManager.LoadAllInfo();
+        }
+
+        public static bool GetAllCommand(string cmd, ref string __result)
+        {
+            
+            string[] array = cmd.Split(new char[]
+            {
+                ' '
+            });
+
+            if (array.Length != 4)
+            {
+                return true;
+            }
+
+            string flag = array[0].ToLower();
+            string type = array[1].ToLower().Trim();//指定操作目标，比如模因和奇思
+            string type2 = array[2].ToLower().Trim();//指定具体要做的操作，比如添加和移除
+            int value = Convert.ToInt32(array[3].ToLower().Trim());
+
+            if (flag == "ykmt")
+            {
+                if (type == "meme")
+                {
+                    if (type2 == "add")
+                    {
+                        MemeManager.instance.CreateMemeModel(value);
+                        __result = "";
+                        return false;
+                    }
+                    else if (type2 == "remove")
+                    {
+                        MemeManager.instance.RemoveMemeModel(value);
+                        __result = "";
+                        return false;
+                    }
+                }
+                
+            }
+            
+            return true;
+        }
+
+
+        public static void Meme_OnStageStart()
+        {
+            MemeManager.instance.OnStageStart();
+        }
+        public static void Meme_OnStageRelease()
+        {
+            MemeManager.instance.OnStageRelease();
+        }
+
+    }
+
     public class MemeManager
     {
         private static MemeManager _instance;
 
-        private static int _nextInstanceId = 0;
+        private int _nextInstanceId = 0;
         public Dictionary<int, MemeInfo> all_dic = new Dictionary<int, MemeInfo>();//包含模组在内的所有模因,key是模因id
         public Dictionary<int, MemeModel> current_dic = new Dictionary<int, MemeModel>();//本局肉鸽目前拥有的模因,key是实例id
+        List<MemeInfo> all_list = new List<MemeInfo>();
+        List<MemeModel> current_list = new List<MemeModel>();
+
         public static MemeManager instance
         {
             get
@@ -2695,139 +2780,160 @@ namespace NewGameMode
         public static Dictionary<int, MemeInfo> LoadSingleXmlInfo(XmlDocument document)//读取单个xml中的所有模因信息
         {
             Dictionary<int, MemeInfo> dictionary = new Dictionary<int, MemeInfo>();
-            
-            IEnumerator enumerator = document.SelectSingleNode("meme_list").SelectNodes("meme").GetEnumerator();
+
+            IEnumerator enumerator = document.SelectSingleNode("meme_list").SelectNodes("meme").GetEnumerator(); 
             try
             {
-                while (enumerator.MoveNext())
+                try
                 {
-                    object obj = enumerator.Current;
-                    XmlNode xmlNode = (XmlNode)obj;
-                    MemeInfo memeInfo = new MemeInfo();
-
-                    int num = int.Parse(xmlNode.Attributes.GetNamedItem("id").InnerText);
-                    string innerText = xmlNode.Attributes.GetNamedItem("type").InnerText;
-                    memeInfo.id = num;
-                    XmlNode xmlNode2 = xmlNode.SelectSingleNode("name");
-                    if (xmlNode2 != null)
+                    
+                    while (enumerator.MoveNext())
                     {
-                        memeInfo.localizeData.Add("name", xmlNode2.InnerText.Trim());//名字在xml文件里的标签名（不是标签内容
-                    }
-                    else
-                    {
-                        memeInfo.localizeData.Add("name", num + "name");
-                    }
+                        object obj = enumerator.Current; 
+                        XmlNode xmlNode = (XmlNode)obj; 
+                        MemeInfo memeInfo = new MemeInfo(); 
 
-                    XmlNode xmlNode4 = xmlNode.SelectSingleNode("desc");
-                    if (xmlNode4 != null)
-                    {
-                        memeInfo.localizeData.Add("desc", xmlNode4.InnerText.Trim());//描述在xml文件里的标签名（不是标签内容
-                    }
-
-
-                    memeInfo.requires = new List<MemeRequire>();
-                    IEnumerator enumerator2 = xmlNode.SelectNodes("require").GetEnumerator();
-                    try
-                    {
-                        while (enumerator2.MoveNext())
+                        int num = int.Parse(xmlNode.Attributes.GetNamedItem("id").InnerText); 
+                        memeInfo.id = num; 
+                        XmlNode xmlNode2 = xmlNode.SelectSingleNode("name");
+                        if (xmlNode2 != null)
                         {
-                            object obj2 = enumerator2.Current;
-                            XmlNode xmlNode7 = (XmlNode)obj2;
-                            string innerText2 = xmlNode7.Attributes.GetNamedItem("type").InnerText;
-                            int value = int.Parse(xmlNode7.InnerText);
-                            MemeRequire memeRequire = new MemeRequire();
-                            if (innerText2 == "day")
+                            memeInfo.localizeData.Add("name", xmlNode2.InnerText.Trim());//名字在xml文件里的标签名（不是标签内容
+                        }
+                        else
+                        {
+                            memeInfo.localizeData.Add("name", num + "name");
+                        }
+
+                        
+                        XmlNode xmlNode4 = xmlNode.SelectSingleNode("desc");
+                        if (xmlNode4 != null)
+                        {
+                            memeInfo.localizeData.Add("desc", xmlNode4.InnerText.Trim());//描述在xml文件里的标签名（不是标签内容
+                        }
+                        
+
+                        memeInfo.requires = new List<MemeRequire>();
+                        IEnumerator enumerator2 = xmlNode.SelectNodes("require").GetEnumerator();
+                        try
+                        {
+                            while (enumerator2.MoveNext())
                             {
-                                memeRequire.type = MemeRequireType.DAY;
-                                memeRequire.value = value;
+                                object obj2 = enumerator2.Current;
+                                XmlNode xmlNode7 = (XmlNode)obj2;
+                                string innerText2 = xmlNode7.Attributes.GetNamedItem("type").InnerText;//需求的类型
+
+                                int value = 0;
+                                if (int.TryParse(xmlNode7.InnerText.Trim(), out value))
+                                {
+                                    value = int.Parse(xmlNode7.InnerText.Trim());
+                                }
+                                
+
+                                MemeRequire memeRequire = new MemeRequire();
+                                if (innerText2 == "day")
+                                {
+                                    memeRequire.type = MemeRequireType.DAY;
+                                    memeRequire.value = value;
+                                }
+                                if (innerText2 == "equip")
+                                {
+                                    memeRequire.type = MemeRequireType.EQUIP;
+                                    memeRequire.value = value;
+                                }
+                                if (innerText2 == "abnormality")
+                                {
+                                    memeRequire.type = MemeRequireType.ABNORMALITY;
+                                    memeRequire.value = value;
+                                }
+                                if (innerText2 == "meme")
+                                {
+                                    memeRequire.type = MemeRequireType.MEME;
+                                    memeRequire.value = value;
+                                }
+                                if (innerText2 == "satisfyall")
+                                {
+                                    if (xmlNode7.InnerText.Trim() == "true")
+                                    {
+                                        memeInfo.satisfy_all = true;
+                                    }
+                                }
+
+                                memeInfo.requires.Add(memeRequire);
                             }
-                            if (innerText2 == "equip")
+                        }
+                        finally
+                        {
+                            IDisposable disposable;
+                            if ((disposable = (enumerator2 as IDisposable)) != null)
                             {
-                                memeRequire.type = MemeRequireType.EQUIP;
-                                memeRequire.value = value;
+                                disposable.Dispose();//需要在读取完require这个enumrator后释放它
                             }
-                            if (innerText2 == "abnormality")
+                        }
+
+                        XmlNode xmlNode10 = xmlNode.SelectSingleNode("duplicate");
+                        if (xmlNode10 != null)
+                        {
+                            if (xmlNode10.InnerText.Trim() == "true")
                             {
-                                memeRequire.type = MemeRequireType.ABNORMALITY;
-                                memeRequire.value = value;
+                                memeInfo.duplicate = true;
                             }
-                            if (innerText2 == "meme")
+                        }
+                        XmlNode xmlNode11 = xmlNode.SelectSingleNode("curse");
+                        if (xmlNode11 != null)
+                        {
+                            if (xmlNode11.InnerText.Trim() == "true")
                             {
-                                memeRequire.type = MemeRequireType.MEME;
-                                memeRequire.value = value;
+                                memeInfo.curse = true;
                             }
-                            if (innerText2 == "true")
+                        }
+                        XmlNode xmlNode12 = xmlNode.SelectSingleNode("boss");
+                        if (xmlNode12 != null)
+                        {
+                            if (xmlNode12.InnerText.Trim() == "true")
                             {
-                                memeInfo.satisfy_all = true;
+                                memeInfo.boss = true;
                             }
-
-                            memeInfo.requires.Add(memeRequire);
                         }
-                    }
-                    finally
-                    {
-                        IDisposable disposable;
-                        if ((disposable = (enumerator2 as IDisposable)) != null)
+                        XmlNode xmlNode13 = xmlNode.SelectSingleNode("suit");
+                        if (xmlNode13 != null)
                         {
-                            disposable.Dispose();//需要在读取完require这个enumrator后释放它
+                            if (xmlNode13.InnerText.Trim() != null)
+                            {
+                                memeInfo.suit = int.Parse(xmlNode13.InnerText.Trim());
+                            }
                         }
-                    }
 
-                    XmlNode xmlNode10 = xmlNode.SelectSingleNode("duplicate");
-                    if (xmlNode10 != null)
-                    {
-                        if (xmlNode10.InnerText.Trim() == "true")
+                        XmlNode xmlNode6 = xmlNode.SelectSingleNode("script");
+                        if (xmlNode6 != null)
                         {
-                            memeInfo.duplicate = true;
+                            memeInfo.script = xmlNode6.InnerText;
                         }
-                    }
-                    XmlNode xmlNode11 = xmlNode.SelectSingleNode("curse");
-                    if (xmlNode11 != null)
-                    {
-                        if (xmlNode11.InnerText.Trim() == "true")
-                        {
-                            memeInfo.curse = true;
-                        }
-                    }
-                    XmlNode xmlNode12 = xmlNode.SelectSingleNode("boss");
-                    if (xmlNode12 != null)
-                    {
-                        if (xmlNode12.InnerText.Trim() == "true")
-                        {
-                            memeInfo.boss = true;
-                        }
-                    }
-                    XmlNode xmlNode13 = xmlNode.SelectSingleNode("suit");
-                    if (xmlNode13 != null)
-                    {
-                        if (xmlNode.Attributes.GetNamedItem("suit").InnerText != null)
-                        {
-                            memeInfo.suit = int.Parse(xmlNode13.Attributes.GetNamedItem("suit").InnerText);
-                        }
-                    }
 
-                    XmlNode xmlNode6 = xmlNode.SelectSingleNode("script");
-                    if (xmlNode6 != null)
-                    {
-                        memeInfo.script = xmlNode6.InnerText;
-                    }
+                        XmlNode xmlNode9 = xmlNode.SelectSingleNode("grade");
+                        if (xmlNode9 != null)
+                        {
+                            if (xmlNode9.InnerText.Trim() != null)
+                            {
+                                memeInfo.grade = int.Parse(xmlNode9.InnerText.Trim());
+                            }
+                        }
 
-                    XmlNode xmlNode9 = xmlNode.SelectSingleNode("grade");
-                    if (xmlNode9 != null)
-                    {
-                        memeInfo.grade = int.Parse(xmlNode9.Attributes.GetNamedItem("grade").InnerText);
+                        dictionary.Add(memeInfo.id, memeInfo);
                     }
-
-                    dictionary.Add(memeInfo.id, memeInfo);
+                }
+                finally
+                {
+                    IDisposable disposable2;
+                    if ((disposable2 = (enumerator as IDisposable)) != null)
+                    {
+                        disposable2.Dispose();
+                    }
                 }
             }
-            finally
+            catch (Exception ex)
             {
-                IDisposable disposable2;
-                if ((disposable2 = (enumerator as IDisposable)) != null)
-                {
-                    disposable2.Dispose();
-                }
+                File.WriteAllText(Harmony_Patch.path + "/LoadSingleXmlInfoError.txt", Environment.NewLine + ex.Message + Environment.NewLine + ex.StackTrace);
             }
             return dictionary;
         }
@@ -2840,7 +2946,7 @@ namespace NewGameMode
                 XmlDocument xmlDocument = new XmlDocument();
                 bool flag = !File.Exists(Harmony_Patch.path + "/Meme/txts/BaseMeme.txt");
                 
-                string xml = File.ReadAllText(Application.dataPath + "/Meme/txts/BaseMeme.txt");
+                string xml = File.ReadAllText(Harmony_Patch.path + "/Meme/txts/BaseMeme.txt");
                 xmlDocument.LoadXml(xml);
                 Dictionary<int, MemeInfo> dictionary = LoadSingleXmlInfo(xmlDocument);
                 //Dictionary<string, Dictionary<int, MemeInfo>> dictionary2 = new Dictionary<string, Dictionary<int, MemeInfo>>();//还在嵌套
@@ -2885,6 +2991,10 @@ namespace NewGameMode
                 }
                 LobotomyBaseMod.ModDebug.Log("RougeLike Load 3");
                 instance.all_dic = dictionary;
+                foreach (KeyValuePair<int, MemeInfo> pair in instance.all_dic)
+                {
+                    instance.all_list.Add(pair.Value);
+                }
                 LobotomyBaseMod.ModDebug.Log("RougeLike Load 4");
             }
             catch (Exception ex)
@@ -2896,44 +3006,134 @@ namespace NewGameMode
         public void LoadData(Dictionary<string, object> dic)//不用写存储，存储已经在Harmony_Patch的SaveRougeLikeDayData里了
         {
             GameUtil.TryGetValue<Dictionary<int, MemeModel>>(dic, "meme", ref instance.current_dic);
+            if (instance.current_dic.Count == 0)
+            {
+                return;
+            }
+            foreach (KeyValuePair<int, MemeModel> pair in instance.current_dic)
+            {
+                instance.current_list.Add(pair.Value);
+            }
         }
         public MemeModel CreateMemeModel(int id)
         {
             MemeModel memeModel = new MemeModel();
 
-            foreach (KeyValuePair<int, MemeInfo> pair in instance.all_dic)
+            int num = 0;
+            try
             {
-                if (pair.Value.id == id)
+                foreach (KeyValuePair<int, MemeInfo> pair in instance.all_dic)
                 {
-                    memeModel.metaInfo = pair.Value;
-                    memeModel.instanceId = _nextInstanceId;
-
-                    Type type = Type.GetType(pair.Value.script);//获取script字符串所指定的类型
-                    object obj = null;
-                    if (type != null)
+                    if (pair.Value.id == id)
                     {
-                        obj = Activator.CreateInstance(type);
-                    }
-                    if (obj is MemeScriptBase)
-                    {
-                        memeModel.script = (MemeScriptBase)obj;
-                    }
+                        memeModel.metaInfo = pair.Value;num++;
 
-                    instance.current_dic.Add(_nextInstanceId, memeModel);
-                    _nextInstanceId++;
+                        memeModel.instanceId = instance._nextInstanceId; num++;
+
+                        File.AppendAllText(Harmony_Patch.path + "/CreateMeme0.txt", pair.Value.script + Environment.NewLine);
+                        //Type type = Type.GetType(pair.Value.script); num++;
+                        object obj = null; num++;
+
+                        foreach (Assembly assembly in Add_On.instance.AssemList)//获取script字符串所指定的类型
+                        {
+                            foreach (Type type2 in assembly.GetTypes())
+                            {
+                                bool flag5 = type2.Name == pair.Value.script;
+                                if (flag5)
+                                {
+                                    obj = Activator.CreateInstance(type2);
+                                }
+                            }
+                        }
+
+                        //if (!Type.Equals(type, null))
+                        {
+                            //obj = Activator.CreateInstance(type); num++; File.AppendAllText(Harmony_Patch.path + "/CreateMeme0.txt", "HasType"+ Environment.NewLine);
+                        }
+                        if (obj is MemeScriptBase)
+                        {
+                            memeModel.script = (MemeScriptBase)obj; num++; File.AppendAllText(Harmony_Patch.path + "/CreateMeme0.txt", "IsMeme"+ Environment.NewLine);
+                        }
+
+                        instance.current_dic.Add(_nextInstanceId, memeModel); num++;
+                        instance.current_list.Add(memeModel);
+                        instance._nextInstanceId++; num++;
+
+                        memeModel.script.OnGet(); num++;
+                        break;
+
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                File.WriteAllText(Harmony_Patch.path + "/CreateMeme.txt", num.ToString());
+                File.WriteAllText(Harmony_Patch.path + "/CreateMemeError.txt", num + Environment.NewLine + ex.Message + Environment.NewLine + ex.StackTrace);
+            }
+
+            return memeModel;
+        }
+
+        public void RemoveMemeModel(int id)
+        {
+            MemeModel memeModel = new MemeModel();
+
+            foreach (MemeModel meme in instance.current_list)
+            {
+                if (meme.metaInfo.id == id)
+                {
+                    current_dic.Remove(meme.instanceId);
+                    current_list.Remove(memeModel);
+
+                    meme.script.OnRelease();
                     break;
 
                 }
             }
+        }
 
-            return memeModel;
+        public void OnGet()//会使所有模因都触发刚入手时的效果！慎用！
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.OnGet();
+            }
+        }
+        public void OnRelease()//会使所有模因都触发消失时的效果！慎用！
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.OnRelease();
+            }
+        }
+        public void OnStageStart()
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.OnStageStart();
+            }
+        }
+        public void OnStageRelease()
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.OnStageRelease();
+            }
+        }
+
+        public void OnPrepareWeapon(UnitModel actor)
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.OnPrepareWeapon(actor);
+            }
         }
     }
 
     public class MemeModel
     {
         public MemeInfo metaInfo;
-        public long instanceId;
+        public int instanceId;
         public MemeScriptBase script = new MemeScriptBase();
 
     }
@@ -2953,7 +3153,7 @@ namespace NewGameMode
             _model = m;
         }
 
-        public virtual void OnGet(global::UnitModel actor)
+        public virtual void OnGet()
         {
         }
 
@@ -2969,11 +3169,11 @@ namespace NewGameMode
         {
         }
 
-        public virtual void OnPrepareWeapon(global::UnitModel actor)
+        public virtual void OnPrepareWeapon(UnitModel actor)
         {
         }
 
-        public virtual void OnCancelWeapon(global::UnitModel actor)
+        public virtual void OnCancelWeapon(UnitModel actor)
         {
         }
 
@@ -2997,12 +3197,12 @@ namespace NewGameMode
         {
         }
 
-        public virtual void OnTakeDamage(UnitModel actor, ref DamageInfo dmg)
+        public virtual void OnTakeDamage(UnitModel actor, UnitModel victim, ref DamageInfo dmg)
         {
         }
 
         // Token: 0x0600370E RID: 14094 RVA: 0x00153378 File Offset: 0x00151578
-        public virtual void OnTakeDamage_After(float value, RwbpType type)
+        public virtual void OnTakeDamage_After(float value, UnitModel victim, RwbpType type)
         {
         }
 
@@ -3209,7 +3409,7 @@ namespace NewGameMode
         public string script;
         public int grade = 1;
 
-        public Dictionary<string, string> localizeData;
+        public Dictionary<string, string> localizeData = new Dictionary<string, string>();
 
         // Token: 0x040034D8 RID: 13528
         [NonSerialized]
