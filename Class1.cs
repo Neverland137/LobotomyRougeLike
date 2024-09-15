@@ -1,4 +1,5 @@
-﻿using Harmony;
+﻿using Assets.Scripts.UI.Utils;
+using Harmony;
 using Steamworks;
 using Steamworks.Data;
 using Steamworks.Ugc;
@@ -32,14 +33,17 @@ namespace NewGameMode
             {
                 HarmonyInstance harmony = HarmonyInstance.Create("ykmt.NewGameMode");
                 File.WriteAllText(path + "/Log.txt", "");
-                //加载或存储数据
+                //存储数据
                 harmony.Patch(typeof(GlobalGameManager).GetMethod("SaveGlobalData", AccessTools.all), new HarmonyMethod(typeof(Harmony_Patch).GetMethod("SaveGlobalData")), null, null);
                 harmony.Patch(typeof(GlobalGameManager).GetMethod("SaveData", AccessTools.all), new HarmonyMethod(typeof(Harmony_Patch).GetMethod("SaveDayData")), null, null);
+                harmony.Patch(typeof(GlobalGameManager).GetMethod("SaveData", AccessTools.all), new HarmonyMethod(typeof(Harmony_Patch).GetMethod("SaveRougeLikeDayData")), null, null);
                 //结束这一天时存档
                 harmony.Patch(typeof(GameManager).GetMethod("ClearStage", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("OnClearStage")), null);
                 
-                //创建按钮
+                //各种UI：主页UI，当天结算界面UI，
                 harmony.Patch(typeof(AlterTitleController).GetMethod("Start", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NewGameModeButton_Start")), null);
+                harmony.Patch(typeof(ResultScreen).GetMethod("OnSuccessManagement", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("ResultScreen_Board")), null);
+
 
                 //局内机制修改:禁止重开和回库
                 harmony.Patch(typeof(GameManager).GetMethod("RestartGame", AccessTools.all), new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NoRestartAndCheckPoint")), null, null);
@@ -308,10 +312,16 @@ namespace NewGameMode
             GlobalGameManager.instance.InitStoryMode();
             GlobalGameManager.instance.gameMode = rougeLike;
             PlayerModel.instance.InitAddingCreatures();
+
+
+            MemeManager.instance.current_dic.Clear();
+            MemeManager.instance.current_list.Clear();
+            WonderModel.instance.money = 0;
             SetRougelikeGlobalData();
             SetRougelikeDayData();
             SaveGlobalData();
             SaveDayData();
+            SaveRougeLikeDayData();
             GlobalGameManager.instance.gameMode = rougeLike;
             if (GlobalGameManager.instance.loadingScreen.isLoading)
             {
@@ -778,6 +788,7 @@ namespace NewGameMode
             {
                 SaveGlobalData();
                 SaveDayData();
+                SaveRougeLikeDayData();
                 if (PlayerModel.instance.GetDay() + 1 == 40)
                 {
                     ReturnToTitleOnGameOver();
@@ -1491,6 +1502,21 @@ namespace NewGameMode
             }
                 
         }
+
+        public static void ResultScreen_Board()
+        {
+            GameObject.Destroy(ResultScreen.instance.root.transform.GetChild(0).GetChild(6).GetChild(0).gameObject.GetComponent<FontLoadScript>());
+            GameObject.Destroy(ResultScreen.instance.root.transform.GetChild(0).GetChild(6).GetChild(0).gameObject.GetComponent<LocalizeTextLoadScript>());
+
+            UnityEngine.UI.Text title = ResultScreen.instance.root.transform.GetChild(0).GetChild(6).GetChild(0).GetComponent<UnityEngine.UI.Text>();
+            title.text = LocalizeTextDataModel.instance.GetText("ResultScreen_Title");
+
+            UnityEngine.UI.Text text = ResultScreen.instance.root.transform.GetChild(0).GetChild(6).gameObject.AddComponent<UnityEngine.UI.Text>();
+            text.text = "AAAAAAAA";
+            text.color = UnityEngine.Color.white;
+            text.transform.localPosition = Vector3.zero;
+            text.transform.localScale = Vector3.one*100;
+        }
     }
 
     public class Challenge_Patch
@@ -1697,11 +1723,11 @@ namespace NewGameMode
                         //argument cant be null那个报错是咋回事
                         //原方法是null？没获取到原方法？
                     }
-                    else if (random <= 0.2f)
+                    else if (random <= 1)
                     {
-                        //CreateRandomCreature();
+                        CreateRandomCreature();
                         float[] rate = { 0.5f, 0.8f, 1 };
-                        CreatePanicAgent(90, 110, rate);
+                        //CreatePanicAgent(90, 110, rate);
                     }
                     else if (random <= 0.3f)
                     {
@@ -1957,28 +1983,23 @@ namespace NewGameMode
         public static void CreateRandomCreature()
         {
             int num = 0;
-            int num0 = 0;
             try
             {
-                num0++;
-                File.WriteAllText(Harmony_Patch.path + "/RandomEventCreature0" + num0, "");
                 if (GlobalGameManager.instance.gameMode == rougeLike)
                 {
-                    num0++;
-                    File.WriteAllText(Harmony_Patch.path + "/RandomEventCreature0" + num0, "");
-                    bool dlcCreatureOn = GlobalGameManager.instance.dlcCreatureOn; num0++;//获取所有可用的异想体id列表，但不包含工具型
+                    bool dlcCreatureOn = GlobalGameManager.instance.dlcCreatureOn;//获取所有可用的异想体id列表，但不包含工具型
 
-                    List<long> all_creature_list; num0++;
-                    List<long> remove_creature_list = new List<long>(); num0++;
+                    List<long> all_creature_list;
+                    List<long> remove_creature_list = new List<long>();
                     if (dlcCreatureOn)
                     {
-                        num0++;
-                        all_creature_list = new List<long>(CreatureGenerateInfo.all); num0++;
+                        
+                        all_creature_list = new List<long>(CreatureGenerateInfo.all);
                     }
                     else
                     {
-                        num0++;
-                        all_creature_list = new List<long>(CreatureGenerateInfo.all_except_creditCreatures); num0++;
+                        
+                        all_creature_list = new List<long>(CreatureGenerateInfo.all_except_creditCreatures);
                     }
                     //iteAllText(path + "/RandomCreatureError1.txt", "4");
                     foreach (long item in CreatureGenerateInfo.kitCreature)
@@ -2019,28 +2040,38 @@ namespace NewGameMode
                     File.WriteAllText(Harmony_Patch.path + "/RandomEventCreatureId.txt", Convert.ToString(id));
                     
 
-                    ChildCreatureModel childCreatureModel = new ChildCreatureModel(creatureList.Count+1);num++;
-                    Sefira sefira = sefiras[UnityEngine.Random.Range(0, sefiras.Length)]; num++;
-                    CreatureTypeInfo info = CreatureTypeList.instance.GetData(id); num++;
-                    childCreatureModel.metaInfo = info; num++;
-                    childCreatureModel.metadataId = info.id; num++;
-                    ChildCreatureUnit component = ResourceCache.instance.LoadPrefab("Unit/ChildCreatureBase").GetComponent<ChildCreatureUnit>(); num++;
-                    component.transform.position = new Vector3(0f, 0f, -1000f); num++;
-                    component.transform.SetParent(CreatureLayer.currentLayer.transform, false); num++;
-                    component.model = childCreatureModel; num++;
-                    childCreatureModel.SetUnit(component); num++;
-                    childCreatureModel.LoadCustom(component, info.animSrc); num++;
-                    component.returnObject = component.returnSpriteRenderer.gameObject; num++;
-                    component.returnObject.SetActive(false); num++;
+                    ChildCreatureModel childCreatureModel = new ChildCreatureModel(creatureList.Count+1);
+                    
+                    CreatureTypeInfo info = CreatureTypeList.instance.GetData(id);
+                    childCreatureModel.metaInfo = info;
+                    childCreatureModel.metadataId = info.id;
+                    
+                    Extension.SetPrivateField(childCreatureModel, "_parent", (childCreatureModel as CreatureModel));
+                    Notice.instance.Observe(NoticeName.FixedUpdate, childCreatureModel);
+                    Notice.instance.Observe(NoticeName.Update, childCreatureModel);
+                    //Notice.instance.Observe(NoticeName.MoveUpdate, childCreatureModel);
+
+                    ChildCreatureUnit component = ResourceCache.instance.LoadPrefab("Unit/ChildCreatureBase").GetComponent<ChildCreatureUnit>();
+                    childCreatureModel.LoadCustom(component, info.animSrc);
+                    component.transform.position = new Vector3(0f, 0f, -1000f);
+                    component.transform.SetParent(CreatureLayer.currentLayer.transform, false);
+                    component.returnObject = component.returnSpriteRenderer.gameObject;
+                    component.returnObject.SetActive(false);
+                    component.currentCreatureCanvas.worldCamera = Camera.main;
+                    component.escapeRisk.text = childCreatureModel.metaInfo.riskLevel;
+                    //component.Init();
+                    component.model = childCreatureModel;
+
+                    childCreatureModel.SetUnit(component);
+                    Extension.SetPrivateField(childCreatureModel, "_unit", component);
+
                     if (component.animTarget != null)
                     {
-                        num++;
-                        component.animTarget.gameObject.SetActive(true); num++;
+                        component.animTarget.gameObject.SetActive(true);
                     }
-                    component.returnObject.SetActive(false); num++;
-                    component.currentCreatureCanvas.worldCamera = Camera.main; num++;
-                    component.escapeRisk.text = info.riskLevel; num++;
-                    object obj = null; num++;
+                    component.currentCreatureCanvas.worldCamera = Camera.main;
+                    component.escapeRisk.text = info.riskLevel;
+                    object obj = null;
                     try
                     {
                         string src = info.script;
@@ -2048,7 +2079,7 @@ namespace NewGameMode
                         {
                             foreach (System.Type type in assembly.GetTypes())
                             {
-                                if (type != null && type.Name == src)
+                                if (type.Name == src)
                                 {
                                     obj = Activator.CreateInstance(type);
                                 }
@@ -2056,30 +2087,49 @@ namespace NewGameMode
                         }
                         if (obj == null)
                         {
-                            obj = Activator.CreateInstance(System.Type.GetType(src));
+                            Assembly ass = Assembly.LoadFile(Application.dataPath + "/Managed/Assembly-CSharp.dll");
+                            foreach (System.Type type in ass.GetTypes())
+                            {
+                                if (type.Name == src)
+                                {
+                                    obj = Activator.CreateInstance(type);
+                                }
+                            }
                         }
                     }
                     catch (Exception ex)
                     {
                         RGDebug.LogError(ex);
                     }
-                    childCreatureModel.script = (CreatureBase)obj;
-                    childCreatureModel.script.SetModel(childCreatureModel);
-                    childCreatureModel.script.OnInit();
-                    childCreatureModel.SetPrivateField("Speed", info.speed);
-                    childCreatureModel.GetMovableNode().SetActive(true);
-                    childCreatureModel.Unit.init = true;
-                    childCreatureModel.GetMovableNode().StopMoving();
-                    childCreatureModel.GetMovableNode().SetDirection(global::UnitDirection.LEFT);
-                    childCreatureModel.SetActivatedState(false);
-                    childCreatureModel.SetCurrentNode(sefira.GetDepartNodeByRandom(0));
-                    childCreatureModel.sefira = sefira;
-                    childCreatureModel.sefiraNum = sefira.indexString;
-                    childCreatureModel.SetActivatedState(true);
-                    childCreatureModel.Escape();
-                    childCreatureModel.AddUnitBuf(new MarkBuf(childCreatureModel));
+                    Sefira sefira = sefiras[UnityEngine.Random.Range(0, sefiras.Length)];
+                    childCreatureModel.script = (CreatureBase)obj; num++;
+                    childCreatureModel.script.SetModel(childCreatureModel); num++;
+                    childCreatureModel.script.OnInit(); num++;
+                    childCreatureModel.SetPrivateField("Speed", info.speed); num++;
+
+                    childCreatureModel.SetCurrentNode(sefira.GetDepartNodeByRandom(0)); num++;
+                    childCreatureModel.GetMovableNode().SetActive(true); num++;
+                    childCreatureModel.Unit.init = true; num++;
+                    childCreatureModel.GetMovableNode().StopMoving(); num++;
+                    childCreatureModel.GetMovableNode().SetDirection(global::UnitDirection.LEFT); num++;
+                    childCreatureModel.SetActivatedState(false); num++;
+                    
+                    childCreatureModel.sefira = sefira; num++;
+                    childCreatureModel.sefiraNum = sefira.indexString; num++;
+                    childCreatureModel.SetActivatedState(true); num++;
+                    childCreatureModel.ClearCommand(); num++;
+                    childCreatureModel.state = global::CreatureState.ESCAPE; num++;
+                    childCreatureModel.baseMaxHp = childCreatureModel.metaInfo.maxHp; num++;
+                    childCreatureModel.hp = (float)childCreatureModel.metaInfo.maxHp; num++;
+                    childCreatureModel.SetFaction(global::FactionTypeList.StandardFaction.EscapedCreature); num++;
+                    global::Notice.instance.Send(global::NoticeName.OnEscape, new object[]
+                    {
+                        childCreatureModel
+                    }); num++;
+                    //childCreatureModel.Escape(); num++;
+                    childCreatureModel.AddUnitBuf(new MarkBuf(childCreatureModel)); num++;
                     //OrdealCreatureModel c = OrdealManager.instance.AddCreature(id, sefiras[UnityEngine.Random.Range(0, sefiras.Length)].GetDepartNodeByRandom(0), new OrdealBase());
-                    creatureList.Add(id);
+                    creatureList.Add(id); num++;
 
                     string text = LocalizeTextDataModel.instance.GetText("RandomEvent_Creature");
                     AngelaConversationUI.instance.AddAngelaMessage(text);
@@ -2762,8 +2812,8 @@ namespace NewGameMode
         private int _nextInstanceId = 0;
         public Dictionary<int, MemeInfo> all_dic = new Dictionary<int, MemeInfo>();//包含模组在内的所有模因,key是模因id
         public Dictionary<int, MemeModel> current_dic = new Dictionary<int, MemeModel>();//本局肉鸽目前拥有的模因,key是实例id
-        List<MemeInfo> all_list = new List<MemeInfo>();
-        List<MemeModel> current_list = new List<MemeModel>();
+        public List<MemeInfo> all_list = new List<MemeInfo>();
+        public List<MemeModel> current_list = new List<MemeModel>();
 
         public static MemeManager instance
         {
@@ -3030,7 +3080,6 @@ namespace NewGameMode
 
                         memeModel.instanceId = instance._nextInstanceId; num++;
 
-                        File.AppendAllText(Harmony_Patch.path + "/CreateMeme0.txt", pair.Value.script + Environment.NewLine);
                         //Type type = Type.GetType(pair.Value.script); num++;
                         object obj = null; num++;
 
@@ -3135,7 +3184,6 @@ namespace NewGameMode
         public MemeInfo metaInfo;
         public int instanceId;
         public MemeScriptBase script = new MemeScriptBase();
-
     }
 
     public class MemeScriptBase
