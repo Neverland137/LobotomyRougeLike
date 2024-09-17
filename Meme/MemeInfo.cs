@@ -24,7 +24,6 @@ namespace NewGameMode.Meme
 
         public Dictionary<string, string> localizeData = new Dictionary<string, string>();
 
-        // Token: 0x040034D8 RID: 13528
         [NonSerialized]
         public string modid;
 

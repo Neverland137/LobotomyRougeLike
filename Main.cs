@@ -1,19 +1,13 @@
 ﻿using Assets.Scripts.UI.Utils;
 using Harmony;
 using NewGameMode.Meme;
-using Steamworks;
-using Steamworks.Data;
-using Steamworks.Ugc;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Security.Policy;
 using System.Xml;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.Experimental.UIElements;
 using UnityEngine.UI;
 
 namespace NewGameMode
@@ -39,7 +33,7 @@ namespace NewGameMode
                 harmony.Patch(typeof(GlobalGameManager).GetMethod("SaveData", AccessTools.all), new HarmonyMethod(typeof(Harmony_Patch).GetMethod("SaveRougeLikeDayData")), null, null);
                 //结束这一天时存档
                 harmony.Patch(typeof(GameManager).GetMethod("ClearStage", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("OnClearStage")), null);
-                
+
                 //各种UI：主页UI，当天结算界面UI，
                 harmony.Patch(typeof(AlterTitleController).GetMethod("Start", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NewGameModeButton_Start")), null);
                 harmony.Patch(typeof(ResultScreen).GetMethod("OnSuccessManagement", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("ResultScreen_Board")), null);
@@ -53,9 +47,9 @@ namespace NewGameMode
                 //损失全部员工时删档并回到标题页
                 harmony.Patch(typeof(Sefira).GetMethod("OnAgentCannotControll", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("ReturnToTitleOnGameOver")), null);
                 //屏蔽剧情
-                harmony.Patch(typeof(StoryUI).GetMethod("LoadStory", AccessTools.all),null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NoStory")),null);
+                harmony.Patch(typeof(StoryUI).GetMethod("LoadStory", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NoStory")), null);
                 //第40天（即肉鸽模式的第五天）开启挑战
-                
+
                 //harmony.Patch(typeof(AlterTitleController).GetMethod("Awake", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NewGameModeButton_Awake")), null);
                 //harmony.Patch(typeof(AlterTitleController).GetMethod("OnClickButton", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NewGameModeButton_OnClick")), null);
                 //图鉴相关
@@ -220,7 +214,7 @@ namespace NewGameMode
                 continueRougeButton.transform.localScale = new Vector3(95, 95, 10);
                 continueRougeButton.transform.localPosition = new Vector3(-435, 200, 0);
                 continueRougeButton.AddComponent<ButtonInteraction>();
-                
+
                 UnityEngine.UI.Image image0 = continueRougeButton.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>();
                 ///////////
                 LocalizeTextLoadScriptWithOutFontLoadScript script0 = continueRougeButton.transform.GetChild(1).gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
@@ -260,7 +254,7 @@ namespace NewGameMode
                 //我这个按钮好像没法加载image 是白不拉几的一片
                 //好好好
                 button0.transform.localScale *= 10f;
-                continueRougeButton.transform.GetChild(0).transform.localPosition = image0.transform.localPosition + new Vector3(0,0,10);
+                continueRougeButton.transform.GetChild(0).transform.localPosition = image0.transform.localPosition + new Vector3(0, 0, 10);
                 continueRougeButton.transform.GetChild(0).transform.localScale = image0.transform.localScale;
                 button0.onClick.AddListener(delegate
                 {
@@ -280,7 +274,7 @@ namespace NewGameMode
 
         }
 
-        
+
         /*
         public static void NewGameModeButton_Awake()
         {
@@ -407,7 +401,7 @@ namespace NewGameMode
                     if (global::GameUtil.TryGetValue<Dictionary<string, object>>(dic, "inventory", ref dic3))
                     {
                         //global::MissionManager.instance.LoadData(dic3);
-                        
+
                         float[] rate = { 0.1f, 0.3f, 0.6f, 0.85f, 1 };
                         global::InventoryModel.Instance.LoadGlobalData(SetRandomEquipment(dic3, 40, 50, rate));
                     }
@@ -452,14 +446,14 @@ namespace NewGameMode
 
             //CreatureManager.instance.Clear();
 
-            float[] rate = {0.1f, 0.3f, 0.6f, 0.9f, 1f};
+            float[] rate = { 0.1f, 0.3f, 0.6f, 0.9f, 1f };
             SetRandomCreatures(rate);
             MoneyModel.instance.Add(80);
             //以下为肉鸽新增的内容初始化
             WonderModel.instance.Init();
         }
 
-        
+
         public static bool SaveGlobalData()
         {
             try
@@ -501,7 +495,7 @@ namespace NewGameMode
                     Dictionary<string, object> saveDayData = GlobalGameManager.instance.GetSaveDayData();
                     dictionary2.Add(global::PlayerModel.instance.GetDay(), saveDayData);
 
-                    if(File.Exists(path + "/Save/DayData.dat"))
+                    if (File.Exists(path + "/Save/DayData.dat"))
                     {
                         Dictionary<string, object> dic = global::SaveUtil.ReadSerializableFile(path + "/Save/DayData.dat");
                         int num = 0;
@@ -519,7 +513,7 @@ namespace NewGameMode
                     return false;
                 }
             }
-            
+
             catch (Exception ex)
             {
                 File.WriteAllText(path + "/SaveDataerror.txt", ex.Message + Environment.NewLine + ex.StackTrace);
@@ -706,7 +700,7 @@ namespace NewGameMode
                     }
 
                     WonderModel.instance.LoadData(data);
-              }
+                }
 
             }
             catch (Exception ex)
@@ -834,18 +828,18 @@ namespace NewGameMode
 
                 research_list.Add(dic);
             }
-            
+
 
             result.Add("research", research_list);
             return result;
         }
-        public static Dictionary<string, object> SetRandomObserve(Dictionary<string, object> observe,int stat_min,int stat_max,int cube_min,int cube_max)
+        public static Dictionary<string, object> SetRandomObserve(Dictionary<string, object> observe, int stat_min, int stat_max, int cube_min, int cube_max)
         {
             Dictionary<string, object> result = new Dictionary<string, object>();
 
             Dictionary<long, Dictionary<string, object>> all_observe_dic_with_id = new Dictionary<long, Dictionary<string, object>>();//观察列表
             Dictionary<string, Dictionary<long, Dictionary<string, object>>> dictionary2 = new Dictionary<string, Dictionary<long, Dictionary<string, object>>>();//模组观察列表
-            
+
             //观察信息分成observeProgress,cubeNum,stat,defense,work,care。
 
             global::GameUtil.TryGetValue<Dictionary<long, Dictionary<string, object>>>(observe, "observeList", ref all_observe_dic_with_id);
@@ -923,7 +917,7 @@ namespace NewGameMode
                 single_observe_dic.Add("totalKitUseCount", 0);
                 single_observe_dic.Add("totalKitUseTime", 0);
 
-                
+
                 all_observe_dic_with_id.Add(all_creature_list[i], single_observe_dic);
             }
             result.Add("observeList", all_observe_dic_with_id);
@@ -985,7 +979,7 @@ namespace NewGameMode
                     {
                         a_equip_id.Add(id);
                     }
-                    
+
                 }
                 for (int i = 0; i < equip_num; i++)
                 {
@@ -1200,7 +1194,7 @@ namespace NewGameMode
                             agentModel.SetArmor(equipment as ArmorModel);
                         }
                     }
-                    
+
                     //result.Add(agentModel);
                 }
                 //File.WriteAllText(path + "/RandomAgentError1.txt", "End");
@@ -1240,7 +1234,7 @@ namespace NewGameMode
                 //all_creature_list.Remove(100014L);
                 //all_creature_list.Remove(100015L);
                 //all_creature_list.Remove(100104L);
-                
+
                 using (StreamReader sr = new StreamReader(path + "/Config/RandomCreatureBlackList.txt"))
                 {
                     while (sr.ReadLine() != "BlackList")
@@ -1255,7 +1249,7 @@ namespace NewGameMode
                         }
                     }
                 }
-                
+
                 //File.WriteAllText(path + "/RandomCreatureError1.txt", "5");
 
                 List<long> z_creature_list = new List<long>();
@@ -1270,7 +1264,7 @@ namespace NewGameMode
                     {
                         z_creature_list.Add(id);
                     }
-                    else if(CreatureTypeList.instance.GetData(id).GetRiskLevel() == RiskLevel.TETH)
+                    else if (CreatureTypeList.instance.GetData(id).GetRiskLevel() == RiskLevel.TETH)
                     {
                         t_creature_list.Add(id);
                     }
@@ -1326,7 +1320,7 @@ namespace NewGameMode
                             a_creature_list.RemoveAt(random);//删除异想体避免重复选中
                         }
                         Sefira sefira = SefiraManager.instance.GetSefira(sefira_id);
-                        AddCreature(random_id[i],sefira);
+                        AddCreature(random_id[i], sefira);
                     }
                 }
                 //File.WriteAllText(path + "/RandomCreatureError1.txt", "7");
@@ -1338,7 +1332,7 @@ namespace NewGameMode
             }
             //CreatureManager.instance.AddCreatureInSefira()
         }
-        
+
         public static void AddCreature(long id, global::Sefira sefira)
         {
             List<long> list2 = new List<long>(global::CreatureGenerateInfo.GetAll(false));
@@ -1347,7 +1341,7 @@ namespace NewGameMode
                 list2.Remove(creatureModel.metadataId);
             }
 
-            long[] ary = {id};
+            long[] ary = { id };
             global::SefiraIsolate[] array = sefira.isolateManagement.GenIsolateByCreatureAryByOrder(ary);
             foreach (global::SefiraIsolate sefiraIsolate in array)
             {
@@ -1420,7 +1414,7 @@ namespace NewGameMode
                         MoneyModel.instance.Add(7);
                     }
                 }
-            } 
+            }
         }
 
         public static void ObserveGetBouns(AgentModel __instance)
@@ -1501,7 +1495,7 @@ namespace NewGameMode
                     }
                 }
             }
-                
+
         }
 
         public static void ResultScreen_Board()
@@ -1516,7 +1510,7 @@ namespace NewGameMode
             text.text = "AAAAAAAA";
             text.color = UnityEngine.Color.white;
             text.transform.localPosition = Vector3.zero;
-            text.transform.localScale = Vector3.one*100;
+            text.transform.localScale = Vector3.one * 100;
         }
     }
 
@@ -1595,7 +1589,7 @@ namespace NewGameMode
         }
         public static void LogError(Exception exception)
         {
-            File.AppendAllText(Harmony_Patch.path + "/Log.txt", exception.Message + Environment.NewLine+exception.StackTrace+Environment.NewLine);
+            File.AppendAllText(Harmony_Patch.path + "/Log.txt", exception.Message + Environment.NewLine + exception.StackTrace + Environment.NewLine);
         }
     }
 
@@ -1659,7 +1653,7 @@ namespace NewGameMode
                 else if (FadeOut)
                 {
                     UnityEngine.Color color = frontsprite.color;
-                    color.a = 1f-fadeprogress;
+                    color.a = 1f - fadeprogress;
                     frontsprite.color = color;
                     fadeprogress += Time.deltaTime;
                     if (fadeprogress >= 1f)
@@ -1795,14 +1789,14 @@ namespace NewGameMode
                 }
                 if (data.localName != string.Empty)
                 {
-                   LocalAudioManager.instance.PlayClip(data.localName);
+                    LocalAudioManager.instance.PlayClip(data.localName);
                     return;
                 }
             }
         }
         AudioClipPlayer.PlayerData PointOver = new AudioClipPlayer.PlayerData() { globalType = AudioType.POINTER_OVER, region = AudioRegion.LOCAL, localName = "Over" };
         AudioClipPlayer.PlayerData Click = new AudioClipPlayer.PlayerData() { globalType = AudioType.CLICK, region = AudioRegion.LOCAL, localName = "Click" };
-        AudioClipPlayer.PlayerData Cancel= new AudioClipPlayer.PlayerData() { globalType = AudioType.CANCEL, region = AudioRegion.GLOBAL, localPlayIndex=0};
+        AudioClipPlayer.PlayerData Cancel = new AudioClipPlayer.PlayerData() { globalType = AudioType.CANCEL, region = AudioRegion.GLOBAL, localPlayIndex = 0 };
         public void OnPointerEnter(PointerEventData eventData)
         {
             try
@@ -1846,7 +1840,6 @@ public class LocalizeTextLoadScriptWithOutFontLoadScript : MonoBehaviour, global
         }
     }
 
-    // Token: 0x06005296 RID: 21142 RVA: 0x00042AFF File Offset: 0x00040CFF
     private void Start()
     {
         if (!this.init)
@@ -1856,7 +1849,6 @@ public class LocalizeTextLoadScriptWithOutFontLoadScript : MonoBehaviour, global
         }
     }
 
-    // Token: 0x06005297 RID: 21143 RVA: 0x001E05BC File Offset: 0x001DE7BC
     public void SetText()
     {
         if (this.id == string.Empty)
@@ -1867,39 +1859,33 @@ public class LocalizeTextLoadScriptWithOutFontLoadScript : MonoBehaviour, global
         this.Text.text = text;
     }
 
-    // Token: 0x06005298 RID: 21144 RVA: 0x00042B19 File Offset: 0x00040D19
     public void SetText(string id)
     {
         this.id = id;
         this.SetText();
     }
 
-    // Token: 0x06005299 RID: 21145 RVA: 0x00042B28 File Offset: 0x00040D28
     public void SetTextForcely(string text)
     {
         this.Text.text = text;
         this.init = true;
     }
 
-    // Token: 0x0600529B RID: 21147 RVA: 0x00040E16 File Offset: 0x0003F016
     private void OnEnable()
     {
         global::Notice.instance.Observe(global::NoticeName.LanaguageChange, this);
     }
 
-    // Token: 0x0600529C RID: 21148 RVA: 0x0002CE41 File Offset: 0x0002B041
     private void OnDisable()
     {
         global::Notice.instance.Remove(global::NoticeName.LanaguageChange, this);
     }
 
-    // Token: 0x0600529D RID: 21149 RVA: 0x00042B46 File Offset: 0x00040D46
     public void OnLanguageChanged()
     {
         this.SetText();
     }
 
-    // Token: 0x0600529E RID: 21150 RVA: 0x00042B4E File Offset: 0x00040D4E
     public void OnNotice(string notice, params object[] param)
     {
         if (notice == global::NoticeName.LanaguageChange)

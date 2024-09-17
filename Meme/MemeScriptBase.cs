@@ -69,13 +69,11 @@ namespace NewGameMode.Meme
         {
         }
 
-        // Token: 0x0600370E RID: 14094 RVA: 0x00153378 File Offset: 0x00151578
-        public virtual void OnTakeDamage_After(float value, UnitModel victim, RwbpType type)
+                public virtual void OnTakeDamage_After(float value, UnitModel victim, RwbpType type)
         {
         }
 
-        // Token: 0x06003712 RID: 14098 RVA: 0x00153408 File Offset: 0x00151608
-        public virtual DefenseInfo GetDefense(UnitModel actor)
+                public virtual DefenseInfo GetDefense(UnitModel actor)
         {
             if (actor is WorkerModel)
             {
