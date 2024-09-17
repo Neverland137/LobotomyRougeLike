@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace NewGameMode.Patch
+namespace NewGameMode
 {
     public class EnergyAndOverload_Patch
     {

@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace NewGameMode.Meme
+namespace NewGameMode
 {
     public class MemeManager
     {

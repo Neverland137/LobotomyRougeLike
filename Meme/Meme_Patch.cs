@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NewGameMode.Meme
+namespace NewGameMode
 {
     public class Meme_Patch
     {

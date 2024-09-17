@@ -1,6 +1,6 @@
 ﻿using Assets.Scripts.UI.Utils;
 using Harmony;
-using NewGameMode.Meme;
+using NewGameMode;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -59,11 +59,10 @@ namespace NewGameMode
                 harmony.Patch(typeof(CreatureModel).GetMethod("GetCubeSpeed"), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("WorkSpeedBoost")));
                 harmony.Patch(typeof(CreatureEquipmentMakeInfo).GetMethod("GetCostAfterUpgrade", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("EquipmentCostDecrease")), null);
 
-                // 曾小皮：此处命名空间已更改，子Patch的命名空间为NewGameMode.Patch，MeMe相关的命名空间为NewGameMode.Meme。
-                new Patch.Challenge_Patch(harmony);
-                new Patch.EnergyAndOverload_Patch(harmony);
-                new Patch.EnergyAndOverload_Patch.RGRandomEventManager(harmony);
-                new Meme.Meme_Patch(harmony);
+                new Challenge_Patch(harmony);
+                new EnergyAndOverload_Patch(harmony);
+                new EnergyAndOverload_Patch.RGRandomEventManager(harmony);
+                new Meme_Patch(harmony);
             }
             catch (Exception ex)
             {
