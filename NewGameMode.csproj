@@ -43,6 +43,8 @@
     <Compile Include="Patch\Challenge.cs" />
     <Compile Include="Patch\EnergyAndOverload.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Shop\ShopManager.cs" />
+    <Compile Include="Shop\ShopProduct.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="lib\0Harmony.dll" />
@@ -409,5 +411,6 @@
       <Private>False</Private>
     </Reference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

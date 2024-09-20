@@ -181,6 +181,15 @@ namespace NewGameMode
                             }
                         }
 
+                        XmlNode xmlNodePrice = xmlNode.SelectSingleNode("price");
+                        if (xmlNodePrice != null)
+                        {
+                            if (xmlNodePrice.InnerText.Trim() != null)
+                            {
+                                memeInfo.price = int.Parse(xmlNodePrice.InnerText.Trim());
+                            }
+                        }
+
                         dictionary.Add(memeInfo.id, memeInfo);
                     }
                 }

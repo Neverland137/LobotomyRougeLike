@@ -22,6 +22,8 @@ namespace NewGameMode
         public string script;
         public int grade = 1;
 
+        public int price = 0;
+
         public Dictionary<string, string> localizeData = new Dictionary<string, string>();
 
         [NonSerialized]
