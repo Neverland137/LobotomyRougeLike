@@ -2,10 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 
 namespace NewGameMode
@@ -15,8 +12,14 @@ namespace NewGameMode
         private static MemeManager _instance;
 
         private int _nextInstanceId = 0;
-        public Dictionary<int, MemeInfo> all_dic = new Dictionary<int, MemeInfo>();//包含模组在内的所有模因,key是模因id
-        public Dictionary<int, MemeModel> current_dic = new Dictionary<int, MemeModel>();//本局肉鸽目前拥有的模因,key是实例id
+        /// <summary>
+        /// 包含模组在内的所有模因,key是模因id
+        /// </summary>
+        public Dictionary<int, MemeInfo> all_dic = new Dictionary<int, MemeInfo>();
+        /// <summary>
+        /// 本局肉鸽目前拥有的模因,key是实例id
+        /// </summary>
+        public Dictionary<int, MemeModel> current_dic = new Dictionary<int, MemeModel>();
         public List<MemeInfo> all_list = new List<MemeInfo>();
         public List<MemeModel> current_list = new List<MemeModel>();
 
@@ -31,8 +34,12 @@ namespace NewGameMode
                 return _instance;
             }
         }
-
-        public static Dictionary<int, MemeInfo> LoadSingleXmlInfo(XmlDocument document)//读取单个xml中的所有模因信息
+        /// <summary>
+        /// 读取单个xml中的所有模因信息
+        /// </summary>
+        /// <param name="document"></param>
+        /// <returns></returns>
+        public static Dictionary<int, MemeInfo> LoadSingleXmlInfo(XmlDocument document)
         {
             Dictionary<int, MemeInfo> dictionary = new Dictionary<int, MemeInfo>();
 
@@ -53,7 +60,7 @@ namespace NewGameMode
                         XmlNode xmlNode2 = xmlNode.SelectSingleNode("name");
                         if (xmlNode2 != null)
                         {
-                            memeInfo.localizeData.Add("name", xmlNode2.InnerText.Trim());//名字在xml文件里的标签名（不是标签内容
+                            memeInfo.localizeData.Add("name", xmlNode2.InnerText.Trim()); //名字在xml文件里的标签名（不是标签内容
                         }
                         else
                         {
@@ -64,7 +71,7 @@ namespace NewGameMode
                         XmlNode xmlNode4 = xmlNode.SelectSingleNode("desc");
                         if (xmlNode4 != null)
                         {
-                            memeInfo.localizeData.Add("desc", xmlNode4.InnerText.Trim());//描述在xml文件里的标签名（不是标签内容
+                            memeInfo.localizeData.Add("desc", xmlNode4.InnerText.Trim()); //描述在xml文件里的标签名（不是标签内容
                         }
 
 
@@ -76,7 +83,7 @@ namespace NewGameMode
                             {
                                 object obj2 = enumerator2.Current;
                                 XmlNode xmlNode7 = (XmlNode)obj2;
-                                string innerText2 = xmlNode7.Attributes.GetNamedItem("type").InnerText;//需求的类型
+                                string innerText2 = xmlNode7.Attributes.GetNamedItem("type").InnerText; //需求的类型
 
                                 int value = 0;
                                 if (int.TryParse(xmlNode7.InnerText.Trim(), out value))
@@ -122,7 +129,7 @@ namespace NewGameMode
                             IDisposable disposable;
                             if ((disposable = (enumerator2 as IDisposable)) != null)
                             {
-                                disposable.Dispose();//需要在读取完require这个enumrator后释放它
+                                disposable.Dispose(); //需要在读取完require这个enumrator后释放它
                             }
                         }
 
@@ -258,7 +265,7 @@ namespace NewGameMode
             }
         }
 
-        public void LoadData(Dictionary<string, object> dic)//不用写存储，存储已经在Harmony_Patch的SaveRougeLikeDayData里了
+        public void LoadData(Dictionary<string, object> dic) //不用写存储，存储已经在Harmony_Patch的SaveRougeLikeDayData里了
         {
             GameUtil.TryGetValue<Dictionary<int, MemeModel>>(dic, "meme", ref instance.current_dic);
             if (instance.current_dic.Count == 0)
@@ -346,14 +353,14 @@ namespace NewGameMode
             }
         }
 
-        public void OnGet()//会使所有模因都触发刚入手时的效果！慎用！
+        public void OnGet() //会使所有模因都触发刚入手时的效果！慎用！
         {
             foreach (MemeModel meme in current_list)
             {
                 meme.script.OnGet();
             }
         }
-        public void OnRelease()//会使所有模因都触发消失时的效果！慎用！
+        public void OnRelease() //会使所有模因都触发消失时的效果！慎用！
         {
             foreach (MemeModel meme in current_list)
             {

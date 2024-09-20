@@ -1,6 +1,6 @@
 ﻿using Assets.Scripts.UI.Utils;
 using Harmony;
-using NewGameMode;
+using Steamworks.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -1060,6 +1060,10 @@ namespace NewGameMode
             return result;
         }
 
+        /// <summary>
+        /// 获得全部装备ID列表
+        /// </summary>
+        /// <returns></returns>
         public static List<int> GetAllEquipmentidList()
         {
             List<int> list = new List<int>();
@@ -1602,6 +1606,7 @@ namespace NewGameMode
         Sprite sp;
         SpriteRenderer frontsprite;
         GameObject gameobj;
+        float fadeprogress = 0f;
 
         void Start()
         {
@@ -1619,8 +1624,6 @@ namespace NewGameMode
                 frontsprite.transform.SetAsLastSibling(); num++;
                 frontsprite.sprite = null;
                 frontsprite.gameObject.SetActive(false);
-                FadeIn = false;
-                FadeOut = false;
                 fadeprogress = 0f;
             }
             catch (Exception ex)
@@ -1633,7 +1636,7 @@ namespace NewGameMode
         {
             try
             {
-                if (FadeIn)
+                if (currentState == ButtonState.FadingIn)
                 {
                     UnityEngine.Color color = frontsprite.color;
                     color.a = fadeprogress;
@@ -1645,24 +1648,24 @@ namespace NewGameMode
                         AlterTitleController.Controller._backgroundRenderer.gameObject.SetActive(true);
                         frontsprite.gameObject.SetActive(false);
                         frontsprite.sprite = null;
-                        FadeIn = false;
                         fadeprogress = 0f;
+                        currentState = ButtonState.Idle;
                     }
                 }
-                else if (FadeOut)
+                else if (currentState == ButtonState.FadingOut)
                 {
                     UnityEngine.Color color = frontsprite.color;
-                    color.a = 1f - fadeprogress;
+                    color.a = fadeprogress;
                     frontsprite.color = color;
-                    fadeprogress += Time.deltaTime;
-                    if (fadeprogress >= 1f)
+                    fadeprogress -= Time.deltaTime;
+                    if (fadeprogress <= 0f)
                     {
                         AlterTitleController.Controller._backgroundRenderer.sprite = originSprite;
                         AlterTitleController.Controller._backgroundRenderer.gameObject.SetActive(true);
                         frontsprite.gameObject.SetActive(false);
                         frontsprite.sprite = null;
-                        FadeOut = false;
                         fadeprogress = 0f;
+                        currentState = ButtonState.Idle;
                     }
                 }
             }
@@ -1671,45 +1674,47 @@ namespace NewGameMode
                 RGDebug.LogError(ex);
             }
         }
-        bool FadeIn;
-        float fadeprogress;
         public void OnPointerEnter(PointerEventData eventData)
         {
-            try
-            {
-                //transform.parent.GetChild(1).GetComponent<UnityEngine.UI.Text>().color = Color.white;
-                frontsprite.sprite = sp;
-                frontsprite.color = new UnityEngine.Color(1f, 1f, 1f, 0f);
-                frontsprite.gameObject.SetActive(true);
-                FadeIn = true;
-                FadeOut = false;
-                fadeprogress = 0f;
-            }
-            catch (Exception ex)
-            {
-                RGDebug.LogError(ex);
-            }
+                try
+                {
+                    //transform.parent.GetChild(1).GetComponent<UnityEngine.UI.Text>().color = Color.white;
+                    frontsprite.sprite = sp;
+                    currentState = ButtonState.FadingIn;
+                    frontsprite.color = new UnityEngine.Color(1f, 1f, 1f, 0f);
+                    frontsprite.gameObject.SetActive(true);
+                    fadeprogress = frontsprite.color.a;
+                }
+                catch (Exception ex)
+                {
+                    RGDebug.LogError(ex);
+                }
         }
-        bool FadeOut;
         public void OnPointerExit(PointerEventData eventData)
         {
-            try
-            {
-                //transform.parent.GetChild(1).GetComponent<UnityEngine.UI.Text>().color = originColor;
-                AlterTitleController.Controller._backgroundRenderer.sprite = originSprite;
-                FadeIn = false;
-                FadeOut = true;
-                fadeprogress = 0f;
-                frontsprite.sprite = sp;
-                frontsprite.color = new UnityEngine.Color(1f, 1f, 1f, 1f);
-                frontsprite.gameObject.SetActive(true);
-            }
-            catch (Exception ex)
-            {
-                RGDebug.LogError(ex);
-            }
+                try
+                {
+                    //transform.parent.GetChild(1).GetComponent<UnityEngine.UI.Text>().color = originColor;
+                    AlterTitleController.Controller._backgroundRenderer.sprite = originSprite;
+                    currentState = ButtonState.FadingOut;
+                    fadeprogress = frontsprite.color.a;
+                    frontsprite.sprite = sp;
+                    frontsprite.color = new UnityEngine.Color(1f, 1f, 1f, 1f);
+                    frontsprite.gameObject.SetActive(true);
+                }
+                catch (Exception ex)
+                {
+                    RGDebug.LogError(ex);
+                }
+        }
+        private enum ButtonState
+        {
+            Idle,
+            FadingIn,
+            FadingOut
         }
 
+        private ButtonState currentState = ButtonState.Idle;
     }
 
     public class AwardButtonInteraction : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
