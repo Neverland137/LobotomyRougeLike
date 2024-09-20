@@ -106,7 +106,13 @@ namespace NewGameMode
         /// <returns></returns>
         public static List<ShopProduct> GenerateShopProducts(int maxCount)
         {
-            Dictionary<int, MemeInfo> tempMeme = shopMeme;
+            // 获取当前所有Meme的信息
+            Dictionary<int, MemeInfo> nowMemeInfo = MemeManager.instance.current_dic
+                .ToDictionary(dic => dic.Key, dic => dic.Value.metaInfo);
+            // 过滤掉已经拥有的模因（duplicate为true也可以通过）
+            Dictionary<int, MemeInfo> tempMeme = shopMeme
+                .Where(dic => dic.Value.duplicate == true || !nowMemeInfo.ContainsValue(dic.Value))
+                .ToDictionary(dic => dic.Key, dic => dic.Value);
             List<ShopProduct> shopProducts = new List<ShopProduct>();
             Random random = new Random();
             while (shopProducts.Count < maxCount && tempMeme.Count > 0)
