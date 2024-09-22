@@ -34,6 +34,14 @@ namespace NewGameMode
                 return _instance;
             }
         }
+        public static MemeInfo GetMemeInfo(int id)
+        {
+            if (instance.all_dic.ContainsKey(id))
+            {
+                return instance.all_dic[id];
+            }
+            return null;
+        }
         /// <summary>
         /// 读取单个xml中的所有模因信息
         /// </summary>
@@ -178,6 +186,15 @@ namespace NewGameMode
                             if (xmlNode9.InnerText.Trim() != null)
                             {
                                 memeInfo.grade = int.Parse(xmlNode9.InnerText.Trim());
+                            }
+                        }
+
+                        XmlNode xmlNodePrice = xmlNode.SelectSingleNode("price");
+                        if (xmlNodePrice != null)
+                        {
+                            if (xmlNodePrice.InnerText.Trim() != null)
+                            {
+                                memeInfo.price = int.Parse(xmlNodePrice.InnerText.Trim());
                             }
                         }
 

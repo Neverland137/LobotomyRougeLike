@@ -68,7 +68,6 @@ namespace NewGameMode
                         return false;
                     }
                 }
-
             }
 
             return true;
