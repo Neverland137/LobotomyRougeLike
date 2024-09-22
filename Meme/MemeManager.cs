@@ -34,6 +34,14 @@ namespace NewGameMode
                 return _instance;
             }
         }
+        public static MemeInfo GetMemeInfo(int id)
+        {
+            if (instance.all_dic.ContainsKey(id))
+            {
+                return instance.all_dic[id];
+            }
+            return null;
+        }
         /// <summary>
         /// 读取单个xml中的所有模因信息
         /// </summary>

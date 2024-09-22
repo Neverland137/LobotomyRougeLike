@@ -57,4 +57,16 @@ namespace NewGameMode
             AlreadyBuy = isBought;
         }
     }
+    public class ShopProb
+    {
+        public static int MemeVer1Prob = 699;
+        public static int MemeVer2Prob = 300;
+        public static int MemeYEProb = 1;
+        public static void ChangeProb(int memeVer1Prob, int memeVer2Prob, int memeYEProb)
+        {
+            MemeVer1Prob = memeVer1Prob;
+            MemeVer2Prob = memeVer2Prob;
+            MemeYEProb = memeYEProb;
+        }
+    }
 }

@@ -66,5 +66,31 @@ namespace NewGameMode
             BindingFlags bindingFlags = BindingFlags.Static | BindingFlags.NonPublic;
             return (T)((object)instance.GetType().GetMethod(name, bindingFlags).Invoke(null, param));
         }
+        /// <summary>
+        /// 根据权重，随机返回一个索引
+        /// </summary>
+        /// <param name="weights">权重数组</param>
+        /// <returns></returns>
+        public static int WeightedRandomChoice(int[] weights)
+        {
+            Random random = new Random();
+            int totalWeight = 0;
+            foreach (var weight in weights)
+            {
+                totalWeight += weight;
+            }
+            double randValue = random.NextDouble() * totalWeight;
+            double cumulativeWeight = 0;
+            for (int i = 0; i < weights.Length; i++)
+            {
+                cumulativeWeight += weights[i];
+                if (randValue < cumulativeWeight)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
     }
 }
