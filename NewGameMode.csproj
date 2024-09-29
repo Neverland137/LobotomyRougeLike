@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug\NewGameMode.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -43,6 +44,8 @@
     <Compile Include="Patch\Challenge.cs" />
     <Compile Include="Patch\EnergyAndOverload.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Shop\ShopManager.cs" />
+    <Compile Include="Shop\ShopProduct.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="lib\0Harmony.dll" />
@@ -424,6 +427,9 @@
       <HintPath>lib\UnityEngine.WindModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".editorconfig" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

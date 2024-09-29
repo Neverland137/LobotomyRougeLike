@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Runtime.Remoting.Messaging;
 using System.Xml;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -67,6 +68,9 @@ namespace NewGameMode
                 new EnergyAndOverload_Patch(harmony);
                 new EnergyAndOverload_Patch.RGRandomEventManager(harmony);
                 new Meme_Patch(harmony);
+
+                // 初始化商店
+                ShopManager.InitShopMeme();
             }
             catch (Exception ex)
             {
@@ -1633,11 +1637,13 @@ namespace NewGameMode
     {
         public static void Log(string message)
         {
-            File.AppendAllText(Harmony_Patch.path + "/Log.txt", message + Environment.NewLine);
+            DateTime currentTime = DateTime.Now;
+            File.AppendAllText(Harmony_Patch.path + "/Log.txt", $"{currentTime:yyyy/MM/dd HH:mm:ss} " + message + Environment.NewLine);
         }
         public static void LogError(Exception exception)
         {
-            File.AppendAllText(Harmony_Patch.path + "/Log.txt", exception.Message + Environment.NewLine + exception.StackTrace + Environment.NewLine);
+            DateTime currentTime = DateTime.Now;
+            File.AppendAllText(Harmony_Patch.path + "/Log.txt", $"{currentTime:yyyy/MM/dd HH:mm:ss} " + exception.Message + Environment.NewLine + exception.StackTrace + Environment.NewLine);
         }
     }
 
