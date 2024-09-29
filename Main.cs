@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.UI.Utils;
+using DG.Tweening;
 using Harmony;
 using Steamworks.Data;
 using System;
@@ -8,6 +9,7 @@ using System.Reflection;
 using System.Xml;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace NewGameMode
@@ -27,6 +29,8 @@ namespace NewGameMode
             {
                 HarmonyInstance harmony = HarmonyInstance.Create("ykmt.NewGameMode");
                 File.WriteAllText(path + "/Log.txt", "");
+                //复制dll文件
+                harmony.Patch(typeof(GlobalGameManager).GetMethod("Awake", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("CopyDll")), null);
                 //存储数据
                 harmony.Patch(typeof(GlobalGameManager).GetMethod("SaveGlobalData", AccessTools.all), new HarmonyMethod(typeof(Harmony_Patch).GetMethod("SaveGlobalData")), null, null);
                 harmony.Patch(typeof(GlobalGameManager).GetMethod("SaveData", AccessTools.all), new HarmonyMethod(typeof(Harmony_Patch).GetMethod("SaveDayData")), null, null);
@@ -40,8 +44,8 @@ namespace NewGameMode
 
 
                 //局内机制修改:禁止重开和回库
-                harmony.Patch(typeof(GameManager).GetMethod("RestartGame", AccessTools.all), new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NoRestartAndCheckPoint")), null, null);
-                harmony.Patch(typeof(GameManager).GetMethod("ReturnToCheckPoint", AccessTools.all), new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NoRestartAndCheckPoint")), null, null);
+                
+                //harmony.Patch(typeof(GameManager).GetMethod("ReturnToCheckPoint", AccessTools.all), new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NoRestartAndCheckPoint")), null, null);
                 harmony.Patch(typeof(EscapeUI).GetMethod("Start", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NoRestartAndCheckPointButton_EscapeUI")), null);
                 harmony.Patch(typeof(ResultScreen).GetMethod("Awake", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NoRestartButton_ResultScreen")), null);
                 //损失全部员工时删档并回到标题页
@@ -69,9 +73,54 @@ namespace NewGameMode
                 File.WriteAllText(path + "/BaseHpError.txt", ex.Message + Environment.NewLine + ex.StackTrace);
             }
         }
+
         public static void WorkSpeedBoost(ref float __result)
         {
             __result *= 1.5f;
+        }
+
+        public static void CopyDll()
+        {
+            string[] dllFiles = Directory.GetFiles(path, "*.dll");
+
+            foreach (string file in dllFiles)
+            {
+                string fileName = Path.GetFileName(file);
+                string destFilePath = Path.Combine(Application.dataPath + "/Managed/", fileName);
+                if (fileName == "BaseMeme.dll" || fileName == "NewGameMode.dll")
+                {
+                    continue;
+                }
+                
+
+                // 如果目标文件夹中没有同名文件，则复制后关闭游戏
+                if (!File.Exists(destFilePath))
+                {
+                    try
+                    {
+                        File.Copy(file, destFilePath, true); // true 表示如果文件存在则覆盖
+                        //SceneManager.LoadScene("ForceExitScene");这是别碰我那个强制退出的页面，吓人，别用
+                        Application.Quit();
+                    }
+                    catch (Exception ex)
+                    {
+                        RGDebug.Log("Could not copy " + fileName + ". Reason: " + ex.Message);
+                    }
+                }
+                else
+                {
+                    try
+                    {
+                        File.Copy(file, destFilePath, true); // true 表示如果文件存在则覆盖
+                    }
+                    catch (Exception ex)
+                    {
+                        RGDebug.Log("Could not copy " + fileName + ". Reason: " + ex.Message);
+                    }
+                }
+            }
+
+            
         }
         public static void NewGameModeButton_Start(AlterTitleController __instance)//记得改按钮文字
         {
@@ -114,6 +163,7 @@ namespace NewGameMode
 
                 UnityEngine.UI.Image image = newRougeButton.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>();
                 ///////////
+                newRougeButton.transform.GetChild(1).gameObject.AddComponent<FontLoadScript>();
                 LocalizeTextLoadScriptWithOutFontLoadScript script = newRougeButton.transform.GetChild(1).gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
                 script.id = "Rouge_Title_Start_Button";
 
@@ -216,6 +266,8 @@ namespace NewGameMode
 
                 UnityEngine.UI.Image image0 = continueRougeButton.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>();
                 ///////////
+                ///
+                continueRougeButton.transform.GetChild(1).gameObject.AddComponent<FontLoadScript>();
                 LocalizeTextLoadScriptWithOutFontLoadScript script0 = continueRougeButton.transform.GetChild(1).gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
                 script0.id = "Rouge_Title_Continue_Button";
 
@@ -1352,23 +1404,16 @@ namespace NewGameMode
             }
         }
 
-        public static bool NoRestartAndCheckPoint()
-        {
-            if (GlobalGameManager.instance.gameMode == rougeLike)
-            {
-                return false;
-            }
-            return true;
-        }
+        
 
         public static void NoRestartAndCheckPointButton_EscapeUI()
         {
             if (GlobalGameManager.instance.gameMode == rougeLike)
             {
-                GameObject.Destroy(EscapeUI.instance.MiddleAreaControl.transform.GetChild(0).gameObject);
-                GameObject.Destroy(EscapeUI.instance.MiddleAreaControl.transform.GetChild(1).gameObject);
+                //GameObject.Destroy(EscapeUI.instance.MiddleAreaControl.transform.GetChild(0).gameObject);
+                //GameObject.Destroy(EscapeUI.instance.MiddleAreaControl.transform.GetChild(1).gameObject);
                 //EscapeUI.instance.MiddleAreaControl.transform.GetChild(0).gameObject.SetActive(false);
-                //EscapeUI.instance.MiddleAreaControl.transform.GetChild(1).gameObject.SetActive(false);
+                EscapeUI.instance.MiddleAreaControl.transform.GetChild(1).gameObject.SetActive(false);
             }
         }
 
@@ -1832,6 +1877,105 @@ namespace NewGameMode
         }
 
     }
+
+    //该组件的作用：鼠标放在按钮上时若pointerEnterSound为true则播放第一个音效，
+    //点击时（需手动调用）如果successSound为true则播放第二个音效，failSound是第三个音效，如果shrink为true则使按钮缩放
+    public class UniversalButtonIntereaction : MonoBehaviour, IPointerEnterHandler
+    {
+        public static string path = Path.GetDirectoryName(Uri.UnescapeDataString(new UriBuilder(Assembly.GetExecutingAssembly().CodeBase).Path));
+
+        AudioSource[] audios;
+
+        public bool pointerEnterSound = true;
+        void Start()
+        {
+            try
+            {
+                audios = transform.gameObject.GetComponents<AudioSource>();
+            }
+            catch (Exception ex)
+            {
+                RGDebug.LogError(ex);
+            }
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            try
+            {
+                if (pointerEnterSound)
+                {
+                    audios[0].Play();
+                }
+            }
+            catch (Exception ex)
+            {
+                RGDebug.LogError(ex);
+            }
+        }
+
+        public void Click(bool successSound = true, bool failSound = true, bool shrink = true)
+        {
+            try
+            {
+                if (pointerEnterSound)
+                {
+                    if (successSound)
+                    {
+                        audios[1].Play();
+                    }
+                    if (failSound)
+                    {
+                        audios[2].Play();
+                    }
+                }
+                else
+                {
+                    if (successSound)
+                    {
+                        audios[0].Play();
+                    }
+                    if (failSound)
+                    {
+                        audios[1].Play();
+                    }
+                }
+
+                if (shrink)
+                {
+                    transform.DOScale(new Vector3(0.85f, 0.85f, 1f), 0.1f).SetEase(Ease.InOutCirc).OnComplete(() =>
+                    {
+                        transform.DOScale(new Vector3(1, 1, 1), 0.1f).SetEase(Ease.InOutCirc);
+                    });
+                }
+
+            }
+            catch (Exception ex)
+            {
+                RGDebug.LogError(ex);
+            }
+        }
+    }
+
+    public class ShowScene : MonoBehaviour
+    {
+        public static string path = Path.GetDirectoryName(Uri.UnescapeDataString(new UriBuilder(Assembly.GetExecutingAssembly().CodeBase).Path));
+
+        AudioSource[] audios;
+        bool pointerEnterSound = true;
+        void Awake()
+        {
+            try
+            {
+                transform.localScale = new Vector3(0, 0, 1);
+                transform.DOScale(new Vector3(1, 1, 1), 1).SetEase(Ease.OutExpo);
+            }
+            catch (Exception ex)
+            {
+                RGDebug.LogError(ex);
+            }
+        }
+    }
 }
 ///////////
 public class LocalizeTextLoadScriptWithOutFontLoadScript : MonoBehaviour, global::ILanguageLinkedData, global::IObserver
@@ -1840,16 +1984,17 @@ public class LocalizeTextLoadScriptWithOutFontLoadScript : MonoBehaviour, global
     {
         get
         {
-            return base.gameObject.GetComponent<UnityEngine.UI.Text>();
+            return transform.gameObject.GetComponent<UnityEngine.UI.Text>();
         }
     }
 
     private void Start()
     {
+        this.SetText();
         if (!this.init)
         {
             this.init = true;
-            this.SetText();
+            
         }
     }
 

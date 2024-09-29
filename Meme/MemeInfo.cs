@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace NewGameMode
 {
     public class MemeInfo
     {
-        public int id;
-        public string sprite;
+        public int id = -1;
+        public string sprite_name = "UNKNOWN";
+        public Sprite sprite = new Sprite();
 
         public List<MemeRequire> requires;
         public bool satisfy_all = false;
@@ -19,7 +21,7 @@ namespace NewGameMode
         public bool boss = false;
         public int suit = 0;
 
-        public string script;
+        public string script = "";
         public int grade = 1;
 
         public Dictionary<string, string> localizeData = new Dictionary<string, string>();
