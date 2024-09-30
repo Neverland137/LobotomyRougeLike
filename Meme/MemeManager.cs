@@ -1,9 +1,12 @@
-﻿using System;
+﻿using DG.Tweening;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Xml;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace NewGameMode
 {
@@ -20,6 +23,10 @@ namespace NewGameMode
         /// 本局肉鸽目前拥有的模因,key是实例id
         /// </summary>
         public Dictionary<int, MemeModel> current_dic = new Dictionary<int, MemeModel>();
+        /// <summary>
+        /// 模因的贴图合集，key是贴图名称
+        /// </summary>
+        public Dictionary<string, Sprite> sprite_dic = new Dictionary<string, Sprite>();
         public List<MemeInfo> all_list = new List<MemeInfo>();
         public List<MemeModel> current_list = new List<MemeModel>();
 
@@ -50,13 +57,11 @@ namespace NewGameMode
         public static Dictionary<int, MemeInfo> LoadSingleXmlInfo(XmlDocument document)
         {
             Dictionary<int, MemeInfo> dictionary = new Dictionary<int, MemeInfo>();
-
-            IEnumerator enumerator = document.SelectSingleNode("meme_list").SelectNodes("meme").GetEnumerator();
+            IEnumerator enumerator = document.SelectSingleNode("meme_list").SelectNodes("meme").GetEnumerator(); 
             try
             {
                 try
                 {
-
                     while (enumerator.MoveNext())
                     {
                         object obj = enumerator.Current;
@@ -75,13 +80,23 @@ namespace NewGameMode
                             memeInfo.localizeData.Add("name", num + "name");
                         }
 
-
                         XmlNode xmlNode4 = xmlNode.SelectSingleNode("desc");
                         if (xmlNode4 != null)
                         {
                             memeInfo.localizeData.Add("desc", xmlNode4.InnerText.Trim()); //描述在xml文件里的标签名（不是标签内容
                         }
 
+                        XmlNode xmlNode5 = xmlNode.SelectSingleNode("special_desc");
+                        if (xmlNode5 != null)
+                        {
+                            memeInfo.localizeData.Add("special_desc", xmlNode5.InnerText.Trim()); //特殊描述在xml文件里的标签名（不是标签内容
+                        }
+                        XmlNode xmlNode60 = xmlNode.SelectSingleNode("sprite");
+                        if (xmlNode60 != null)
+                        {
+                            memeInfo.sprite_name = xmlNode60.InnerText.Trim();
+                            memeInfo.sprite = instance.sprite_dic[memeInfo.sprite_name];
+                        }
 
                         memeInfo.requires = new List<MemeRequire>();
                         IEnumerator enumerator2 = xmlNode.SelectNodes("require").GetEnumerator();
@@ -223,17 +238,69 @@ namespace NewGameMode
             {
                 LobotomyBaseMod.ModDebug.Log("RougeLike Load 1");
                 XmlDocument xmlDocument = new XmlDocument();
+
+                /*
                 bool flag = !File.Exists(Harmony_Patch.path + "/Meme/txts/BaseMeme.txt");
 
                 string xml = File.ReadAllText(Harmony_Patch.path + "/Meme/txts/BaseMeme.txt");
                 xmlDocument.LoadXml(xml);
-                Dictionary<int, MemeInfo> dictionary = LoadSingleXmlInfo(xmlDocument);
-                //Dictionary<string, Dictionary<int, MemeInfo>> dictionary2 = new Dictionary<string, Dictionary<int, MemeInfo>>();//还在嵌套
-                LobotomyBaseMod.ModDebug.Log("RougeLike Load 2");
+
+                //dictionary = LoadSingleXmlInfo(xmlDocument);
+                */
+                Dictionary<int, MemeInfo> dictionary = new Dictionary<int, MemeInfo>();
+                Dictionary<string, Sprite> dictionary2 = new Dictionary<string, Sprite>();
+
+                //以上为加载肉鸽自带的模因
+
+                //需要先加载贴图
                 foreach (global::ModInfo modInfo in ((global::Add_On)global::Add_On.instance).ModList)
                 {
                     ModInfo modInfo2 = (global::ModInfo)modInfo;
                     DirectoryInfo directoryInfo = EquipmentDataLoader.CheckNamedDir(modInfo2.modpath, "Meme");//在模组里找叫Meme的文件夹
+
+                    
+                    bool flag7 = directoryInfo != null && Directory.Exists(directoryInfo.FullName + "/Sprite");//在Meme文件夹里找Sprite
+                    if (flag7)
+                    {
+                        DirectoryInfo directoryInfo2 = new DirectoryInfo(directoryInfo.FullName + "/Sprite");
+                        bool flag4 = directoryInfo2.GetFiles().Length != 0;//看这个文件夹是不是空的
+                        if (flag4)
+                        {
+                            //bool flag4 = modInfo2.modid == string.Empty;
+                            if (true)//把modid相关的东西注释掉了
+                            {
+                                foreach (FileInfo fileInfo in directoryInfo2.GetFiles())//遍历Sprite文件夹中的所有文件
+                                {
+                                    bool flag5 = fileInfo.Name.Contains(".png");
+                                    if (flag5)
+                                    {
+                                        Texture2D tex = new Texture2D(128, 128);
+                                        tex.LoadImage(File.ReadAllBytes(fileInfo.FullName));
+
+                                        //写错了，记得改
+                                        Sprite sprite = Sprite.Create(tex, new Rect(0f, 0f, (float)tex.width, (float)tex.height), new Vector2(0.5f, 0.5f));
+                                        string name = fileInfo.Name.Split(new char[] { '.' })[0];//按小数点拆分文件名，取第一串字符串
+                                        dictionary2.Add(name, sprite);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                instance.sprite_dic = dictionary2;
+                foreach (KeyValuePair<string, Sprite> kvp in instance.sprite_dic)
+                {
+                    RGDebug.Log(kvp.Key);
+                }
+                
+                LobotomyBaseMod.ModDebug.Log("RougeLike Load 2");
+
+                //再加载模因本身
+                foreach (global::ModInfo modInfo in ((global::Add_On)global::Add_On.instance).ModList)
+                {
+                    ModInfo modInfo2 = (global::ModInfo)modInfo;
+                    DirectoryInfo directoryInfo = EquipmentDataLoader.CheckNamedDir(modInfo2.modpath, "Meme");//在模组里找叫Meme的文件夹
+
                     bool flag2 = directoryInfo != null && Directory.Exists(directoryInfo.FullName + "/txts");//在Meme文件夹里找txt
                     if (flag2)
                     {
@@ -251,7 +318,7 @@ namespace NewGameMode
                                     {
                                         XmlDocument xmlDocument2 = new XmlDocument();
                                         xmlDocument2.LoadXml(File.ReadAllText(fileInfo.FullName));//把txt加载成xml
-                                        foreach (KeyValuePair<int, MemeInfo> keyValuePair in LoadSingleXmlInfo(xmlDocument))
+                                        foreach (KeyValuePair<int, MemeInfo> keyValuePair in LoadSingleXmlInfo(xmlDocument2))
                                         {
                                             //读取xml里的所有模因信息
                                             bool flag6 = dictionary.ContainsKey(keyValuePair.Key);
@@ -268,8 +335,11 @@ namespace NewGameMode
                         }
                     }
                 }
+
+
                 LobotomyBaseMod.ModDebug.Log("RougeLike Load 3");
                 instance.all_dic = dictionary;
+
                 foreach (KeyValuePair<int, MemeInfo> pair in instance.all_dic)
                 {
                     instance.all_list.Add(pair.Value);
@@ -278,7 +348,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                LobotomyBaseMod.ModDebug.Log("RougeLike Load Error - " + ex.Message + Environment.NewLine + ex.StackTrace);
+                RGDebug.LogError(ex);
             }
         }
 
@@ -324,22 +394,53 @@ namespace NewGameMode
                             }
                         }
 
-                        //if (!Type.Equals(type, null))
-                        {
-                            //obj = Activator.CreateInstance(type); num++; File.AppendAllText(Harmony_Patch.path + "/CreateMeme0.txt", "HasType"+ Environment.NewLine);
-                        }
                         if (obj is MemeScriptBase)
                         {
-                            memeModel.script = (MemeScriptBase)obj; num++; File.AppendAllText(Harmony_Patch.path + "/CreateMeme0.txt", "IsMeme" + Environment.NewLine);
+                            memeModel.script = (MemeScriptBase)obj; num++; File.AppendAllText(Harmony_Patch.path + "/CreateMemeSuccess.txt", "IsMeme" + Environment.NewLine);
                         }
-
                         instance.current_dic.Add(_nextInstanceId, memeModel); num++;
                         instance.current_list.Add(memeModel);
                         instance._nextInstanceId++; num++;
 
                         memeModel.script.OnGet(); num++;
-                        break;
 
+                        //初始化模因对应的模因按钮
+                        if (current_list.Count != 1)//这句是跳过第一个模因，后面改
+                        {
+                            RGDebug.Log("InitMemeButton");
+                            string name_id;
+                            memeModel.metaInfo.localizeData.TryGetValue("name", out name_id);
+                            string desc_id;
+                            memeModel.metaInfo.localizeData.TryGetValue("desc", out desc_id);
+                            string special_desc_id;
+                            memeModel.metaInfo.localizeData.TryGetValue("special_desc", out special_desc_id);
+
+                            //复制模板，后面改
+                            GameObject memeButton = UnityEngine.Object.Instantiate(Meme_Patch.memeScene.transform.Find("MemeButtons").Find("Buttons").GetChild(0).gameObject);
+                            memeButton.transform.SetParent(Meme_Patch.memeScene.transform.Find("MemeButtons").Find("Buttons"));
+                            memeButton.transform.localScale = new Vector3(1f, 1f, 1f);
+                            //设置名称和贴图
+                            memeButton.transform.Find("Text").gameObject.GetComponent<LocalizeTextLoadScriptWithOutFontLoadScript>().id = name_id;
+                            memeButton.transform.Find("Image").gameObject.GetComponent<Image>().sprite = memeModel.metaInfo.sprite;
+
+                            //点击后设置详情
+                            GameObject detail = Meme_Patch.memeScene.transform.Find("WonderandDetail").Find("Detail").gameObject;
+                            //memeButton.GetComponent<UnityEngine.UI.Button>().onClick.RemoveAllListeners();
+                            memeButton.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => {
+                                memeButton.GetComponent<UniversalButtonIntereaction>().Click(true,false,true);
+                                detail.SetActive(true);
+                                detail.transform.localScale = new Vector3(0, 0, 1);
+                                detail.transform.DOScale(new Vector3(1, 1, 1), 0.5f).SetEase(Ease.OutExpo);
+
+                                detail.transform.Find("Name").gameObject.GetComponent<LocalizeTextLoadScriptWithOutFontLoadScript>().SetText(name_id);
+                                detail.transform.Find("Desc").gameObject.GetComponent<LocalizeTextLoadScriptWithOutFontLoadScript>().SetText(desc_id);
+                                detail.transform.Find("ScrollSpecialDesc").Find("SpecialDesc").gameObject.GetComponent<LocalizeTextLoadScriptWithOutFontLoadScript>().SetText(special_desc_id);
+                            });
+
+                            memeButton.SetActive(true);
+                            RGDebug.Log("InitMemeButtonEnd");
+                        }
+                        break;
                     }
                 }
             }

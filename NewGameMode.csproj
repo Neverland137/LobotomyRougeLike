@@ -129,6 +129,22 @@
       <HintPath>lib\Assembly-CSharp-firstpass.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="DOTween, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\STEAM\steamapps\common\LobotomyCorp\LobotomyCorp_Data\Managed\DOTween.dll</HintPath>
+    </Reference>
+    <Reference Include="DOTween43, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\STEAM\steamapps\common\LobotomyCorp\LobotomyCorp_Data\Managed\DOTween43.dll</HintPath>
+    </Reference>
+    <Reference Include="DOTween46, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\STEAM\steamapps\common\LobotomyCorp\LobotomyCorp_Data\Managed\DOTween46.dll</HintPath>
+    </Reference>
+    <Reference Include="DOTween50, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\STEAM\steamapps\common\LobotomyCorp\LobotomyCorp_Data\Managed\DOTween50.dll</HintPath>
+    </Reference>
     <Reference Include="Facepunch.Steamworks.Win64, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>lib\Facepunch.Steamworks.Win64.dll</HintPath>
