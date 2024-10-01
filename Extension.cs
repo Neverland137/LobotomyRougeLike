@@ -49,7 +49,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                //BlueArchiveDebug.WriteError(ex, name);
+                Harmony_Patch.YKMTLogInstance.Error(ex);
                 return default(T);
             }
         }

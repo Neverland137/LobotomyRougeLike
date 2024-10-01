@@ -290,7 +290,7 @@ namespace NewGameMode
                 instance.sprite_dic = dictionary2;
                 foreach (KeyValuePair<string, Sprite> kvp in instance.sprite_dic)
                 {
-                    RGDebug.Log(kvp.Key);
+                    Harmony_Patch.YKMTLogInstance.Debug("Load All Meme Debug Key: " + kvp.Key);
                 }
                 
                 LobotomyBaseMod.ModDebug.Log("RougeLike Load 2");
@@ -348,7 +348,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                RGDebug.LogError(ex);
+                Harmony_Patch.YKMTLogInstance.Error(ex);
             }
         }
 
@@ -407,7 +407,7 @@ namespace NewGameMode
                         //初始化模因对应的模因按钮
                         if (current_list.Count != 1)//这句是跳过第一个模因，后面改
                         {
-                            RGDebug.Log("InitMemeButton");
+                            Harmony_Patch.YKMTLogInstance.Info("InitMemeButton");
                             string name_id;
                             memeModel.metaInfo.localizeData.TryGetValue("name", out name_id);
                             string desc_id;
@@ -438,7 +438,7 @@ namespace NewGameMode
                             });
 
                             memeButton.SetActive(true);
-                            RGDebug.Log("InitMemeButtonEnd");
+                            Harmony_Patch.YKMTLogInstance.Info("InitMemeButtonEnd");
                         }
                         break;
                     }
