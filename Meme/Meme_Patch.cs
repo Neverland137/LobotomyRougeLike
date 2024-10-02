@@ -48,7 +48,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                RGDebug.LogError(ex);
+                Harmony_Patch.YKMTLogInstance.Error(ex);
             }
         }
 
@@ -96,7 +96,7 @@ namespace NewGameMode
                         {
                             if (MemeManager.instance.current_list.Count == 0)
                             {
-                                RGDebug.Log("HasNoMeme");
+                                Harmony_Patch.YKMTLogInstance.Warn("HasNoMeme");
                                 __result = "";
                                 return false;
                             }
@@ -104,7 +104,7 @@ namespace NewGameMode
                             {
                                 string name;
                                 MemeManager.instance.current_list[i].metaInfo.localizeData.TryGetValue("name", out name);
-                                RGDebug.Log("name:" + name + "    " + "id:" + MemeManager.instance.current_list[i].metaInfo.id);
+                                Harmony_Patch.YKMTLogInstance.Debug("name:" + name + "    " + "id:" + MemeManager.instance.current_list[i].metaInfo.id);
                             }
 
                             __result = "";
@@ -136,7 +136,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                RGDebug.LogError(ex);
+                Harmony_Patch.YKMTLogInstance.Error(ex);
             }
             return true;
         }
@@ -193,12 +193,10 @@ namespace NewGameMode
                 detail.transform.Find("BuyButton").Find("Text").gameObject.AddComponent<FontLoadScript>();
                 */
 
-
-
             }
             catch (Exception ex)
             {
-                RGDebug.LogError(ex);
+                Harmony_Patch.YKMTLogInstance.Error(ex);
             }
         }
 
@@ -222,7 +220,7 @@ namespace NewGameMode
 
                     if (MemeManager.instance.current_list.Count == 0)
                     {
-                        RGDebug.Log("NoMeme");
+                        Harmony_Patch.YKMTLogInstance.Warn("NoMeme");
                     }
                     if (MemeManager.instance.current_list.Count != 0)
                     {
@@ -256,14 +254,12 @@ namespace NewGameMode
                 }
                 catch (Exception ex)
                 {
-                    RGDebug.LogError(ex);
+                    Harmony_Patch.YKMTLogInstance.Error(ex);
                 }
                 return false;
             }
             return true;
         }
-
-
 
         public static void Meme_OnStageStart()
         {

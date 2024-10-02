@@ -1,22 +1,20 @@
 ﻿using Assets.Scripts.UI.Utils;
 using DG.Tweening;
 using Harmony;
-using Steamworks.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Runtime.Remoting.Messaging;
 using System.Xml;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace NewGameMode
 {
     public class Harmony_Patch
     {
+        public const string VERSION = "1.0.0";
         public static string path = Path.GetDirectoryName(Uri.UnescapeDataString(new UriBuilder(Assembly.GetExecutingAssembly().CodeBase).Path));
         public static string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "/LOG";
 
@@ -24,12 +22,15 @@ namespace NewGameMode
 
         public static GameObject newRougeButton = new GameObject();
         public static GameObject continueRougeButton = new GameObject();
+        public static YKMTLog YKMTLogInstance;
         public Harmony_Patch()
         {
             try
             {
+                YKMTLogInstance = new YKMTLog(path + "/Logs", true);
+                YKMTLogInstance.Info("NewGameMode by YKMT TEAM. Version " + VERSION);
                 HarmonyInstance harmony = HarmonyInstance.Create("ykmt.NewGameMode");
-                File.WriteAllText(path + "/Log.txt", "");
+                // File.WriteAllText(path + "/Log.txt", "");
                 //复制dll文件
                 harmony.Patch(typeof(GlobalGameManager).GetMethod("Awake", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("CopyDll")), null);
                 //存储数据
@@ -45,7 +46,7 @@ namespace NewGameMode
 
 
                 //局内机制修改:禁止重开和回库
-                
+
                 //harmony.Patch(typeof(GameManager).GetMethod("ReturnToCheckPoint", AccessTools.all), new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NoRestartAndCheckPoint")), null, null);
                 harmony.Patch(typeof(EscapeUI).GetMethod("Start", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NoRestartAndCheckPointButton_EscapeUI")), null);
                 harmony.Patch(typeof(ResultScreen).GetMethod("Awake", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NoRestartButton_ResultScreen")), null);
@@ -68,13 +69,10 @@ namespace NewGameMode
                 new EnergyAndOverload_Patch(harmony);
                 new EnergyAndOverload_Patch.RGRandomEventManager(harmony);
                 new Meme_Patch(harmony);
-
-                // 初始化商店
-                ShopManager.InitShopMeme();
             }
             catch (Exception ex)
             {
-                File.WriteAllText(path + "/BaseHpError.txt", ex.Message + Environment.NewLine + ex.StackTrace);
+                YKMTLogInstance.Error("Error While Patching. Exception Message: " + ex.Message + "\nStack Trace: " + ex.StackTrace);
             }
         }
 
@@ -95,7 +93,7 @@ namespace NewGameMode
                 {
                     continue;
                 }
-                
+
 
                 // 如果目标文件夹中没有同名文件，则复制后关闭游戏
                 if (!File.Exists(destFilePath))
@@ -108,7 +106,7 @@ namespace NewGameMode
                     }
                     catch (Exception ex)
                     {
-                        RGDebug.Log("Could not copy " + fileName + ". Reason: " + ex.Message);
+                        YKMTLogInstance.Error("Could not copy " + fileName + ". Reason: " + ex.ToString());
                     }
                 }
                 else
@@ -119,44 +117,21 @@ namespace NewGameMode
                     }
                     catch (Exception ex)
                     {
-                        RGDebug.Log("Could not copy " + fileName + ". Reason: " + ex.Message);
+                        YKMTLogInstance.Error("Could not copy " + fileName + ". Reason: " + ex.ToString());
                     }
                 }
             }
 
-            
+
         }
         public static void NewGameModeButton_Start(AlterTitleController __instance)//记得改按钮文字
         {
             try
             {
-                //AssetBundle bundle = AssetBundle.Instantiate()
-                //__instance._buttonRoot.transform.Find("ButtonLayout").transform.localPosition += 400 * Vector3.up;
-
-                //以下为开始按钮的写法：复制原按钮加以修改。
-
-                /*
-                GameObject new_game_start_button = UnityEngine.Object.Instantiate(__instance._buttonRoot.transform.Find("ButtonLayout").GetChild(1).gameObject, __instance._buttonRoot.transform.Find("ButtonLayout").GetChild(2).gameObject.transform.parent);
-                
-                new_game_start_button.transform.SetParent(__instance._buttonRoot.transform.Find("ButtonLayout"));
-
-                new_game_start_button.transform.localPosition = __instance._buttonRoot.transform.Find("ButtonLayout").GetChild(1).localPosition;
-                new_game_start_button.transform.localScale = __instance._buttonRoot.transform.Find("ButtonLayout").GetChild(1).localScale;
-                
-
-                new_game_start_button.transform.localPosition += 400 * Vector3.up;
-
-                UnityEngine.Object.Destroy(new_game_start_button.GetComponent<EventTrigger>());
-                new_game_start_button.GetComponent<Button>().onClick.RemoveAllListeners();
-                new_game_start_button.GetComponent<Button>().onClick.AddListener(delegate
-                {
-                    CallNewGame_Rougelike();
-                });
-                */
-
                 AssetBundle bundle = AssetBundle.LoadFromFile(path + "/AssetsBundle/gamemodebutton");
                 newRougeButton = UnityEngine.Object.Instantiate(bundle.LoadAsset<GameObject>("GameModeButton"));
-                bundle.Unload(false);//关闭AB包，但是保留已加载的资源
+                bundle.Unload(false);
+                //关闭AB包，但是保留已加载的资源
                 //感觉不如手搓按钮 by Plana
                 //你不准感觉               
 
@@ -216,52 +191,9 @@ namespace NewGameMode
                 //以下为继续按钮的写法：新建一个全新按钮。
                 //在没有存档的情况下，该按钮不能点击。
 
-                /*
-                GameObject new_game_continue_button = new GameObject();
-                new_game_continue_button.transform.SetParent(__instance._buttonRoot.transform);
-                //new_game_continue_button.transform.localPosition -= 1300 * Vector3.up;
-                //new_game_continue_button.transform.localPosition += 4100 * Vector3.right;
-                new_game_continue_button.transform.localScale *= 1.5f;
-
-                Button button = new_game_continue_button.AddComponent<Button>();
-                
-                GameObject new_game_continue_button_text = new GameObject();
-                new_game_continue_button_text.transform.SetParent(new_game_continue_button.transform,false);
-                UnityEngine.UI.Text text = new_game_continue_button_text.AddComponent<UnityEngine.UI.Text>();
-
-                GameObject new_game_continue_button_image = new GameObject();
-                new_game_continue_button_image.transform.SetParent(new_game_continue_button.transform, false);
-                UnityEngine.UI.Image image = new_game_continue_button_image.AddComponent<UnityEngine.UI.Image>();
-
-                Texture2D texture2 = new Texture2D(2, 1);
-                texture2.LoadImage(File.ReadAllBytes(path + "/Sprite/StartButton.png"));
-
-                text.transform.localScale *= 0.1f;
-                //text.transform.localPosition = image.rectTransform.localPosition;
-                text.text = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-                text.color = Color.white;
-
-                image.sprite = Sprite.Create(texture2, new Rect(0f, 0f, texture2.width, texture2.height), new Vector2(0.5f, 0.5f));
-                image.rectTransform.sizeDelta = new Vector2(200, 70);
-                image.transform.localScale *= 0.11f;
-
-
-                button.targetGraphic = image;
-                button.onClick.AddListener(delegate
-                {
-                    CallContinueGame_Rougelike();
-                });
-                if (!File.Exists(path + "/Save/GlobalData.dat") || !File.Exists(path + "/Save/DayData.dat"))
-                {
-                    button.interactable = false;
-                }
-                */
-
                 AssetBundle bundle0 = AssetBundle.LoadFromFile(path + "/AssetsBundle/gamemodebutton");
                 continueRougeButton = UnityEngine.Object.Instantiate(bundle0.LoadAsset<GameObject>("GameModeButton"));
-                bundle0.Unload(false);//关闭AB包，但是保留已加载的资源
-                //感觉不如手搓按钮 by Plana
-                //你不准感觉               
+                bundle0.Unload(false);
 
                 continueRougeButton.transform.SetParent(__instance._buttonRoot.transform.Find("ButtonLayout"));
                 continueRougeButton.transform.localScale = new Vector3(95, 95, 10);
@@ -270,20 +202,15 @@ namespace NewGameMode
 
                 UnityEngine.UI.Image image0 = continueRougeButton.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>();
                 ///////////
-                ///
+                //
                 continueRougeButton.transform.GetChild(1).gameObject.AddComponent<FontLoadScript>();
                 LocalizeTextLoadScriptWithOutFontLoadScript script0 = continueRougeButton.transform.GetChild(1).gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
                 script0.id = "Rouge_Title_Continue_Button";
 
-                //ContentSizeFitter fitter1 = continueRougeButton.transform.GetChild(0).gameObject.AddComponent<ContentSizeFitter>();
-                //fitter1.verticalFit = ContentSizeFitter.FitMode.Unconstrained;//首选大小
-                //fitter1.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;//不调整
                 ContentSizeFitter fitter20 = continueRougeButton.transform.GetChild(1).gameObject.AddComponent<ContentSizeFitter>();
                 fitter2.verticalFit = ContentSizeFitter.FitMode.PreferredSize;//首选大小
                 fitter2.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;//不调整
                 ContentSizeFitter fitter30 = continueRougeButton.transform.GetChild(2).gameObject.AddComponent<ContentSizeFitter>();
-                //fitter3.verticalFit = ContentSizeFitter.FitMode.Unconstrained;//首选大小
-                //fitter3.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;//不调整
 
                 UnityEngine.UI.Text text0 = continueRougeButton.transform.GetChild(1).GetComponent<UnityEngine.UI.Text>();
                 text0.alignment = TextAnchor.MiddleCenter;
@@ -298,16 +225,10 @@ namespace NewGameMode
                 image0.transform.localScale *= 10f;
                 image0.color = new UnityEngine.Color(1, 1, 1, 0);
 
-                //text.text = LocalizeTextDataModel.instance.GetText("Rouge_Title_Continue_Button");
                 text0.transform.localScale = new Vector3(0.02f, 0.02f, 1);
-                //image.color = new Color(1f, 1f, 1f, 0f);
                 GameObject.DestroyObject(continueRougeButton.transform.GetChild(2).GetComponent<UnityEngine.UI.Image>());
                 GameObject.DestroyObject(continueRougeButton.transform.GetChild(2).GetChild(0));
-                //.enabled = false;
                 button0.targetGraphic = image0;
-                //有办法把按钮的图像设成透明吗
-                //我这个按钮好像没法加载image 是白不拉几的一片
-                //好好好
                 button0.transform.localScale *= 10f;
                 continueRougeButton.transform.GetChild(0).transform.localPosition = image0.transform.localPosition + new Vector3(0, 0, 10);
                 continueRougeButton.transform.GetChild(0).transform.localScale = image0.transform.localScale;
@@ -319,12 +240,11 @@ namespace NewGameMode
                 {
                     button0.interactable = false;
                     text0.color = UnityEngine.Color.gray;
-                    //button0.enabled = false;
                 }
             }
             catch (Exception ex)
             {
-                File.WriteAllText(path + "/ButtonStartError.txt", ex.Message + Environment.NewLine + ex.StackTrace);
+                YKMTLogInstance.Error(ex);
             }
 
         }
@@ -394,7 +314,7 @@ namespace NewGameMode
             }
             catch (Exception message)
             {
-                File.WriteAllText(path + "/ContinueRougeError.txt", message.Message + Environment.NewLine + message.StackTrace);
+                YKMTLogInstance.Error(message);
                 Debug.LogError(message);
                 global::GlobalGameManager.instance.ReleaseGame();
             }
@@ -476,7 +396,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                File.WriteAllText(path + "/LoadGlobalDataError.txt", ex.Message + Environment.NewLine + ex.StackTrace);
+                YKMTLogInstance.Error(ex);
             }
 
             return false;
@@ -529,7 +449,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                File.WriteAllText(path + "/SaveGlobalerror.txt", ex.Message + Environment.NewLine + ex.StackTrace);
+                YKMTLogInstance.Error(ex);
             }
 
             return true;
@@ -571,7 +491,7 @@ namespace NewGameMode
 
             catch (Exception ex)
             {
-                File.WriteAllText(path + "/SaveDataerror.txt", ex.Message + Environment.NewLine + ex.StackTrace);
+                YKMTLogInstance.Error(ex);
             }
             return true;
         }
@@ -662,7 +582,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                File.WriteAllText(path + "/LoadGlobalerror.txt", ex.Message + Environment.NewLine + ex.StackTrace);
+                YKMTLogInstance.Error(ex);
             }
         }
         //?
@@ -760,7 +680,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                File.WriteAllText(path + "/LoadDayDataError.txt", ex.Message + Environment.NewLine + ex.StackTrace);
+                YKMTLogInstance.Error(ex);
             }
             return;
         }
@@ -791,43 +711,43 @@ namespace NewGameMode
                 Dictionary<string, object> dic6 = null;
                 string text = "old";
                 global::GameUtil.TryGetValue<string>(data, "saveInnerVer", ref text);
-                File.WriteAllText(path + "/LoadDayError1.txt", "1");
+                YKMTLogInstance.Debug("LoadDay Debugnum 1");
                 //int dayFromSaveData = GlobalGameManager.instance.GetDayFromSaveData(data);
                 global::GameUtil.TryGetValue<Dictionary<string, object>>(data, "money", ref dic);
-                File.WriteAllText(path + "/LoadDayError1.txt", "2");
+                YKMTLogInstance.Debug("LoadDay Debugnum 2");
                 global::GameUtil.TryGetValue<Dictionary<string, object>>(data, "agents", ref dic2);
-                File.WriteAllText(path + "/LoadDayError1.txt", "3");
+                YKMTLogInstance.Debug("LoadDay Debugnum 3");
                 global::GameUtil.TryGetValue<Dictionary<string, object>>(data, "creatures", ref dic3);
-                File.WriteAllText(path + "/LoadDayError1.txt", "4");
+                YKMTLogInstance.Debug("LoadDay Debugnum 4");
                 global::GameUtil.TryGetValue<Dictionary<string, object>>(data, "playerData", ref dic4);
-                File.WriteAllText(path + "/LoadDayError1.txt", "5");
+                YKMTLogInstance.Debug("LoadDay Debugnum 5");
                 global::GameUtil.TryGetValue<Dictionary<string, object>>(data, "sefiras", ref dic5);
-                File.WriteAllText(path + "/LoadDayError1.txt", "6");
+                YKMTLogInstance.Debug("LoadDay Debugnum 6");
                 global::GameUtil.TryGetValue<string>(data, "saveState", ref GlobalGameManager.instance.saveState);
-                File.WriteAllText(path + "/LoadDayError1.txt", "7");
+                YKMTLogInstance.Debug("LoadDay Debugnum 7");
                 if (global::GameUtil.TryGetValue<Dictionary<string, object>>(data, "agentName", ref dic6))
                 {
                     global::AgentNameList.instance.LoadData(dic6);
                 }
                 global::MoneyModel.instance.LoadData(dic);
-                File.WriteAllText(path + "/LoadDayError1.txt", "8");
+                YKMTLogInstance.Debug("LoadDay Debugnum 8");
                 global::PlayerModel.instance.LoadData(dic4);
-                File.WriteAllText(path + "/LoadDayError1.txt", "9");
+                YKMTLogInstance.Debug("LoadDay Debugnum 9");
                 global::SefiraManager.instance.LoadData(dic5);
-                File.WriteAllText(path + "/LoadDayError1.txt", "10");
+                YKMTLogInstance.Debug("LoadDay Debugnum 10");
                 //global::AgentManager.instance.LoadCustomAgentData();
-                File.WriteAllText(path + "/LoadDayError1.txt", "11");
+                YKMTLogInstance.Debug("LoadDay Debugnum 11");
                 global::CreatureManager.instance.LoadData(dic3);
-                File.WriteAllText(path + "/LoadDayError1.txt", "12");
+                YKMTLogInstance.Debug("LoadDay Debugnum 12");
                 //global::AgentManager.instance.LoadDelAgentData();
-                File.WriteAllText(path + "/LoadDayError1.txt", "13");
+                YKMTLogInstance.Debug("LoadDay Debugnum 13");
                 global::AgentManager.instance.LoadData(dic2);
-                File.WriteAllText(path + "/LoadDayError1.txt", "14");
+                YKMTLogInstance.Debug("LoadDay Debugnum 14");
                 GlobalGameManager.instance.gameMode = rougeLike;
             }
             catch (Exception ex)
             {
-                File.WriteAllText(path + "/LoadDayError.txt", ex.Message + Environment.NewLine + ex.StackTrace);
+                YKMTLogInstance.Error(ex);
             }
         }
 
@@ -1109,7 +1029,7 @@ namespace NewGameMode
 
             catch (Exception ex)
             {
-                File.WriteAllText(path + "/RandomEquipError2.txt", ex.Message + Environment.NewLine + ex.StackTrace);
+                YKMTLogInstance.Error(ex);
             }
 
 
@@ -1260,7 +1180,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                File.WriteAllText(path + "/RandomAgentError.txt", ex.Message + Environment.NewLine + ex.StackTrace);
+                YKMTLogInstance.Error(ex);
             }
 
             //AgentManager.instance.GetSaveData();
@@ -1269,13 +1189,10 @@ namespace NewGameMode
 
         public static void SetRandomCreatures(float[] rate)
         {
-            //File.WriteAllText(path + "/RandomCreatureError1.txt","1");
             CreatureManager.instance.Clear();
-            //File.WriteAllText(path + "/RandomCreatureError1.txt", "2");
             try
             {
                 bool dlcCreatureOn = GlobalGameManager.instance.dlcCreatureOn;//获取所有可用的异想体id列表，但不包含工具型
-                //File.WriteAllText(path + "/RandomCreatureError1.txt", "3");
                 List<long> all_creature_list;
                 if (dlcCreatureOn)
                 {
@@ -1285,7 +1202,6 @@ namespace NewGameMode
                 {
                     all_creature_list = new List<long>(CreatureGenerateInfo.all_except_creditCreatures);
                 }
-                //File.WriteAllText(path + "/RandomCreatureError1.txt", "4");
                 foreach (long item in CreatureGenerateInfo.kitCreature)
                 {
                     all_creature_list.Remove(item);
@@ -1308,8 +1224,6 @@ namespace NewGameMode
                         }
                     }
                 }
-
-                //File.WriteAllText(path + "/RandomCreatureError1.txt", "5");
 
                 List<long> z_creature_list = new List<long>();
                 List<long> t_creature_list = new List<long>();
@@ -1340,7 +1254,6 @@ namespace NewGameMode
                         a_creature_list.Add(id);
                     }
                 }
-                //File.WriteAllText(path + "/RandomCreatureError1.txt", "6");
                 for (int sefira_id = 1; sefira_id < 7; sefira_id++)//一直到中本2全塞满
                 {
                     long[] random_id = new long[4];
@@ -1382,12 +1295,11 @@ namespace NewGameMode
                         AddCreature(random_id[i], sefira);
                     }
                 }
-                //File.WriteAllText(path + "/RandomCreatureError1.txt", "7");
 
             }
             catch (Exception ex)
             {
-                File.WriteAllText(path + "/RandomCreatureError.txt", ex.Message + Environment.NewLine + ex.StackTrace);
+                YKMTLogInstance.Error(ex);
             }
             //CreatureManager.instance.AddCreatureInSefira()
         }
@@ -1408,7 +1320,7 @@ namespace NewGameMode
             }
         }
 
-        
+
 
         public static void NoRestartAndCheckPointButton_EscapeUI()
         {
@@ -1633,20 +1545,6 @@ namespace NewGameMode
         }
     }
 
-    public class RGDebug
-    {
-        public static void Log(string message)
-        {
-            DateTime currentTime = DateTime.Now;
-            File.AppendAllText(Harmony_Patch.path + "/Log.txt", $"{currentTime:yyyy/MM/dd HH:mm:ss} " + message + Environment.NewLine);
-        }
-        public static void LogError(Exception exception)
-        {
-            DateTime currentTime = DateTime.Now;
-            File.AppendAllText(Harmony_Patch.path + "/Log.txt", $"{currentTime:yyyy/MM/dd HH:mm:ss} " + exception.Message + Environment.NewLine + exception.StackTrace + Environment.NewLine);
-        }
-    }
-
     public class ButtonInteraction : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         public static string path = Path.GetDirectoryName(Uri.UnescapeDataString(new UriBuilder(Assembly.GetExecutingAssembly().CodeBase).Path));
@@ -1679,8 +1577,8 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                RGDebug.Log(num.ToString());
-                RGDebug.LogError(ex);
+                Harmony_Patch.YKMTLogInstance.Debug(num.ToString());
+                Harmony_Patch.YKMTLogInstance.Error(ex);
             }
         }
         public void Update()
@@ -1689,10 +1587,12 @@ namespace NewGameMode
             {
                 if (currentState == ButtonState.FadingIn)
                 {
+                    Harmony_Patch.YKMTLogInstance.Debug("FadingIn ing.");
                     UnityEngine.Color color = frontsprite.color;
                     color.a = fadeprogress;
                     frontsprite.color = color;
                     fadeprogress += Time.deltaTime;
+                    Harmony_Patch.YKMTLogInstance.Debug("Now color is " + frontsprite.color + ".FadeProgress is " + fadeprogress);
                     if (fadeprogress >= 1f)
                     {
                         AlterTitleController.Controller._backgroundRenderer.sprite = frontsprite.sprite;
@@ -1705,10 +1605,12 @@ namespace NewGameMode
                 }
                 else if (currentState == ButtonState.FadingOut)
                 {
+                    Harmony_Patch.YKMTLogInstance.Debug("FadingOut ing.");
                     UnityEngine.Color color = frontsprite.color;
                     color.a = fadeprogress;
                     frontsprite.color = color;
                     fadeprogress -= Time.deltaTime;
+                    Harmony_Patch.YKMTLogInstance.Debug("Now color is " + frontsprite.color + ".FadeProgress is " + fadeprogress);
                     if (fadeprogress <= 0f)
                     {
                         AlterTitleController.Controller._backgroundRenderer.sprite = originSprite;
@@ -1722,41 +1624,41 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                RGDebug.LogError(ex);
+                Harmony_Patch.YKMTLogInstance.Error(ex);
             }
         }
         public void OnPointerEnter(PointerEventData eventData)
         {
-                try
-                {
-                    //transform.parent.GetChild(1).GetComponent<UnityEngine.UI.Text>().color = Color.white;
-                    frontsprite.sprite = sp;
-                    currentState = ButtonState.FadingIn;
-                    frontsprite.color = new UnityEngine.Color(1f, 1f, 1f, 0f);
-                    frontsprite.gameObject.SetActive(true);
-                    fadeprogress = frontsprite.color.a;
-                }
-                catch (Exception ex)
-                {
-                    RGDebug.LogError(ex);
-                }
+            try
+            {
+                //transform.parent.GetChild(1).GetComponent<UnityEngine.UI.Text>().color = Color.white;
+                frontsprite.sprite = sp;
+                currentState = ButtonState.FadingIn;
+                frontsprite.color = new UnityEngine.Color(1f, 1f, 1f, 0f);
+                frontsprite.gameObject.SetActive(true);
+                fadeprogress = frontsprite.color.a;
+            }
+            catch (Exception ex)
+            {
+                Harmony_Patch.YKMTLogInstance.Error(ex);
+            }
         }
         public void OnPointerExit(PointerEventData eventData)
         {
-                try
-                {
-                    //transform.parent.GetChild(1).GetComponent<UnityEngine.UI.Text>().color = originColor;
-                    AlterTitleController.Controller._backgroundRenderer.sprite = originSprite;
-                    currentState = ButtonState.FadingOut;
-                    fadeprogress = frontsprite.color.a;
-                    frontsprite.sprite = sp;
-                    frontsprite.color = new UnityEngine.Color(1f, 1f, 1f, 1f);
-                    frontsprite.gameObject.SetActive(true);
-                }
-                catch (Exception ex)
-                {
-                    RGDebug.LogError(ex);
-                }
+            try
+            {
+                //transform.parent.GetChild(1).GetComponent<UnityEngine.UI.Text>().color = originColor;
+                AlterTitleController.Controller._backgroundRenderer.sprite = originSprite;
+                currentState = ButtonState.FadingOut;
+                fadeprogress = frontsprite.color.a;
+                frontsprite.sprite = sp;
+                frontsprite.color = new UnityEngine.Color(1f, 1f, 1f, 1f);
+                frontsprite.gameObject.SetActive(true);
+            }
+            catch (Exception ex)
+            {
+                Harmony_Patch.YKMTLogInstance.Error(ex);
+            }
         }
         private enum ButtonState
         {
@@ -1796,7 +1698,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                RGDebug.LogError(ex);
+                Harmony_Patch.YKMTLogInstance.Error(ex);
             }
         }
         public void Update()
@@ -1826,7 +1728,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                RGDebug.LogError(ex);
+                Harmony_Patch.YKMTLogInstance.Error(ex);
             }
         }
         public void PlayClip(AudioClipPlayer.PlayerData data)
@@ -1864,7 +1766,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                RGDebug.LogError(ex);
+                Harmony_Patch.YKMTLogInstance.Error(ex);
             }
         }
         public void OnPointerExit(PointerEventData eventData)
@@ -1878,7 +1780,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                RGDebug.LogError(ex);
+                Harmony_Patch.YKMTLogInstance.Error(ex);
             }
         }
 
@@ -1901,7 +1803,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                RGDebug.LogError(ex);
+                Harmony_Patch.YKMTLogInstance.Error(ex);
             }
         }
 
@@ -1916,7 +1818,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                RGDebug.LogError(ex);
+                Harmony_Patch.YKMTLogInstance.Error(ex);
             }
         }
 
@@ -1958,7 +1860,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                RGDebug.LogError(ex);
+                Harmony_Patch.YKMTLogInstance.Error(ex);
             }
         }
     }
@@ -1978,7 +1880,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                RGDebug.LogError(ex);
+                Harmony_Patch.YKMTLogInstance.Error(ex);
             }
         }
     }
@@ -2000,7 +1902,7 @@ public class LocalizeTextLoadScriptWithOutFontLoadScript : MonoBehaviour, global
         if (!this.init)
         {
             this.init = true;
-            
+
         }
     }
 

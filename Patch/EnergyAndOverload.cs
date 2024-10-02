@@ -549,7 +549,7 @@ namespace NewGameMode
                     }
                     catch (Exception ex)
                     {
-                        RGDebug.LogError(ex);
+                        Harmony_Patch.YKMTLogInstance.Error(ex);
                     }
                     Sefira sefira = sefiras[UnityEngine.Random.Range(0, sefiras.Length)];
                     childCreatureModel.script = (CreatureBase)obj; num++;
@@ -688,7 +688,7 @@ namespace NewGameMode
                 }
                 catch (Exception ex)
                 {
-                    RGDebug.LogError(ex);
+                    Harmony_Patch.YKMTLogInstance.Error(ex);
                 }
             }
             public enum MissionRequire
@@ -790,7 +790,7 @@ namespace NewGameMode
                         }
                         if (mission != null)
                         {
-                            RGDebug.Log(mission.count + "/" + mission.goal);
+                            Harmony_Patch.YKMTLogInstance.Info(mission.count + "/" + mission.goal);
 
                             if (mission.count >= mission.goal)
                             {
@@ -805,7 +805,7 @@ namespace NewGameMode
                                 " : ",
                                 LocalizeTextDataModel.instance.GetTextAppend(new string[] { "MissionUI", "Clear" })
                                 });
-                                RGDebug.Log(mission.name + "  " + mission.type.ToString() + "Clear");
+                                Harmony_Patch.YKMTLogInstance.Info(mission.name + "  " + mission.type.ToString() + "Clear");
                             }
                             else
                             {
@@ -822,7 +822,7 @@ namespace NewGameMode
                                 mission.goal.ToString()
                                 });
 
-                                RGDebug.Log(mission.name + "  " + mission.type.ToString() + "NotClear");
+                                Harmony_Patch.YKMTLogInstance.Info(mission.name + "  " + mission.type.ToString() + "NotClear");
                             }
                             if (__instance.AutoResize)
                             {
@@ -836,7 +836,7 @@ namespace NewGameMode
                 }
                 catch (Exception ex)
                 {
-                    RGDebug.LogError(ex);
+                    Harmony_Patch.YKMTLogInstance.Error(ex);
                 }
                 return true;
             }
@@ -861,7 +861,7 @@ namespace NewGameMode
                 }
                 catch (Exception ex)
                 {
-                    RGDebug.LogError(ex);
+                    Harmony_Patch.YKMTLogInstance.Error(ex);
                 }
             }
 
@@ -873,7 +873,14 @@ namespace NewGameMode
                 string text = LocalizeTextDataModel.instance.GetText("RandomEvent_MissionEnd");
                 AngelaConversationUI.instance.AddAngelaMessage(text);
                 AssetBundle bundle = AssetBundle.LoadFromFile(Harmony_Patch.path + "/AssetsBundle/missionrewardbutton");
-                rewardButton = UnityEngine.Object.Instantiate(bundle.LoadAsset<GameObject>("MissionRewardButton"));
+                try
+                {
+                    rewardButton = UnityEngine.Object.Instantiate(bundle.LoadAsset<GameObject>("MissionRewardButton"));
+                }
+                catch
+                {
+                    Harmony_Patch.YKMTLogInstance.Error("MissionRewardButton not found");
+                }
                 bundle.Unload(false);
                 AngelaConversationUI.instance.FadeOut = false;
                 AngelaConversationUI.instance.FadeIn = false;
@@ -1016,7 +1023,7 @@ namespace NewGameMode
                 }
                 catch (Exception ex)
                 {
-                    RGDebug.LogError(ex);
+                    Harmony_Patch.YKMTLogInstance.Error(ex);
                 }
             }
 
@@ -1042,7 +1049,7 @@ namespace NewGameMode
                 }
                 catch (Exception ex)
                 {
-                    RGDebug.LogError(ex);
+                    Harmony_Patch.YKMTLogInstance.Error(ex);
                 }
             }
 
@@ -1052,7 +1059,7 @@ namespace NewGameMode
                 {
                     foreach (EXTRAMission mission in EXTRAMissionManager.instance.GetStartMission())
                     {
-                        RGDebug.Log(mission.name + "  " + mission.type.ToString());
+                        Harmony_Patch.YKMTLogInstance.Info(mission.name + "  " + mission.type.ToString());
                     }
                     if (EXTRAMissionManager.instance.GetStartMission().Find((EXTRAMission x) => x.name == "E4") != null)
                     {
@@ -1071,7 +1078,7 @@ namespace NewGameMode
                 }
                 catch (Exception ex)
                 {
-                    RGDebug.LogError(ex);
+                    Harmony_Patch.YKMTLogInstance.Error(ex);
                 }
             }
         }

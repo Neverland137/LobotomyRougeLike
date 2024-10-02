@@ -44,8 +44,7 @@
     <Compile Include="Patch\Challenge.cs" />
     <Compile Include="Patch\EnergyAndOverload.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Shop\ShopManager.cs" />
-    <Compile Include="Shop\ShopProduct.cs" />
+    <Compile Include="YKMTLog.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="lib\0Harmony.dll" />
@@ -54,12 +53,7 @@
     <Content Include="lib\Facepunch.Steamworks.Win64.dll" />
     <Content Include="lib\LobotomyBaseModLib.dll" />
     <Content Include="lib\Mono.Security.dll" />
-    <Content Include="lib\mscorlib.dll" />
     <Content Include="lib\NAudio.dll" />
-    <Content Include="lib\steam_api64.dll" />
-    <Content Include="lib\System.Core.dll" />
-    <Content Include="lib\System.dll" />
-    <Content Include="lib\System.Xml.dll" />
     <Content Include="lib\UnityEngine.AccessibilityModule.dll" />
     <Content Include="lib\UnityEngine.AIModule.dll" />
     <Content Include="lib\UnityEngine.AnimationModule.dll" />
