@@ -22,9 +22,9 @@ namespace NewGameMode
         /// </summary>
         public YKMTLog(string logDir, bool isDebugEnabled)
         {
-            if (!Directory.Exists(logDir + "/Logs"))
+            if (!Directory.Exists(logDir))
             {
-                Directory.CreateDirectory(Harmony_Patch.path + "/Logs");
+                Directory.CreateDirectory(logDir);
             }
             if (isDebugEnabled)
             {
