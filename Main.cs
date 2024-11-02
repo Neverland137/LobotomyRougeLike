@@ -69,6 +69,9 @@ namespace NewGameMode
                 new EnergyAndOverload_Patch(harmony);
                 new EnergyAndOverload_Patch.RGRandomEventManager(harmony);
                 new Meme_Patch(harmony);
+
+                // 初始化商店
+                ShopManager.InitShopMeme();
             }
             catch (Exception ex)
             {
