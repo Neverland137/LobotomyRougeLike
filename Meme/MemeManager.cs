@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Reflection;
 using System.Xml;
@@ -253,9 +254,9 @@ namespace NewGameMode
                 //以上为加载肉鸽自带的模因
 
                 //需要先加载贴图
-                foreach (global::ModInfo modInfo in ((global::Add_On)global::Add_On.instance).ModList)
+                foreach (ModInfo modInfo in ((Add_On)Add_On.instance).ModList)
                 {
-                    ModInfo modInfo2 = (global::ModInfo)modInfo;
+                    ModInfo modInfo2 = (ModInfo)modInfo;
                     DirectoryInfo directoryInfo = EquipmentDataLoader.CheckNamedDir(modInfo2.modpath, "Meme");//在模组里找叫Meme的文件夹
 
                     
@@ -296,9 +297,9 @@ namespace NewGameMode
                 LobotomyBaseMod.ModDebug.Log("RougeLike Load 2");
 
                 //再加载模因本身
-                foreach (global::ModInfo modInfo in ((global::Add_On)global::Add_On.instance).ModList)
+                foreach (ModInfo modInfo in ((Add_On)Add_On.instance).ModList)
                 {
-                    ModInfo modInfo2 = (global::ModInfo)modInfo;
+                    ModInfo modInfo2 = (ModInfo)modInfo;
                     DirectoryInfo directoryInfo = EquipmentDataLoader.CheckNamedDir(modInfo2.modpath, "Meme");//在模组里找叫Meme的文件夹
 
                     bool flag2 = directoryInfo != null && Directory.Exists(directoryInfo.FullName + "/txts");//在Meme文件夹里找txt
@@ -407,7 +408,7 @@ namespace NewGameMode
                         //初始化模因对应的模因按钮
                         if (current_list.Count != 1)//这句是跳过第一个模因，后面改
                         {
-                            Harmony_Patch.YKMTLogInstance.Info("InitMemeButton");
+                            Harmony_Patch.LogInfo("InitMemeButton");
                             string name_id;
                             memeModel.metaInfo.localizeData.TryGetValue("name", out name_id);
                             string desc_id;
@@ -438,7 +439,7 @@ namespace NewGameMode
                             });
 
                             memeButton.SetActive(true);
-                            Harmony_Patch.YKMTLogInstance.Info("InitMemeButtonEnd");
+                            Harmony_Patch.LogInfo("InitMemeButtonEnd");
                         }
                         break;
                     }
@@ -505,6 +506,34 @@ namespace NewGameMode
             foreach (MemeModel meme in current_list)
             {
                 meme.script.OnPrepareWeapon(actor);
+            }
+        }
+        public void OnCancelWeapon(UnitModel actor)
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.OnCancelWeapon(actor);
+            }
+        }
+        public void OnAttackStart(UnitModel actor, UnitModel target)
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.OnAttackStart(actor, target);
+            }
+        }
+        public void OnAttackEnd(UnitModel actor, UnitModel target)
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.OnAttackEnd(actor, target);
+            }
+        }
+        public void OnKillMainTarget(UnitModel actor, UnitModel target)
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.OnKillMainTarget(actor, target);
             }
         }
     }

@@ -1,6 +1,7 @@
 ﻿using Assets.Scripts.UI.Utils;
 using DG.Tweening;
 using Harmony;
+using NewGameMode.Diffculty;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -23,12 +24,17 @@ namespace NewGameMode
         public static GameObject newRougeButton = new GameObject();
         public static GameObject continueRougeButton = new GameObject();
         public static YKMTLog YKMTLogInstance;
+        public static Action<string> LogInfo = (message) => YKMTLogInstance.Info(message);
+        public static Action<string> LogError = (message) => YKMTLogInstance.Error(message);
+        public static Action<string> LogWarning = (message) => YKMTLogInstance.Warn(message);
+        public static Action<string> LogDebug = (message) => YKMTLogInstance.Debug(message);
         public Harmony_Patch()
         {
             try
             {
                 YKMTLogInstance = new YKMTLog(path + "/Logs", true);
-                YKMTLogInstance.Info("NewGameMode by YKMT TEAM. Version " + VERSION);
+                LogInfo("NewGameMode by YKMT TEAM. Version " + VERSION);
+                LogInfo("ModPath: " + path);
                 HarmonyInstance harmony = HarmonyInstance.Create("ykmt.NewGameMode");
                 // File.WriteAllText(path + "/Log.txt", "");
                 //复制dll文件
@@ -72,6 +78,11 @@ namespace NewGameMode
 
                 // 初始化商店
                 ShopManager.InitShopMeme();
+
+                // 初始化难度系统
+                DifficultyManager.Init();
+                // HarmonyPatch
+                new DifficultyPatch(harmony);
             }
             catch (Exception ex)
             {
@@ -187,6 +198,7 @@ namespace NewGameMode
                 newRougeButton.transform.GetChild(0).transform.localScale = image.transform.localScale;
                 button.onClick.AddListener(delegate
                 {
+                    LogInfo("Click GameStartButton.");
                     CallNewGame_Rougelike();
                 });
 
@@ -237,6 +249,7 @@ namespace NewGameMode
                 continueRougeButton.transform.GetChild(0).transform.localScale = image0.transform.localScale;
                 button0.onClick.AddListener(delegate
                 {
+                    LogInfo("Click Continue Button");
                     CallContinueGame_Rougelike();
                 });
                 if (!File.Exists(path + "/Save/GlobalData.dat") || !File.Exists(path + "/Save/DayData.dat"))
@@ -257,7 +270,7 @@ namespace NewGameMode
         public static void NewGameModeButton_Awake()
         {
             //在动作库里添加id为666的动作类型，触发动作时启动CallNewGame_Rougelike
-            Extension.GetPrivateField<Dictionary<global::AlterTitleController.TitleActionType, global::AlterTitleController.TitleCall>>(AlterTitleController.Controller, "_actionLibrary").Add((AlterTitleController.TitleActionType)666, new global::AlterTitleController.TitleCall(CallNewGame_Rougelike));
+            Extension.GetPrivateField<Dictionary<AlterTitleController.TitleActionType, AlterTitleController.TitleCall>>(AlterTitleController.Controller, "_actionLibrary").Add((AlterTitleController.TitleActionType)666, new AlterTitleController.TitleCall(CallNewGame_Rougelike));
         }
 
         public static void NewGameModeButton_OnClick(int id)
@@ -265,12 +278,12 @@ namespace NewGameMode
             //当按钮id超过原版时，才会触发。在动作库里搜索对应的动作，如果搜索到就call方法
             if (id >= 9)
             {
-                global::AlterTitleController.TitleCall titleCall = null;
-                Dictionary<global::AlterTitleController.TitleActionType, global::AlterTitleController.TitleCall> _actionLibrary = Extension.GetPrivateField<Dictionary<global::AlterTitleController.TitleActionType, global::AlterTitleController.TitleCall>>(AlterTitleController.Controller, "_actionLibrary");
+                AlterTitleController.TitleCall titleCall = null;
+                Dictionary<AlterTitleController.TitleActionType, AlterTitleController.TitleCall> _actionLibrary = Extension.GetPrivateField<Dictionary<AlterTitleController.TitleActionType, AlterTitleController.TitleCall>>(AlterTitleController.Controller, "_actionLibrary");
 
-                if (_actionLibrary.TryGetValue((global::AlterTitleController.TitleActionType)666, out titleCall))
+                if (_actionLibrary.TryGetValue((AlterTitleController.TitleActionType)666, out titleCall))
                 {
-                    Debug.Log((global::AlterTitleController.TitleActionType)666);
+                    Debug.Log((AlterTitleController.TitleActionType)666);
                     titleCall();
                 }
             }
@@ -319,7 +332,7 @@ namespace NewGameMode
             {
                 YKMTLogInstance.Error(message);
                 Debug.LogError(message);
-                global::GlobalGameManager.instance.ReleaseGame();
+                GlobalGameManager.instance.ReleaseGame();
             }
         }
 
@@ -335,65 +348,65 @@ namespace NewGameMode
                 }
                 //else
                 {
-                    Dictionary<string, object> dic = global::SaveUtil.ReadSerializableFile(UnityEngine.Application.persistentDataPath + "/saveGlobal170808.dat");
+                    Dictionary<string, object> dic = SaveUtil.ReadSerializableFile(UnityEngine.Application.persistentDataPath + "/saveGlobal170808.dat");
                     Dictionary<string, object> dic2 = null;
                     Dictionary<string, object> dic3 = null;
                     Dictionary<string, object> dic4 = null;
                     Dictionary<string, object> dic5 = null;
                     Dictionary<string, object> dic6 = null;
                     Dictionary<string, object> dic7 = null;
-                    if (global::GameUtil.TryGetValue<Dictionary<string, object>>(dic, "observe", ref dic2))
+                    if (GameUtil.TryGetValue<Dictionary<string, object>>(dic, "observe", ref dic2))
                     {
-                        global::CreatureManager.instance.LoadObserveData(SetRandomObserve(dic2, 0, 0, 20, 50));
+                        CreatureManager.instance.LoadObserveData(SetRandomObserve(dic2, 0, 0, 20, 50));
                     }
                     else
                     {
-                        global::CreatureManager.instance.ResetObserveData();
+                        CreatureManager.instance.ResetObserveData();
                     }
-                    if (global::GameUtil.TryGetValue<Dictionary<string, object>>(dic, "etcData", ref dic4))
+                    if (GameUtil.TryGetValue<Dictionary<string, object>>(dic, "etcData", ref dic4))
                     {
-                        global::GlobalEtcDataModel.instance.LoadGlobalData(dic4);
+                        GlobalEtcDataModel.instance.LoadGlobalData(dic4);
                     }
                     else
                     {
-                        global::GlobalEtcDataModel.instance.ResetGlobalData();
+                        GlobalEtcDataModel.instance.ResetGlobalData();
                     }
-                    if (global::GameUtil.TryGetValue<Dictionary<string, object>>(dic, "research", ref dic5))
+                    if (GameUtil.TryGetValue<Dictionary<string, object>>(dic, "research", ref dic5))
                     {
-                        global::GlobalEtcDataModel.instance.LoadGlobalData(dic5);
+                        GlobalEtcDataModel.instance.LoadGlobalData(dic5);
                         //随机部门科技暂时放弃。原因：部门科技与任务绑定
-                        //global::ResearchDataModel.instance.LoadData(SetRandomResearch(dic5, 0.4f));
+                        //ResearchDataModel.instance.LoadData(SetRandomResearch(dic5, 0.4f));
                     }
                     else
                     {
-                        global::ResearchDataModel.instance.Init();
+                        ResearchDataModel.instance.Init();
                     }
-                    if (global::GameUtil.TryGetValue<Dictionary<string, object>>(dic, "missions", ref dic6))
+                    if (GameUtil.TryGetValue<Dictionary<string, object>>(dic, "missions", ref dic6))
                     {
-                        global::MissionManager.instance.LoadData(dic6);
+                        MissionManager.instance.LoadData(dic6);
                     }
                     else
                     {
-                        global::MissionManager.instance.Init();
+                        MissionManager.instance.Init();
                     }
-                    if (global::GameUtil.TryGetValue<Dictionary<string, object>>(dic, "inventory", ref dic3))
+                    if (GameUtil.TryGetValue<Dictionary<string, object>>(dic, "inventory", ref dic3))
                     {
-                        //global::MissionManager.instance.LoadData(dic3);
+                        //MissionManager.instance.LoadData(dic3);
 
                         float[] rate = { 0.1f, 0.3f, 0.6f, 0.85f, 1 };
-                        global::InventoryModel.Instance.LoadGlobalData(SetRandomEquipment(dic3, 40, 50, rate));
+                        InventoryModel.Instance.LoadGlobalData(SetRandomEquipment(dic3, 40, 50, rate));
                     }
                     else
                     {
-                        global::InventoryModel.Instance.Init();
+                        InventoryModel.Instance.Init();
                     }
-                    if (global::GameUtil.TryGetValue<Dictionary<string, object>>(dic, "sefiraCharactes", ref dic7))
+                    if (GameUtil.TryGetValue<Dictionary<string, object>>(dic, "sefiraCharactes", ref dic7))
                     {
-                        global::SefiraCharacterManager.instance.LoadData(dic7);
+                        SefiraCharacterManager.instance.LoadData(dic7);
                     }
                     else
                     {
-                        global::SefiraCharacterManager.instance.Init();
+                        SefiraCharacterManager.instance.Init();
                     }
                 }
             }
@@ -439,13 +452,13 @@ namespace NewGameMode
                 if (GlobalGameManager.instance.gameMode == rougeLike)
                 {
                     Dictionary<string, object> dictionary = new Dictionary<string, object>();
-                    dictionary.Add("observe", global::CreatureManager.instance.GetSaveObserveData());
-                    dictionary.Add("etcData", global::GlobalEtcDataModel.instance.GetGlobalSaveData());
-                    dictionary.Add("inventory", global::InventoryModel.Instance.GetGlobalSaveData());
-                    dictionary.Add("research", global::ResearchDataModel.instance.GetSaveData());
-                    dictionary.Add("missions", global::MissionManager.instance.GetSaveData());
-                    dictionary.Add("sefiraCharactes", global::SefiraCharacterManager.instance.GetSaveData());
-                    global::SaveUtil.WriteSerializableFile(path + "/Save/GlobalData.dat", dictionary);
+                    dictionary.Add("observe", CreatureManager.instance.GetSaveObserveData());
+                    dictionary.Add("etcData", GlobalEtcDataModel.instance.GetGlobalSaveData());
+                    dictionary.Add("inventory", InventoryModel.Instance.GetGlobalSaveData());
+                    dictionary.Add("research", ResearchDataModel.instance.GetSaveData());
+                    dictionary.Add("missions", MissionManager.instance.GetSaveData());
+                    dictionary.Add("sefiraCharactes", SefiraCharacterManager.instance.GetSaveData());
+                    SaveUtil.WriteSerializableFile(path + "/Save/GlobalData.dat", dictionary);
                     return false;
                 }
 
@@ -467,19 +480,19 @@ namespace NewGameMode
                     Dictionary<string, object> dictionary = new Dictionary<string, object>();
                     dictionary.Add("saveVer", "ver1");
                     dictionary.Add("playTime", GlobalGameManager.instance.playTime);
-                    int day = global::PlayerModel.instance.GetDay();
+                    int day = PlayerModel.instance.GetDay();
                     dictionary.Add("lastDay", day);
                     Dictionary<int, Dictionary<string, object>> dictionary2 = new Dictionary<int, Dictionary<string, object>>();
                     Dictionary<string, object> saveDayData = GlobalGameManager.instance.GetSaveDayData();
-                    dictionary2.Add(global::PlayerModel.instance.GetDay(), saveDayData);
+                    dictionary2.Add(PlayerModel.instance.GetDay(), saveDayData);
 
                     if (File.Exists(path + "/Save/DayData.dat"))
                     {
-                        Dictionary<string, object> dic = global::SaveUtil.ReadSerializableFile(path + "/Save/DayData.dat");
+                        Dictionary<string, object> dic = SaveUtil.ReadSerializableFile(path + "/Save/DayData.dat");
                         int num = 0;
                         Dictionary<string, object> value2 = null;
                         Dictionary<int, Dictionary<string, object>> dictionary3 = null;
-                        if (global::GameUtil.TryGetValue<int>(dic, "checkPointDay", ref num) && global::GameUtil.TryGetValue<Dictionary<int, Dictionary<string, object>>>(dic, "dayList", ref dictionary3) && dictionary3.TryGetValue(num, out value2))
+                        if (GameUtil.TryGetValue<int>(dic, "checkPointDay", ref num) && GameUtil.TryGetValue<Dictionary<int, Dictionary<string, object>>>(dic, "dayList", ref dictionary3) && dictionary3.TryGetValue(num, out value2))
                         {
                             dictionary.Add("checkPointDay", 10036);
                             dictionary2.Add(num, value2);
@@ -487,7 +500,7 @@ namespace NewGameMode
                     }
 
                     dictionary.Add("dayList", dictionary2);
-                    global::SaveUtil.WriteSerializableFile(path + "/Save/DayData.dat", dictionary);
+                    SaveUtil.WriteSerializableFile(path + "/Save/DayData.dat", dictionary);
                     return false;
                 }
             }
@@ -517,69 +530,69 @@ namespace NewGameMode
             {
                 if (!File.Exists(path + "/Save/GlobalData.dat"))
                 {
-                    global::CreatureManager.instance.ResetObserveData();
-                    global::GlobalEtcDataModel.instance.ResetGlobalData();
-                    global::ResearchDataModel.instance.Init();
-                    global::InventoryModel.Instance.Init();
-                    global::MissionManager.instance.Init();
-                    global::SefiraCharacterManager.instance.Init();
+                    CreatureManager.instance.ResetObserveData();
+                    GlobalEtcDataModel.instance.ResetGlobalData();
+                    ResearchDataModel.instance.Init();
+                    InventoryModel.Instance.Init();
+                    MissionManager.instance.Init();
+                    SefiraCharacterManager.instance.Init();
                 }
                 else
                 {
-                    Dictionary<string, object> dic = global::SaveUtil.ReadSerializableFile(path + "/Save/GlobalData.dat");
+                    Dictionary<string, object> dic = SaveUtil.ReadSerializableFile(path + "/Save/GlobalData.dat");
                     Dictionary<string, object> dic2 = null;
                     Dictionary<string, object> dic3 = null;
                     Dictionary<string, object> dic4 = null;
                     Dictionary<string, object> dic5 = null;
                     Dictionary<string, object> dic6 = null;
                     Dictionary<string, object> dic7 = null;
-                    if (global::GameUtil.TryGetValue<Dictionary<string, object>>(dic, "observe", ref dic2))
+                    if (GameUtil.TryGetValue<Dictionary<string, object>>(dic, "observe", ref dic2))
                     {
-                        global::CreatureManager.instance.LoadObserveData(dic2);
+                        CreatureManager.instance.LoadObserveData(dic2);
                     }
                     else
                     {
-                        global::CreatureManager.instance.ResetObserveData();
+                        CreatureManager.instance.ResetObserveData();
                     }
-                    if (global::GameUtil.TryGetValue<Dictionary<string, object>>(dic, "etcData", ref dic4))
+                    if (GameUtil.TryGetValue<Dictionary<string, object>>(dic, "etcData", ref dic4))
                     {
-                        global::GlobalEtcDataModel.instance.LoadGlobalData(dic4);
-                    }
-                    else
-                    {
-                        global::GlobalEtcDataModel.instance.ResetGlobalData();
-                    }
-                    if (global::GameUtil.TryGetValue<Dictionary<string, object>>(dic, "research", ref dic5))
-                    {
-                        global::ResearchDataModel.instance.LoadData(dic5);
+                        GlobalEtcDataModel.instance.LoadGlobalData(dic4);
                     }
                     else
                     {
-                        global::ResearchDataModel.instance.Init();
+                        GlobalEtcDataModel.instance.ResetGlobalData();
                     }
-                    if (global::GameUtil.TryGetValue<Dictionary<string, object>>(dic, "missions", ref dic6))
+                    if (GameUtil.TryGetValue<Dictionary<string, object>>(dic, "research", ref dic5))
                     {
-                        global::MissionManager.instance.LoadData(dic6);
-                    }
-                    else
-                    {
-                        global::MissionManager.instance.Init();
-                    }
-                    if (global::GameUtil.TryGetValue<Dictionary<string, object>>(dic, "inventory", ref dic3))
-                    {
-                        global::InventoryModel.Instance.LoadGlobalData(dic3);
+                        ResearchDataModel.instance.LoadData(dic5);
                     }
                     else
                     {
-                        global::InventoryModel.Instance.Init();
+                        ResearchDataModel.instance.Init();
                     }
-                    if (global::GameUtil.TryGetValue<Dictionary<string, object>>(dic, "sefiraCharactes", ref dic7))
+                    if (GameUtil.TryGetValue<Dictionary<string, object>>(dic, "missions", ref dic6))
                     {
-                        global::SefiraCharacterManager.instance.LoadData(dic7);
+                        MissionManager.instance.LoadData(dic6);
                     }
                     else
                     {
-                        global::SefiraCharacterManager.instance.Init();
+                        MissionManager.instance.Init();
+                    }
+                    if (GameUtil.TryGetValue<Dictionary<string, object>>(dic, "inventory", ref dic3))
+                    {
+                        InventoryModel.Instance.LoadGlobalData(dic3);
+                    }
+                    else
+                    {
+                        InventoryModel.Instance.Init();
+                    }
+                    if (GameUtil.TryGetValue<Dictionary<string, object>>(dic, "sefiraCharactes", ref dic7))
+                    {
+                        SefiraCharacterManager.instance.LoadData(dic7);
+                    }
+                    else
+                    {
+                        SefiraCharacterManager.instance.Init();
                     }
                 }
             }
@@ -589,7 +602,7 @@ namespace NewGameMode
             }
         }
         //?
-        public static void LoadDayData(global::SaveType saveType)//加载原版天数存档
+        public static void LoadDayData(SaveType saveType)//加载原版天数存档
         {
             try
             {
@@ -605,14 +618,14 @@ namespace NewGameMode
                     Dictionary<string, object> dic = SaveUtil.ReadSerializableFile(path + "/Save/DayData.dat");
                     //Dictionary<string, object> dic = GlobalGameManager.instance.LoadSaveFile();
                     string text = "old";
-                    global::GameUtil.TryGetValue<string>(dic, "saveVer", ref text);
-                    global::GameUtil.TryGetValue<float>(dic, "playTime", ref GlobalGameManager.instance.playTime);
+                    GameUtil.TryGetValue<string>(dic, "saveVer", ref text);
+                    GameUtil.TryGetValue<float>(dic, "playTime", ref GlobalGameManager.instance.playTime);
                     int key = 0;
                     int key2 = 0;
                     Dictionary<int, Dictionary<string, object>> dictionary = null;
-                    global::GameUtil.TryGetValue<Dictionary<int, Dictionary<string, object>>>(dic, "dayList", ref dictionary);
-                    global::GameUtil.TryGetValue<int>(dic, "checkPointDay", ref key2);
-                    global::GameUtil.TryGetValue<int>(dic, "lastDay", ref key);
+                    GameUtil.TryGetValue<Dictionary<int, Dictionary<string, object>>>(dic, "dayList", ref dictionary);
+                    GameUtil.TryGetValue<int>(dic, "checkPointDay", ref key2);
+                    GameUtil.TryGetValue<int>(dic, "lastDay", ref key);
                     Dictionary<string, object> dictionary2 = null;
                     if (!dictionary.TryGetValue(key, out dictionary2))
                     {
@@ -629,15 +642,15 @@ namespace NewGameMode
                     {
                         Dictionary<string, object> data2 = null;
                         bool flag = dictionary.TryGetValue(key2, out data2);
-                        if (saveType == global::SaveType.LASTDAY)
+                        if (saveType == SaveType.LASTDAY)
                         {
                             Extension.CallPrivateMethod<object>(GlobalGameManager.instance, "LoadDay", new object[] { data });
                             //this.LoadDay(data);
-                            if (!global::GlobalGameManager.instance.dlcCreatureOn)
+                            if (!GlobalGameManager.instance.dlcCreatureOn)
                             {
-                                bool flag2 = global::CreatureManager.instance.ReplaceAllDlcCreature();
-                                flag2 = (global::InventoryModel.Instance.RemoveAllDlcEquipment() || flag2);
-                                flag2 = (global::AgentManager.instance.RemoveAllDlcEquipment() || flag2);
+                                bool flag2 = CreatureManager.instance.ReplaceAllDlcCreature();
+                                flag2 = (InventoryModel.Instance.RemoveAllDlcEquipment() || flag2);
+                                flag2 = (AgentManager.instance.RemoveAllDlcEquipment() || flag2);
                                 if (flag2)
                                 {
                                     Debug.Log("exists removed DLC data");
@@ -648,21 +661,21 @@ namespace NewGameMode
                         }
                         else
                         {
-                            if (saveType != global::SaveType.CHECK_POINT)
+                            if (saveType != SaveType.CHECK_POINT)
                             {
                                 throw new Exception("invalid SaveType");
                             }
                             Extension.CallPrivateMethod<object>(GlobalGameManager.instance, "LoadDay", new object[] { data2 });
                             //this.LoadDay(data2);
-                            if (global::GlobalGameManager.instance.dlcCreatureOn)
+                            if (GlobalGameManager.instance.dlcCreatureOn)
                             {
                                 SaveDayData();
                             }
                             else
                             {
-                                bool flag3 = global::CreatureManager.instance.ReplaceAllDlcCreature();
-                                flag3 = (global::InventoryModel.Instance.RemoveAllDlcEquipment() || flag3);
-                                flag3 = (global::AgentManager.instance.RemoveAllDlcEquipment() || flag3);
+                                bool flag3 = CreatureManager.instance.ReplaceAllDlcCreature();
+                                flag3 = (InventoryModel.Instance.RemoveAllDlcEquipment() || flag3);
+                                flag3 = (AgentManager.instance.RemoveAllDlcEquipment() || flag3);
                                 if (flag3)
                                 {
                                     Debug.Log("exists removed DLC data");
@@ -713,38 +726,38 @@ namespace NewGameMode
                 Dictionary<string, object> dic5 = null;
                 Dictionary<string, object> dic6 = null;
                 string text = "old";
-                global::GameUtil.TryGetValue<string>(data, "saveInnerVer", ref text);
+                GameUtil.TryGetValue<string>(data, "saveInnerVer", ref text);
                 YKMTLogInstance.Debug("LoadDay Debugnum 1");
                 //int dayFromSaveData = GlobalGameManager.instance.GetDayFromSaveData(data);
-                global::GameUtil.TryGetValue<Dictionary<string, object>>(data, "money", ref dic);
+                GameUtil.TryGetValue<Dictionary<string, object>>(data, "money", ref dic);
                 YKMTLogInstance.Debug("LoadDay Debugnum 2");
-                global::GameUtil.TryGetValue<Dictionary<string, object>>(data, "agents", ref dic2);
+                GameUtil.TryGetValue<Dictionary<string, object>>(data, "agents", ref dic2);
                 YKMTLogInstance.Debug("LoadDay Debugnum 3");
-                global::GameUtil.TryGetValue<Dictionary<string, object>>(data, "creatures", ref dic3);
+                GameUtil.TryGetValue<Dictionary<string, object>>(data, "creatures", ref dic3);
                 YKMTLogInstance.Debug("LoadDay Debugnum 4");
-                global::GameUtil.TryGetValue<Dictionary<string, object>>(data, "playerData", ref dic4);
+                GameUtil.TryGetValue<Dictionary<string, object>>(data, "playerData", ref dic4);
                 YKMTLogInstance.Debug("LoadDay Debugnum 5");
-                global::GameUtil.TryGetValue<Dictionary<string, object>>(data, "sefiras", ref dic5);
+                GameUtil.TryGetValue<Dictionary<string, object>>(data, "sefiras", ref dic5);
                 YKMTLogInstance.Debug("LoadDay Debugnum 6");
-                global::GameUtil.TryGetValue<string>(data, "saveState", ref GlobalGameManager.instance.saveState);
+                GameUtil.TryGetValue<string>(data, "saveState", ref GlobalGameManager.instance.saveState);
                 YKMTLogInstance.Debug("LoadDay Debugnum 7");
-                if (global::GameUtil.TryGetValue<Dictionary<string, object>>(data, "agentName", ref dic6))
+                if (GameUtil.TryGetValue<Dictionary<string, object>>(data, "agentName", ref dic6))
                 {
-                    global::AgentNameList.instance.LoadData(dic6);
+                    AgentNameList.instance.LoadData(dic6);
                 }
-                global::MoneyModel.instance.LoadData(dic);
+                MoneyModel.instance.LoadData(dic);
                 YKMTLogInstance.Debug("LoadDay Debugnum 8");
-                global::PlayerModel.instance.LoadData(dic4);
+                PlayerModel.instance.LoadData(dic4);
                 YKMTLogInstance.Debug("LoadDay Debugnum 9");
-                global::SefiraManager.instance.LoadData(dic5);
+                SefiraManager.instance.LoadData(dic5);
                 YKMTLogInstance.Debug("LoadDay Debugnum 10");
-                //global::AgentManager.instance.LoadCustomAgentData();
+                //AgentManager.instance.LoadCustomAgentData();
                 YKMTLogInstance.Debug("LoadDay Debugnum 11");
-                global::CreatureManager.instance.LoadData(dic3);
+                CreatureManager.instance.LoadData(dic3);
                 YKMTLogInstance.Debug("LoadDay Debugnum 12");
-                //global::AgentManager.instance.LoadDelAgentData();
+                //AgentManager.instance.LoadDelAgentData();
                 YKMTLogInstance.Debug("LoadDay Debugnum 13");
-                global::AgentManager.instance.LoadData(dic2);
+                AgentManager.instance.LoadData(dic2);
                 YKMTLogInstance.Debug("LoadDay Debugnum 14");
                 GlobalGameManager.instance.gameMode = rougeLike;
             }
@@ -757,7 +770,7 @@ namespace NewGameMode
 
         public static void OnClearStage()//只有在开始下一天的时候才会触发该函数
         {
-            if (global::GlobalGameManager.instance.gameMode == rougeLike)
+            if (GlobalGameManager.instance.gameMode == rougeLike)
             {
                 SaveGlobalData();
                 SaveDayData();
@@ -782,7 +795,7 @@ namespace NewGameMode
             Dictionary<string, object> result = new Dictionary<string, object>();
 
             List<Dictionary<string, object>> research_list = new List<Dictionary<string, object>>();
-            global::GameUtil.TryGetValue<List<Dictionary<string, object>>>(origin_research, "research", ref research_list);
+            GameUtil.TryGetValue<List<Dictionary<string, object>>>(origin_research, "research", ref research_list);
             int research_count = research_list.Count;
             research_list.Clear();
 
@@ -820,8 +833,8 @@ namespace NewGameMode
 
             //观察信息分成observeProgress,cubeNum,stat,defense,work,care。
 
-            global::GameUtil.TryGetValue<Dictionary<long, Dictionary<string, object>>>(observe, "observeList", ref all_observe_dic_with_id);
-            global::GameUtil.TryGetValue<Dictionary<string, Dictionary<long, Dictionary<string, object>>>>(observe, "observeListMod", ref dictionary2);
+            GameUtil.TryGetValue<Dictionary<long, Dictionary<string, object>>>(observe, "observeList", ref all_observe_dic_with_id);
+            GameUtil.TryGetValue<Dictionary<string, Dictionary<long, Dictionary<string, object>>>>(observe, "observeListMod", ref dictionary2);
 
 
             bool dlcCreatureOn = GlobalGameManager.instance.dlcCreatureOn;//获取所有可用的异想体id列表，但不包含工具型
@@ -909,10 +922,10 @@ namespace NewGameMode
             Dictionary<string, object> result = new Dictionary<string, object>();
             try
             {
-                List<global::InventoryModel.EquipmentSaveData> result_list = new List<global::InventoryModel.EquipmentSaveData>();
+                List<InventoryModel.EquipmentSaveData> result_list = new List<InventoryModel.EquipmentSaveData>();
                 List<string> result_mod_list = new List<string>();//没用，占位符
-                //global::GameUtil.TryGetValue<List<global::InventoryModel.EquipmentSaveData>>(equipment, "equips", ref result_list);
-                //global::GameUtil.TryGetValue<List<string>>(equipment, "equipsMod", ref result_mod_list);
+                //GameUtil.TryGetValue<List<InventoryModel.EquipmentSaveData>>(equipment, "equips", ref result_list);
+                //GameUtil.TryGetValue<List<string>>(equipment, "equipsMod", ref result_mod_list);
                 long new_instance_id = 10000;//存储实例id
                 result_list.Clear();//随后清除原列表
 
@@ -1142,7 +1155,18 @@ namespace NewGameMode
                 //Dictionary<string, object> result = new Dictionary<string, object>();
 
                 //File.WriteAllText(path + "/RandomAgentError1.txt", "Start");
-                int agent_count = UnityEngine.Random.Range(count_min, count_max + 1);
+                var nowDifficulty = DifficultyManager.GetNowDifficulty();
+                int agentAdder = nowDifficulty.AgentAdder();
+                int agentReplacer = nowDifficulty.AgentReplacer();
+                int agent_count = 0;
+                if (agentReplacer != -1)
+                {
+                    agent_count = agentReplacer;
+                }
+                else
+                {
+                    agent_count = UnityEngine.Random.Range(count_min, count_max + 1) + agentAdder;
+                }
                 for (int i = 0; i < agent_count; i++)
                 {
                     AgentModel agentModel = AgentManager.instance.AddSpareAgentModel();
@@ -1307,19 +1331,19 @@ namespace NewGameMode
             //CreatureManager.instance.AddCreatureInSefira()
         }
 
-        public static void AddCreature(long id, global::Sefira sefira)
+        public static void AddCreature(long id, Sefira sefira)
         {
-            List<long> list2 = new List<long>(global::CreatureGenerateInfo.GetAll(false));
-            foreach (global::CreatureModel creatureModel in global::CreatureManager.instance.GetCreatureList())
+            List<long> list2 = new List<long>(CreatureGenerateInfo.GetAll(false));
+            foreach (CreatureModel creatureModel in CreatureManager.instance.GetCreatureList())
             {
                 list2.Remove(creatureModel.metadataId);
             }
 
             long[] ary = { id };
-            global::SefiraIsolate[] array = sefira.isolateManagement.GenIsolateByCreatureAryByOrder(ary);
-            foreach (global::SefiraIsolate sefiraIsolate in array)
+            SefiraIsolate[] array = sefira.isolateManagement.GenIsolateByCreatureAryByOrder(ary);
+            foreach (SefiraIsolate sefiraIsolate in array)
             {
-                global::CreatureManager.instance.AddCreature(sefiraIsolate.creatureId, sefiraIsolate, sefira.indexString);
+                CreatureManager.instance.AddCreature(sefiraIsolate.creatureId, sefiraIsolate, sefira.indexString);
             }
         }
 
@@ -1388,8 +1412,8 @@ namespace NewGameMode
         {
             if (GlobalGameManager.instance.gameMode == rougeLike)
             {
-                Dictionary<long, global::CreatureObserveInfoModel> dic = Extension.GetPrivateField<Dictionary<long, global::CreatureObserveInfoModel>>(CreatureManager.instance, "observeInfoList");
-                foreach (KeyValuePair<long, global::CreatureObserveInfoModel> kvp in dic)//遍历所有观察信息
+                Dictionary<long, CreatureObserveInfoModel> dic = Extension.GetPrivateField<Dictionary<long, CreatureObserveInfoModel>>(CreatureManager.instance, "observeInfoList");
+                foreach (KeyValuePair<long, CreatureObserveInfoModel> kvp in dic)//遍历所有观察信息
                 {
                     CreatureObserveInfoModel creatureObserveInfoModel = kvp.Value;
                     if (creatureObserveInfoModel.GetObservationLevel() == 4)//如果观察等级达到4
@@ -1438,7 +1462,7 @@ namespace NewGameMode
 
         public static void ReturnToTitleOnGameOver()
         {
-            if (global::SefiraManager.instance.GameOverCheck())
+            if (SefiraManager.instance.GameOverCheck())
             {
                 if (GlobalGameManager.instance.gameMode == rougeLike)
                 {
@@ -1456,7 +1480,7 @@ namespace NewGameMode
                         SaveGlobalData();
                         SaveDayData();
                         LoadGlobalData();
-                        LoadDayData(global::SaveType.LASTDAY);
+                        LoadDayData(SaveType.LASTDAY);
                         Extension.CallPrivateMethod<object>(AlterTitleController.Controller, "LoadUnlimitMode", null);
                         GlobalGameManager.instance.gameMode = rougeLike;
                     }
@@ -1530,7 +1554,19 @@ namespace NewGameMode
 
         public void Add(int added)
         {
-            this.money += added;
+            var nowDifficulty = DifficultyManager.GetNowDifficulty();
+            float wonderTimes = nowDifficulty.WonderTimes();
+            foreach (var meme in MemeManager.instance.current_list)
+            {
+                wonderTimes += meme.script.WonderTimes();
+            }
+            int wonderAdder = nowDifficulty.WonderAdder();
+            foreach (var meme in MemeManager.instance.current_list)
+            {
+                wonderAdder += meme.script.WonderAdder();
+            }
+            int realAdded = (int)(Math.Round(added * wonderTimes)) + wonderAdder;
+            this.money += realAdded;
             if (this.money < 0)
             {
                 this.money = 0;
@@ -1590,12 +1626,10 @@ namespace NewGameMode
             {
                 if (currentState == ButtonState.FadingIn)
                 {
-                    Harmony_Patch.YKMTLogInstance.Debug("FadingIn ing.");
                     UnityEngine.Color color = frontsprite.color;
                     color.a = fadeprogress;
                     frontsprite.color = color;
                     fadeprogress += Time.deltaTime;
-                    Harmony_Patch.YKMTLogInstance.Debug("Now color is " + frontsprite.color + ".FadeProgress is " + fadeprogress);
                     if (fadeprogress >= 1f)
                     {
                         AlterTitleController.Controller._backgroundRenderer.sprite = frontsprite.sprite;
@@ -1608,12 +1642,10 @@ namespace NewGameMode
                 }
                 else if (currentState == ButtonState.FadingOut)
                 {
-                    Harmony_Patch.YKMTLogInstance.Debug("FadingOut ing.");
                     UnityEngine.Color color = frontsprite.color;
                     color.a = fadeprogress;
                     frontsprite.color = color;
                     fadeprogress -= Time.deltaTime;
-                    Harmony_Patch.YKMTLogInstance.Debug("Now color is " + frontsprite.color + ".FadeProgress is " + fadeprogress);
                     if (fadeprogress <= 0f)
                     {
                         AlterTitleController.Controller._backgroundRenderer.sprite = originSprite;
@@ -1889,7 +1921,7 @@ namespace NewGameMode
     }
 }
 ///////////
-public class LocalizeTextLoadScriptWithOutFontLoadScript : MonoBehaviour, global::ILanguageLinkedData, global::IObserver
+public class LocalizeTextLoadScriptWithOutFontLoadScript : MonoBehaviour, ILanguageLinkedData, IObserver
 {
     public UnityEngine.UI.Text Text
     {
@@ -1915,7 +1947,7 @@ public class LocalizeTextLoadScriptWithOutFontLoadScript : MonoBehaviour, global
         {
             return;
         }
-        string text = global::LocalizeTextDataModel.instance.GetText(this.id);
+        string text = LocalizeTextDataModel.instance.GetText(this.id);
         this.Text.text = text;
     }
 
@@ -1933,12 +1965,12 @@ public class LocalizeTextLoadScriptWithOutFontLoadScript : MonoBehaviour, global
 
     private void OnEnable()
     {
-        global::Notice.instance.Observe(global::NoticeName.LanaguageChange, this);
+        Notice.instance.Observe(NoticeName.LanaguageChange, this);
     }
 
     private void OnDisable()
     {
-        global::Notice.instance.Remove(global::NoticeName.LanaguageChange, this);
+        Notice.instance.Remove(NoticeName.LanaguageChange, this);
     }
 
     public void OnLanguageChanged()
@@ -1948,7 +1980,7 @@ public class LocalizeTextLoadScriptWithOutFontLoadScript : MonoBehaviour, global
 
     public void OnNotice(string notice, params object[] param)
     {
-        if (notice == global::NoticeName.LanaguageChange)
+        if (notice == NoticeName.LanaguageChange)
         {
             this.OnLanguageChanged();
         }

@@ -40,7 +40,7 @@ namespace NewGameMode
         private void AppendLog(string message, string messageHead)
         {
             DateTime currentTime = DateTime.Now;
-            File.AppendAllText(LogDir + $"/LobotomyRougeLog-{currentTime:yyyy-MM-dd}.log", $"[{messageHead}][{currentTime:yyyy/MM/dd HH:mm:ss}]" + message + Environment.NewLine);
+            File.AppendAllText(LogDir + $"/LobotomyRougeLog-{currentTime:yyyy-MM-dd}.log", $"[{messageHead}][{currentTime:yyyy/MM/dd HH:mm:ss}] " + message + Environment.NewLine);
         }
         /// <summary>
         /// 写入日志。

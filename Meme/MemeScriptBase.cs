@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace NewGameMode
 {
@@ -69,11 +65,11 @@ namespace NewGameMode
         {
         }
 
-                public virtual void OnTakeDamage_After(float value, UnitModel victim, RwbpType type)
+        public virtual void OnTakeDamage_After(float value, UnitModel victim, RwbpType type)
         {
         }
 
-                public virtual DefenseInfo GetDefense(UnitModel actor)
+        public virtual DefenseInfo GetDefense(UnitModel actor)
         {
             if (actor is WorkerModel)
             {
@@ -105,7 +101,7 @@ namespace NewGameMode
         {
         }
 
-        public virtual float GetWorkProbSpecialBonus(global::UnitModel actor, global::SkillTypeInfo skill)
+        public virtual float GetWorkProbSpecialBonus(UnitModel actor, SkillTypeInfo skill)
         {
             return 0f;
         }
@@ -114,14 +110,22 @@ namespace NewGameMode
         {
         }
 
+        public virtual int WonderAdder()
+        {
+            return 0;
+        }
 
+        public virtual float WonderTimes()
+        {
+            return 1f;
+        }
 
         public List<AgentModel> GetAgentsWithRequire(int equip_id = -1, RwbpType weapon_rwbp = (RwbpType)999999, SefiraEnum sefira = SefiraEnum.DUMMY, bool statisfy_all_require = false)
         {
-            List<AgentModel> agents = new List<AgentModel>();
-            List<AgentModel> equip_agents = new List<AgentModel>();
-            List<AgentModel> rwbp_agents = new List<AgentModel>();
-            List<AgentModel> sefira_agents = new List<AgentModel>();
+            List<AgentModel> agents = [];
+            List<AgentModel> equip_agents = [];
+            List<AgentModel> rwbp_agents = [];
+            List<AgentModel> sefira_agents = [];
 
             foreach (AgentModel agent in AgentManager.instance.GetAgentList())
             {
@@ -191,10 +195,10 @@ namespace NewGameMode
 
         public List<CreatureModel> GetCreaturesWithRequire(int qli_max = 999, int qli_current = 999, SefiraEnum sefira = SefiraEnum.DUMMY, bool statisfy_all_require = false)
         {
-            List<CreatureModel> creatures = new List<CreatureModel>();
-            List<CreatureModel> qli_max_creatures = new List<CreatureModel>();
-            List<CreatureModel> qli_current_creatures = new List<CreatureModel>();
-            List<CreatureModel> sefira_creatures = new List<CreatureModel>();
+            List<CreatureModel> creatures = [];
+            List<CreatureModel> qli_max_creatures = [];
+            List<CreatureModel> qli_current_creatures = [];
+            List<CreatureModel> sefira_creatures = [];
 
             foreach (CreatureModel creature in CreatureManager.instance.GetCreatureList())
             {
