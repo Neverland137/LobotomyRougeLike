@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<difficultyInfo>
+    <!--n = 难度-->
+    <!--为了防止一些乱七八糟的问题，这些参数必须全写。-->
+    <difficulty n="0">
+        <!--奇思加算，此为最终加算-->
+        <WonderAdder>0</WonderAdder>
+        <!--奇思乘算，这里写1是1倍，写0就是直接归零，但是还会受到最终加算影响-->
+        <WonderTimes>1</WonderTimes>
+        <!--员工加算，也可以是负数，默认是15-25个员工-->
+        <AgentAdder>0</AgentAdder>
+        <!--员工数量覆盖，优先度高于员工加算，设置-1关闭此功能-->
+        <AgentReplacer>-1</AgentReplacer>
+        <!--第一天增加子弹数量-->
+        <BulletAdderOnFirstDay>0</BulletAdderOnFirstDay>
+        <!--能量需求加算，最终加算-->
+        <MaxEnergyAdder>0</MaxEnergyAdder>
+        <!--能量需求乘算-->
+        <MaxEnergyTimes>1</MaxEnergyTimes>
+        <!--员工受到的伤害加算，最终加算-->
+        <AgentDamageAdder>0</AgentDamageAdder>
+        <!--员工受到的伤害乘算-->
+        <AgentDamageTimes>1</AgentDamageTimes>
+        <!--增加逆卡巴拉融毁数量-->
+        <OverloadAdder>0</OverloadAdder>
+        <!--员工成功率加减，可以为负数。-->
+        <WorkSuccessAdder>0</WorkSuccessAdder>
+        <!--异想体血量倍数，最终乘算。-->
+        <CreatureMaxHPTimes>1</CreatureMaxHPTimes>
+        <!--异想体休息时间加算-->
+        <CreatureTiredTimeAdder>0</CreatureTiredTimeAdder>
+    </difficulty>
+    <difficulty n="1">
+        <WonderAdder>0</WonderAdder>
+        <WonderTimes>1.1</WonderTimes>
+        <AgentAdder>0</AgentAdder>
+        <AgentReplacer>-1</AgentReplacer>
+        <BulletAdderOnFirstDay>0</BulletAdderOnFirstDay>
+        <MaxEnergyAdder>50</MaxEnergyAdder>
+        <MaxEnergyTimes>1</MaxEnergyTimes>
+        <AgentDamageAdder>0</AgentDamageAdder>
+        <AgentDamageTimes>1</AgentDamageTimes>
+        <OverloadAdder>3</OverloadAdder>
+        <WorkSuccessAdder>0</WorkSuccessAdder>
+        <CreatureMaxHPTimes>1</CreatureMaxHPTimes>
+        <CreatureTiredTimeAdder>0</CreatureTiredTimeAdder>
+    </difficulty>
+    <difficulty n="2">
+        <WonderAdder>15</WonderAdder>
+        <WonderTimes>1.1</WonderTimes>
+        <AgentAdder>0</AgentAdder>
+        <AgentReplacer>-1</AgentReplacer>
+        <BulletAdderOnFirstDay>0</BulletAdderOnFirstDay>
+        <MaxEnergyAdder>50</MaxEnergyAdder>
+        <MaxEnergyTimes>10</MaxEnergyTimes>
+        <AgentDamageAdder>1000</AgentDamageAdder>
+        <AgentDamageTimes>1</AgentDamageTimes>
+        <OverloadAdder>5</OverloadAdder>
+        <WorkSuccessAdder>0</WorkSuccessAdder>
+        <CreatureMaxHPTimes>1</CreatureMaxHPTimes>
+        <CreatureTiredTimeAdder>0</CreatureTiredTimeAdder>
+    </difficulty>
+    <difficulty n="3">
+        <WonderAdder>0</WonderAdder>
+        <WonderTimes>5</WonderTimes>
+        <AgentAdder>-10</AgentAdder>
+        <AgentReplacer>35</AgentReplacer>
+        <BulletAdderOnFirstDay>40</BulletAdderOnFirstDay>
+        <MaxEnergyAdder>500</MaxEnergyAdder>
+        <MaxEnergyTimes>1</MaxEnergyTimes>
+        <AgentDamageAdder>0</AgentDamageAdder>
+        <AgentDamageTimes>3</AgentDamageTimes>
+        <OverloadAdder>114514</OverloadAdder>
+        <WorkSuccessAdder>-1</WorkSuccessAdder>
+        <CreatureMaxHPTimes>100</CreatureMaxHPTimes>
+        <CreatureTiredTimeAdder>114</CreatureTiredTimeAdder>
+    </difficulty>
+</difficultyInfo>
