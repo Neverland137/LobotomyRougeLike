@@ -37,7 +37,7 @@ namespace NewGameMode
             output = string.Empty;
             if (this.localizeData.TryGetValue(region, out empty))
             {
-                string text = global::LocalizeTextDataModel.instance.GetText(empty);
+                string text = LocalizeTextDataModel.instance.GetText(empty);
                 output = text;
                 return true;
             }

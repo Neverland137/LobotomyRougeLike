@@ -12,7 +12,7 @@
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
-	<LangVersion>latest</LangVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -33,6 +33,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Diffculty\DifficultyDataReader.cs" />
+    <Compile Include="Diffculty\DifficultyManager.cs" />
+    <Compile Include="Diffculty\DifficultyPatch.cs" />
+    <Compile Include="Diffculty\DifficultyStruct.cs" />
     <Compile Include="Extension.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Meme\MemeInfo.cs" />
@@ -429,4 +433,9 @@
     <None Include=".editorconfig" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="CopyFile" AfterTargets="build">
+    <Message Text="正在自动拷贝模组文件。请在NewGameMode.csproj更改复制路径。" Importance="high" />
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(OutputPath)..\..\..\" />
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="D:\Program Files (x86)\Steam\steamapps\common\LobotomyCorp\LobotomyCorp_Data\BaseMods\ykmt_LobotomyRougeLike" />
+  </Target>
 </Project>
