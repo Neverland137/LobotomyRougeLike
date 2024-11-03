@@ -1,4 +1,5 @@
 ﻿using Harmony;
+using NewGameMode.Diffculty;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -92,6 +93,8 @@ namespace NewGameMode
                 if (GlobalGameManager.instance.gameMode == rougeLike)
                 {
                     int num = CreatureOverloadManager.instance.GetPrivateField<int>("qliphothOverloadIsolateNum");
+                    var nowDifficulty = DifficultyManager.GetNowDifficulty();
+                    int overloadAdder = nowDifficulty.OverloadAdder();
                     if (overloadlevel <= 2)
                     {
                         num = Mathf.RoundToInt(num * 0.3f);
@@ -111,6 +114,7 @@ namespace NewGameMode
                     {
                         num = Mathf.RoundToInt(num * 1.3f);
                     }
+                    num += overloadAdder;
                     CreatureOverloadManager.instance.SetPrivateField("qliphothOverloadIsolateNum", num);
                 }
             }

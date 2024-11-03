@@ -27,6 +27,7 @@ namespace NewGameMode
         public static Action<string> LogInfo = (message) => YKMTLogInstance.Info(message);
         public static Action<string> LogError = (message) => YKMTLogInstance.Error(message);
         public static Action<string> LogWarning = (message) => YKMTLogInstance.Warn(message);
+        public static Action<string> LogDebug = (message) => YKMTLogInstance.Debug(message);
         public Harmony_Patch()
         {
             try
@@ -197,6 +198,7 @@ namespace NewGameMode
                 newRougeButton.transform.GetChild(0).transform.localScale = image.transform.localScale;
                 button.onClick.AddListener(delegate
                 {
+                    LogInfo("Click GameStartButton.");
                     CallNewGame_Rougelike();
                 });
 
@@ -247,6 +249,7 @@ namespace NewGameMode
                 continueRougeButton.transform.GetChild(0).transform.localScale = image0.transform.localScale;
                 button0.onClick.AddListener(delegate
                 {
+                    LogInfo("Click Continue Button");
                     CallContinueGame_Rougelike();
                 });
                 if (!File.Exists(path + "/Save/GlobalData.dat") || !File.Exists(path + "/Save/DayData.dat"))

@@ -30,7 +30,11 @@ namespace NewGameMode
                 float MaxEnergyTimes = float.Parse(difficultyNode["MaxEnergyTimes"].InnerText);
                 int AgentDamageAdder = int.Parse(difficultyNode["AgentDamageAdder"].InnerText);
                 float AgentDamageTimes = float.Parse(difficultyNode["AgentDamageTimes"].InnerText);
-                DifficultyStruct difficultyStruct = new(wonderAdder, wonderTimes, agentAdder, agentReplacer, bulletAdderOnFirstDay, MaxEnergyAdder, MaxEnergyTimes, AgentDamageAdder, AgentDamageTimes);
+                int OverloadAdder = int.Parse(difficultyNode["OverloadAdder"].InnerText);
+                float WorkSuccessAdder = float.Parse(difficultyNode["WorkSuccessAdder"].InnerText);
+                float CreatureMaxHPTimes = float.Parse(difficultyNode["CreatureMaxHPTimes"].InnerText);
+                int CreatureTiredTimeAdder = int.Parse(difficultyNode["CreatureTiredTimeAdder"].InnerText);
+                DifficultyStruct difficultyStruct = new(wonderAdder, wonderTimes, agentAdder, agentReplacer, bulletAdderOnFirstDay, MaxEnergyAdder, MaxEnergyTimes, AgentDamageAdder, AgentDamageTimes, OverloadAdder, WorkSuccessAdder, CreatureMaxHPTimes, CreatureTiredTimeAdder);
                 DifficultyManager.AddDifficulty(index, difficultyStruct);
             }
         }

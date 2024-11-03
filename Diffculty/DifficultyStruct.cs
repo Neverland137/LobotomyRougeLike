@@ -20,7 +20,12 @@ namespace NewGameMode
         private float _MaxEnergyTimes = 1f;
         private int _AgentDamageAdder = 0;
         private float _AgentDamageTimes = 1f;
-        public DifficultyStruct(int wonderAdder, float wonderTimes, int AgentAdder, int AgentReplacer, int BulletAdderOnFirstDay, int MaxEnergyAdder, float MaxEnergyTimes, int AgentDamageAdder, float AgentDamageTimes)
+        private int _OverloadAdder = 0;
+        private float _WorkSuccessAdder = 0f;
+        private float _CreatureMaxHPTimes = 1f;
+        private float _AgentMaxHPTimes = 1f;
+        private int _CreatureTiredTimeAdder = 0;
+        public DifficultyStruct(int wonderAdder, float wonderTimes, int AgentAdder, int AgentReplacer, int BulletAdderOnFirstDay, int MaxEnergyAdder, float MaxEnergyTimes, int AgentDamageAdder, float AgentDamageTimes, int OverloadAdder, float WorkSuccessAdder, float CreatureMaxHPTimes, int CreatureTiredTimeAdder)
         {
             _WonderAdder = wonderAdder;
             _WonderTimes = wonderTimes;
@@ -31,6 +36,10 @@ namespace NewGameMode
             _MaxEnergyTimes = MaxEnergyTimes;
             _AgentDamageAdder = AgentDamageAdder;
             _AgentDamageTimes = AgentDamageTimes;
+            _OverloadAdder = OverloadAdder;
+            _WorkSuccessAdder = WorkSuccessAdder;
+            _CreatureMaxHPTimes = CreatureMaxHPTimes;
+            _CreatureTiredTimeAdder = CreatureTiredTimeAdder;
         }
         public int WonderAdder()
         {
@@ -67,6 +76,22 @@ namespace NewGameMode
         public float AgentDamageTimes()
         {
             return _AgentDamageTimes;
+        }
+        public int OverloadAdder()
+        {
+            return _OverloadAdder;
+        }
+        public float WorkSuccessAdder()
+        {
+            return _WorkSuccessAdder;
+        }
+        public float CreatureMaxHPTimes()
+        {
+            return _CreatureMaxHPTimes;
+        }
+        public int CreatureTiredTimeAdder()
+        {
+            return _CreatureTiredTimeAdder;
         }
     }
 }
