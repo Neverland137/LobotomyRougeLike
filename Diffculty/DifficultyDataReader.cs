@@ -34,7 +34,9 @@ namespace NewGameMode
                 float WorkSuccessAdder = float.Parse(difficultyNode["WorkSuccessAdder"].InnerText);
                 float CreatureMaxHPTimes = float.Parse(difficultyNode["CreatureMaxHPTimes"].InnerText);
                 int CreatureTiredTimeAdder = int.Parse(difficultyNode["CreatureTiredTimeAdder"].InnerText);
-                DifficultyStruct difficultyStruct = new(wonderAdder, wonderTimes, agentAdder, agentReplacer, bulletAdderOnFirstDay, MaxEnergyAdder, MaxEnergyTimes, AgentDamageAdder, AgentDamageTimes, OverloadAdder, WorkSuccessAdder, CreatureMaxHPTimes, CreatureTiredTimeAdder);
+                float FurnaceBoomAdder = float.Parse(difficultyNode["FurnaceBoomAdder"].InnerText);
+                float UpLevel1RecipeProbAdder = float.Parse(difficultyNode["UpLevel1RecipeProbAdder"].InnerText);
+                DifficultyStruct difficultyStruct = new(wonderAdder, wonderTimes, agentAdder, agentReplacer, bulletAdderOnFirstDay, MaxEnergyAdder, MaxEnergyTimes, AgentDamageAdder, AgentDamageTimes, OverloadAdder, WorkSuccessAdder, CreatureMaxHPTimes, CreatureTiredTimeAdder, FurnaceBoomAdder, UpLevel1RecipeProbAdder);
                 DifficultyManager.AddDifficulty(index, difficultyStruct);
             }
         }

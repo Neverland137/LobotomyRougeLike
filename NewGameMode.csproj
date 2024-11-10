@@ -38,6 +38,7 @@
     <Compile Include="Diffculty\DifficultyPatch.cs" />
     <Compile Include="Diffculty\DifficultyStruct.cs" />
     <Compile Include="Extension.cs" />
+    <Compile Include="Furnace\FurnaceManager.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Meme\MemeInfo.cs" />
     <Compile Include="Meme\MemeManager.cs" />

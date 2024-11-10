@@ -30,6 +30,7 @@ namespace NewGameMode
         public Dictionary<string, Sprite> sprite_dic = new Dictionary<string, Sprite>();
         public List<MemeInfo> all_list = new List<MemeInfo>();
         public List<MemeModel> current_list = new List<MemeModel>();
+        public List<MemeInfo> uninhand_list = new();
 
         public static MemeManager instance
         {
@@ -344,6 +345,7 @@ namespace NewGameMode
                 foreach (KeyValuePair<int, MemeInfo> pair in instance.all_dic)
                 {
                     instance.all_list.Add(pair.Value);
+                    instance.uninhand_list.Add(pair.Value);
                 }
                 LobotomyBaseMod.ModDebug.Log("RougeLike Load 4");
             }
@@ -401,6 +403,7 @@ namespace NewGameMode
                         }
                         instance.current_dic.Add(_nextInstanceId, memeModel); num++;
                         instance.current_list.Add(memeModel);
+                        instance.uninhand_list.Remove(memeModel.metaInfo);
                         instance._nextInstanceId++; num++;
 
                         memeModel.script.OnGet(); num++;
@@ -462,12 +465,11 @@ namespace NewGameMode
             {
                 if (meme.metaInfo.id == id)
                 {
-                    current_dic.Remove(meme.instanceId);
-                    current_list.Remove(memeModel);
-
+                    instance.current_dic.Remove(meme.instanceId);
+                    instance.current_list.Remove(memeModel);
+                    instance.uninhand_list.Add(memeModel.metaInfo);
                     meme.script.OnRelease();
                     break;
-
                 }
             }
         }
