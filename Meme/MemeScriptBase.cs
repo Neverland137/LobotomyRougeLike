@@ -120,6 +120,58 @@ namespace NewGameMode
             return 1f;
         }
 
+        public virtual int BulletAdder()
+        {
+            return 0;
+        }
+        public virtual int MaxEnergyAdder()
+        {
+            return 0;
+        }
+        public virtual float MaxEnergyTimes()
+        {
+            return 1f;
+        }
+        /// <summary>
+        /// 员工受到的伤害增加
+        /// </summary>
+        /// <returns></returns>
+        public virtual int AgentDamageAdder()
+        {
+            return 0;
+        }
+        /// <summary>
+        /// 员工受到的伤害倍率
+        /// </summary>
+        /// <returns></returns>
+        public virtual float AgentDamageTimes()
+        {
+            return 1f;
+        }
+        public virtual int OverloadAdder()
+        {
+            return 0;
+        }
+        public virtual float WorkSuccessAdder()
+        {
+            return 0f;
+        }
+        public virtual float CreatureMaxHPTimes()
+        {
+            return 1f;
+        }
+        public virtual int CreatureTiredTimeAdder()
+        {
+            return 0;
+        }
+        public virtual float FurnaceBoomAdder()
+        {
+            return 0f;
+        }
+        public virtual float UpLevel1RecipeProbAdder()
+        {
+            return 0f;
+        }
         public List<AgentModel> GetAgentsWithRequire(int equip_id = -1, RwbpType weapon_rwbp = (RwbpType)999999, SefiraEnum sefira = SefiraEnum.DUMMY, bool statisfy_all_require = false)
         {
             List<AgentModel> agents = [];

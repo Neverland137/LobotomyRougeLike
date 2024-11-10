@@ -32,27 +32,29 @@ namespace NewGameMode
                 int Adder = DifficultyManager.GetNowDifficulty().BulletAdderOnFirstDay();
                 max += Adder;
             }
+            int Adder2 = MemeManager.instance.BulletAdder();
+            max += Adder2;
         }
         public static void PatchMaxEnergy(int day, ref float __result)
         {
             var NowDifficulty = DifficultyManager.GetNowDifficulty();
-            int Adder = NowDifficulty.MaxEnergyAdder();
-            float Times = NowDifficulty.MaxEnergyTimes();
+            int Adder = NowDifficulty.MaxEnergyAdder() + MemeManager.instance.MaxEnergyAdder();
+            float Times = NowDifficulty.MaxEnergyTimes() * MemeManager.instance.MaxEnergyTimes();
             float energy = (__result * Times) + Adder;
             __result = energy;
         }
         public static void PatchTakeDamage(UnitModel actor, ref DamageInfo dmg)
         {
             var NowDifficulty = DifficultyManager.GetNowDifficulty();
-            int Adder = NowDifficulty.AgentDamageAdder();
-            float times = NowDifficulty.AgentDamageTimes();
+            int Adder = NowDifficulty.AgentDamageAdder() + MemeManager.instance.AgentDamageAdder();
+            float times = NowDifficulty.AgentDamageTimes() * MemeManager.instance.AgentDamageTimes();
             dmg.min = (int)(dmg.min * times) + Adder;
             dmg.max = (int)(dmg.max * times) + Adder;
         }
         public static void PatchWorkSuccessAdder(AgentModel actor, SkillTypeInfo skill, ref float __result)
         {
             var NowDifficulty = DifficultyManager.GetNowDifficulty();
-            float adder = NowDifficulty.WorkSuccessAdder();
+            float adder = NowDifficulty.WorkSuccessAdder() + MemeManager.instance.WorkSuccessAdder();
             __result += adder;
         }
         // 我知道这种代码简直蠢死了，但是反正本来就已经够屎山了，不差这一点
@@ -62,7 +64,7 @@ namespace NewGameMode
             if (!maxHPTable.ContainsKey(__instance.metaInfo))
             {
                 var NowDifficulty = DifficultyManager.GetNowDifficulty();
-                float CreatureMaxHPTimes = NowDifficulty.CreatureMaxHPTimes();
+                float CreatureMaxHPTimes = NowDifficulty.CreatureMaxHPTimes() + MemeManager.instance.CreatureMaxHPTimes();
                 __instance.metaInfo.maxHp = (int)(Math.Round(__instance.metaInfo.maxHp * CreatureMaxHPTimes));
                 maxHPTable.Add(__instance.metaInfo, __instance.metaInfo.maxHp);
             }
@@ -77,7 +79,7 @@ namespace NewGameMode
             if (!maxHPTable_Child.ContainsKey(__instance.childMetaInfo))
             {
                 var NowDifficulty = DifficultyManager.GetNowDifficulty();
-                float CreatureMaxHPTimes = NowDifficulty.CreatureMaxHPTimes();
+                float CreatureMaxHPTimes = NowDifficulty.CreatureMaxHPTimes() + MemeManager.instance.CreatureMaxHPTimes();
                 __instance.childMetaInfo.maxHp = (int)(Math.Round(__instance.childMetaInfo.maxHp * CreatureMaxHPTimes));
                 maxHPTable_Child.Add(__instance.childMetaInfo, __instance.childMetaInfo.maxHp);
             }
@@ -122,7 +124,7 @@ namespace NewGameMode
         public static void PatchCreatureTiredTime(CreatureFeelingState state, CreatureModel __instance)
         {
             var NowDifficulty = DifficultyManager.GetNowDifficulty();
-            float tiredAdder = NowDifficulty.CreatureTiredTimeAdder();
+            float tiredAdder = NowDifficulty.CreatureTiredTimeAdder() + MemeManager.instance.CreatureTiredTimeAdder();
             __instance.feelingStateRemainTime += tiredAdder;
         }
     }

@@ -38,6 +38,7 @@
     <Compile Include="Diffculty\DifficultyPatch.cs" />
     <Compile Include="Diffculty\DifficultyStruct.cs" />
     <Compile Include="Extension.cs" />
+    <Compile Include="Furnace\FurnaceManager.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Meme\MemeInfo.cs" />
     <Compile Include="Meme\MemeManager.cs" />
@@ -51,6 +52,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Shop\ShopManager.cs" />
     <Compile Include="Shop\ShopProduct.cs" />
+    <Compile Include="Technology\TechInfo.cs" />
+    <Compile Include="Technology\TechManager.cs" />
+    <Compile Include="Technology\TechModel.cs" />
+    <Compile Include="Technology\TechScriptBase.cs" />
+    <Compile Include="Technology\ZoharModel.cs" />
+    <Compile Include="UI\ButtonInteraction_Data.cs" />
+    <Compile Include="WonderModel.cs" />
     <Compile Include="YKMTLog.cs" />
   </ItemGroup>
   <ItemGroup>

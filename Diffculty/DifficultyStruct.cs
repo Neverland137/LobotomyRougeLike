@@ -6,9 +6,6 @@ using System.Threading.Tasks;
 
 namespace NewGameMode
 {
-    /// <summary>
-    /// 难度说明基本都在DifficultyInfo中，因此本class不再赘述
-    /// </summary>
     public class DifficultyStruct
     {
         private int _WonderAdder = 0;
@@ -25,7 +22,10 @@ namespace NewGameMode
         private float _CreatureMaxHPTimes = 1f;
         private float _AgentMaxHPTimes = 1f;
         private int _CreatureTiredTimeAdder = 0;
-        public DifficultyStruct(int wonderAdder, float wonderTimes, int AgentAdder, int AgentReplacer, int BulletAdderOnFirstDay, int MaxEnergyAdder, float MaxEnergyTimes, int AgentDamageAdder, float AgentDamageTimes, int OverloadAdder, float WorkSuccessAdder, float CreatureMaxHPTimes, int CreatureTiredTimeAdder)
+        private float _FurnaceBoomAdder = 0f;
+        private float _UpLevel1RecipeProbAdder = 0f;
+
+        public DifficultyStruct(int wonderAdder, float wonderTimes, int AgentAdder, int AgentReplacer, int BulletAdderOnFirstDay, int MaxEnergyAdder, float MaxEnergyTimes, int AgentDamageAdder, float AgentDamageTimes, int OverloadAdder, float WorkSuccessAdder, float CreatureMaxHPTimes, int CreatureTiredTimeAdder, float FurnaceBoomAdder, float UpLevel1RecipeProbAdder)
         {
             _WonderAdder = wonderAdder;
             _WonderTimes = wonderTimes;
@@ -40,6 +40,8 @@ namespace NewGameMode
             _WorkSuccessAdder = WorkSuccessAdder;
             _CreatureMaxHPTimes = CreatureMaxHPTimes;
             _CreatureTiredTimeAdder = CreatureTiredTimeAdder;
+            _FurnaceBoomAdder = FurnaceBoomAdder;
+            _UpLevel1RecipeProbAdder = UpLevel1RecipeProbAdder;
         }
         public int WonderAdder()
         {
@@ -92,6 +94,14 @@ namespace NewGameMode
         public int CreatureTiredTimeAdder()
         {
             return _CreatureTiredTimeAdder;
+        }
+        public float FurnaceBoomAdder()
+        {
+            return _FurnaceBoomAdder;
+        }
+        public float UpLevel1RecipeProbAdder()
+        {
+            return _UpLevel1RecipeProbAdder;
         }
     }
 }

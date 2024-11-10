@@ -94,7 +94,7 @@ namespace NewGameMode
                 {
                     int num = CreatureOverloadManager.instance.GetPrivateField<int>("qliphothOverloadIsolateNum");
                     var nowDifficulty = DifficultyManager.GetNowDifficulty();
-                    int overloadAdder = nowDifficulty.OverloadAdder();
+                    int overloadAdder = nowDifficulty.OverloadAdder() + MemeManager.instance.OverloadAdder();
                     if (overloadlevel <= 2)
                     {
                         num = Mathf.RoundToInt(num * 0.3f);
