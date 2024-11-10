@@ -451,13 +451,15 @@ namespace NewGameMode
             {
                 if (GlobalGameManager.instance.gameMode == rougeLike)
                 {
-                    Dictionary<string, object> dictionary = new Dictionary<string, object>();
-                    dictionary.Add("observe", CreatureManager.instance.GetSaveObserveData());
-                    dictionary.Add("etcData", GlobalEtcDataModel.instance.GetGlobalSaveData());
-                    dictionary.Add("inventory", InventoryModel.Instance.GetGlobalSaveData());
-                    dictionary.Add("research", ResearchDataModel.instance.GetSaveData());
-                    dictionary.Add("missions", MissionManager.instance.GetSaveData());
-                    dictionary.Add("sefiraCharactes", SefiraCharacterManager.instance.GetSaveData());
+                    Dictionary<string, object> dictionary = new Dictionary<string, object>
+                    {
+                        { "observe", CreatureManager.instance.GetSaveObserveData() },
+                        { "etcData", GlobalEtcDataModel.instance.GetGlobalSaveData() },
+                        { "inventory", InventoryModel.Instance.GetGlobalSaveData() },
+                        { "research", ResearchDataModel.instance.GetSaveData() },
+                        { "missions", MissionManager.instance.GetSaveData() },
+                        { "sefiraCharactes", SefiraCharacterManager.instance.GetSaveData() }
+                    };
                     SaveUtil.WriteSerializableFile(path + "/Save/GlobalData.dat", dictionary);
                     return false;
                 }
@@ -477,12 +479,14 @@ namespace NewGameMode
             {
                 if (GlobalGameManager.instance.gameMode == rougeLike)
                 {
-                    Dictionary<string, object> dictionary = new Dictionary<string, object>();
-                    dictionary.Add("saveVer", "ver1");
-                    dictionary.Add("playTime", GlobalGameManager.instance.playTime);
+                    Dictionary<string, object> dictionary = new Dictionary<string, object>
+                    {
+                        { "saveVer", "ver1" },
+                        { "playTime", GlobalGameManager.instance.playTime }
+                    };
                     int day = PlayerModel.instance.GetDay();
                     dictionary.Add("lastDay", day);
-                    Dictionary<int, Dictionary<string, object>> dictionary2 = new Dictionary<int, Dictionary<string, object>>();
+                    Dictionary<int, Dictionary<string, object>> dictionary2 = [];
                     Dictionary<string, object> saveDayData = GlobalGameManager.instance.GetSaveDayData();
                     dictionary2.Add(PlayerModel.instance.GetDay(), saveDayData);
 
@@ -516,10 +520,11 @@ namespace NewGameMode
         {
             //结构如下：dictionary的key表示存储的内容类型，例如wonder代表奇思，meme代表模因
             //dictionary的value里是具体存储的内容
-            Dictionary<string, object> dictionary = new Dictionary<string, object>();
-
-            dictionary.Add("wonder", WonderModel.instance.money);
-            dictionary.Add("meme", MemeManager.instance.current_dic);
+            Dictionary<string, object> dictionary = new Dictionary<string, object>
+            {
+                { "wonder", WonderModel.instance.money },
+                { "meme", MemeManager.instance.current_dic }
+            };
 
             SaveUtil.WriteSerializableFile(path + "/Save/RougeLikeDayData.dat", dictionary);
         }
@@ -792,18 +797,18 @@ namespace NewGameMode
         public static Dictionary<string, object> SetRandomResearch(Dictionary<string, object> origin_research, float rate)
         {
             //结构：origin_research字典套research_list列表套dic字典套id
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
 
-            List<Dictionary<string, object>> research_list = new List<Dictionary<string, object>>();
+            List<Dictionary<string, object>> research_list = [];
             GameUtil.TryGetValue<List<Dictionary<string, object>>>(origin_research, "research", ref research_list);
             int research_count = research_list.Count;
             research_list.Clear();
 
-            List<int> research_id_list = new List<int>() { 1, 2, 103, 3, 4, 5, 6, 7, 203, 8, 9, 10, 501, 502, 701, 702, 703, 801, 802, 803, 901, 902, 903, 1001, 1002, 1003 };
+            List<int> research_id_list = [1, 2, 103, 3, 4, 5, 6, 7, 203, 8, 9, 10, 501, 502, 701, 702, 703, 801, 802, 803, 901, 902, 903, 1001, 1002, 1003];
             //你加10000干嘛 给你删了
             for (int i = 0; i < research_id_list.Count; i++)
             {
-                Dictionary<string, object> dic = new Dictionary<string, object>();
+                Dictionary<string, object> dic = [];
                 if (UnityEngine.Random.value <= rate)
                 {
                     dic.Add("researchItemTypeId", research_id_list[i]);
@@ -826,10 +831,10 @@ namespace NewGameMode
         }
         public static Dictionary<string, object> SetRandomObserve(Dictionary<string, object> observe, int stat_min, int stat_max, int cube_min, int cube_max)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
 
-            Dictionary<long, Dictionary<string, object>> all_observe_dic_with_id = new Dictionary<long, Dictionary<string, object>>();//观察列表
-            Dictionary<string, Dictionary<long, Dictionary<string, object>>> dictionary2 = new Dictionary<string, Dictionary<long, Dictionary<string, object>>>();//模组观察列表
+            Dictionary<long, Dictionary<string, object>> all_observe_dic_with_id = [];//观察列表
+            Dictionary<string, Dictionary<long, Dictionary<string, object>>> dictionary2 = [];//模组观察列表
 
             //观察信息分成observeProgress,cubeNum,stat,defense,work,care。
 
@@ -858,35 +863,39 @@ namespace NewGameMode
 
             for (int i = 0; i < all_creature_list.Count; i++)
             {
-                Dictionary<string, object> single_observe_dic = new Dictionary<string, object>();//单个异想体的具体观察信息
-                single_observe_dic.Add("stat", false);
-                single_observe_dic.Add("defense", false);
-                single_observe_dic.Add("work_r", false);
-                single_observe_dic.Add("work_w", false);
-                single_observe_dic.Add("work_b", false);
-                single_observe_dic.Add("work_p", false);
-                single_observe_dic.Add("care_0", false);
-                single_observe_dic.Add("care_1", false);
-                single_observe_dic.Add("care_2", false);
-                single_observe_dic.Add("care_3", false);
-                single_observe_dic.Add("care_4", false);
-                single_observe_dic.Add("care_5", false);
-                single_observe_dic.Add("care_6", false);
+                Dictionary<string, object> single_observe_dic = new Dictionary<string, object>
+                {
+                    { "stat", false },
+                    { "defense", false },
+                    { "work_r", false },
+                    { "work_w", false },
+                    { "work_b", false },
+                    { "work_p", false },
+                    { "care_0", false },
+                    { "care_1", false },
+                    { "care_2", false },
+                    { "care_3", false },
+                    { "care_4", false },
+                    { "care_5", false },
+                    { "care_6", false }
+                };//单个异想体的具体观察信息
 
-                List<string> stat_list = new List<string>();
-                //stat_list.Add("stat");
-                stat_list.Add("defense");
-                stat_list.Add("work_r");
-                stat_list.Add("work_w");
-                stat_list.Add("work_b");
-                stat_list.Add("work_p");
-                stat_list.Add("care_0");
-                stat_list.Add("care_1");
-                stat_list.Add("care_2");
-                stat_list.Add("care_3");
-                stat_list.Add("care_4");
-                stat_list.Add("care_5");
-                stat_list.Add("care_6");
+                List<string> stat_list =
+                [
+                    //stat_list.Add("stat");
+                    "defense",
+                    "work_r",
+                    "work_w",
+                    "work_b",
+                    "work_p",
+                    "care_0",
+                    "care_1",
+                    "care_2",
+                    "care_3",
+                    "care_4",
+                    "care_5",
+                    "care_6",
+                ];
 
                 int stat_num = UnityEngine.Random.Range(stat_min, stat_max);//单个异想体图鉴中随机解锁的条目数量
                 for (int i1 = 0; i1 < stat_num; i1++)
@@ -919,11 +928,11 @@ namespace NewGameMode
 
         public static Dictionary<string, object> SetRandomEquipment(Dictionary<string, object> equipment, int equip_min, int equip_max, float[] rate)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             try
             {
-                List<InventoryModel.EquipmentSaveData> result_list = new List<InventoryModel.EquipmentSaveData>();
-                List<string> result_mod_list = new List<string>();//没用，占位符
+                List<InventoryModel.EquipmentSaveData> result_list = [];
+                List<string> result_mod_list = [];//没用，占位符
                 //GameUtil.TryGetValue<List<InventoryModel.EquipmentSaveData>>(equipment, "equips", ref result_list);
                 //GameUtil.TryGetValue<List<string>>(equipment, "equipsMod", ref result_mod_list);
                 long new_instance_id = 10000;//存储实例id
@@ -938,11 +947,11 @@ namespace NewGameMode
                 equip_id.Remove(200038);
                 equip_id.Remove(300038);
 
-                List<int> z_equip_id = new List<int>();
-                List<int> t_equip_id = new List<int>();
-                List<int> h_equip_id = new List<int>();
-                List<int> w_equip_id = new List<int>();
-                List<int> a_equip_id = new List<int>();
+                List<int> z_equip_id = [];
+                List<int> t_equip_id = [];
+                List<int> h_equip_id = [];
+                List<int> w_equip_id = [];
+                List<int> a_equip_id = [];
 
                 foreach (int id in equip_id)//装备id分级
                 {
@@ -1058,7 +1067,7 @@ namespace NewGameMode
         /// <returns></returns>
         public static List<int> GetAllEquipmentidList()
         {
-            List<int> list = new List<int>();
+            List<int> list = [];
             //List<int> list2 = new List<int>();
             string text = string.Empty;
             bool flag = File.Exists(UnityEngine.Application.dataPath + "/Managed/BaseMod/BaseEquipment.txt");
@@ -1252,11 +1261,11 @@ namespace NewGameMode
                     }
                 }
 
-                List<long> z_creature_list = new List<long>();
-                List<long> t_creature_list = new List<long>();
-                List<long> h_creature_list = new List<long>();
-                List<long> w_creature_list = new List<long>();
-                List<long> a_creature_list = new List<long>();
+                List<long> z_creature_list = [];
+                List<long> t_creature_list = [];
+                List<long> h_creature_list = [];
+                List<long> w_creature_list = [];
+                List<long> a_creature_list = [];
 
                 foreach (long id in all_creature_list)
                 {
@@ -1421,27 +1430,31 @@ namespace NewGameMode
                         CreatureTypeInfo creatureTypeInfo = CreatureTypeList.instance.GetData(creatureObserveInfoModel.creatureTypeId);
                         if (creatureTypeInfo.GetRiskLevel() == RiskLevel.WAW)//如果是W
                         {
-                            UnitStatBuf unitStatBuf = new UnitStatBuf(float.MaxValue);
-                            unitStatBuf.duplicateType = BufDuplicateType.UNLIMIT;
-                            unitStatBuf.maxHp = 10;
-                            unitStatBuf.maxMental = 10;
-                            unitStatBuf.workProb = 10;
-                            unitStatBuf.cubeSpeed = 10;
-                            unitStatBuf.movementSpeed = 10;
-                            unitStatBuf.attackSpeed = 10;
+                            UnitStatBuf unitStatBuf = new UnitStatBuf(float.MaxValue)
+                            {
+                                duplicateType = BufDuplicateType.UNLIMIT,
+                                maxHp = 10,
+                                maxMental = 10,
+                                workProb = 10,
+                                cubeSpeed = 10,
+                                movementSpeed = 10,
+                                attackSpeed = 10
+                            };
 
                             __instance.AddUnitBuf(unitStatBuf);
                         }
                         else if (creatureTypeInfo.GetRiskLevel() == RiskLevel.ALEPH)//如果是A
                         {
-                            UnitStatBuf unitStatBuf = new UnitStatBuf(float.MaxValue);
-                            unitStatBuf.duplicateType = BufDuplicateType.UNLIMIT;
-                            unitStatBuf.maxHp = 20;
-                            unitStatBuf.maxMental = 20;
-                            unitStatBuf.workProb = 20;
-                            unitStatBuf.cubeSpeed = 20;
-                            unitStatBuf.movementSpeed = 20;
-                            unitStatBuf.attackSpeed = 20;
+                            UnitStatBuf unitStatBuf = new UnitStatBuf(float.MaxValue)
+                            {
+                                duplicateType = BufDuplicateType.UNLIMIT,
+                                maxHp = 20,
+                                maxMental = 20,
+                                workProb = 20,
+                                cubeSpeed = 20,
+                                movementSpeed = 20,
+                                attackSpeed = 20
+                            };
 
                             __instance.AddUnitBuf(unitStatBuf);
                         }
@@ -1586,15 +1599,6 @@ namespace NewGameMode
 
     public class ButtonInteraction : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
-        public static string path = Path.GetDirectoryName(Uri.UnescapeDataString(new UriBuilder(Assembly.GetExecutingAssembly().CodeBase).Path));
-
-        Sprite originSprite = new Sprite();
-        UnityEngine.Color originColor = new UnityEngine.Color();
-        float time = 0;
-        Sprite sp;
-        SpriteRenderer frontsprite;
-        GameObject gameobj;
-        float fadeprogress = 0f;
 
         void Start()
         {
@@ -1602,17 +1606,17 @@ namespace NewGameMode
             try
             {
                 Texture2D tex = new Texture2D(1, 1); num++;
-                tex.LoadImage(File.ReadAllBytes(path + "/Sprite/Background.png")); num++;
-                sp = Sprite.Create(tex, new Rect(0f, 0f, tex.width, tex.height), Vector2.one / 2); num++;
-                originSprite = AlterTitleController.Controller._backgroundRenderer.sprite; num++;
-                time = 0;
-                gameobj = UnityEngine.Object.Instantiate(AlterTitleController.Controller._backgroundRenderer.gameObject, AlterTitleController.Controller._backgroundRenderer.transform.parent);
+                tex.LoadImage(File.ReadAllBytes(ButtonInteraction_Data.path + "/Sprite/Background.png")); num++;
+                ButtonInteraction_Data.sp = Sprite.Create(tex, new Rect(0f, 0f, tex.width, tex.height), Vector2.one / 2); num++;
+                ButtonInteraction_Data.originSprite = AlterTitleController.Controller._backgroundRenderer.sprite; num++;
+                ButtonInteraction_Data.time = 0;
+                ButtonInteraction_Data.gameobj = UnityEngine.Object.Instantiate(AlterTitleController.Controller._backgroundRenderer.gameObject, AlterTitleController.Controller._backgroundRenderer.transform.parent);
                 num++;
-                frontsprite = gameobj.GetComponent<SpriteRenderer>(); num++;
-                frontsprite.transform.SetAsLastSibling(); num++;
-                frontsprite.sprite = null;
-                frontsprite.gameObject.SetActive(false);
-                fadeprogress = 0f;
+                ButtonInteraction_Data.frontsprite = ButtonInteraction_Data.gameobj.GetComponent<SpriteRenderer>(); num++;
+                ButtonInteraction_Data.frontsprite.transform.SetAsLastSibling(); num++;
+                ButtonInteraction_Data.frontsprite.sprite = null;
+                ButtonInteraction_Data.frontsprite.gameObject.SetActive(false);
+                ButtonInteraction_Data.fadeprogress = 0f;
             }
             catch (Exception ex)
             {
@@ -1624,36 +1628,36 @@ namespace NewGameMode
         {
             try
             {
-                if (currentState == ButtonState.FadingIn)
+                if (ButtonInteraction_Data.currentState == ButtonState.FadingIn)
                 {
-                    UnityEngine.Color color = frontsprite.color;
-                    color.a = fadeprogress;
-                    frontsprite.color = color;
-                    fadeprogress += Time.deltaTime;
-                    if (fadeprogress >= 1f)
+                    UnityEngine.Color color = ButtonInteraction_Data.frontsprite.color;
+                    color.a = ButtonInteraction_Data.fadeprogress;
+                    ButtonInteraction_Data.frontsprite.color = color;
+                    ButtonInteraction_Data.fadeprogress += Time.deltaTime;
+                    if (ButtonInteraction_Data.fadeprogress >= 1f)
                     {
-                        AlterTitleController.Controller._backgroundRenderer.sprite = frontsprite.sprite;
+                        AlterTitleController.Controller._backgroundRenderer.sprite = ButtonInteraction_Data.frontsprite.sprite;
                         AlterTitleController.Controller._backgroundRenderer.gameObject.SetActive(true);
-                        frontsprite.gameObject.SetActive(false);
-                        frontsprite.sprite = null;
-                        fadeprogress = 0f;
-                        currentState = ButtonState.Idle;
+                        ButtonInteraction_Data.frontsprite.gameObject.SetActive(false);
+                        ButtonInteraction_Data.frontsprite.sprite = null;
+                        ButtonInteraction_Data.fadeprogress = 0f;
+                        ButtonInteraction_Data.currentState = ButtonState.Idle;
                     }
                 }
-                else if (currentState == ButtonState.FadingOut)
+                else if (ButtonInteraction_Data.currentState == ButtonState.FadingOut)
                 {
-                    UnityEngine.Color color = frontsprite.color;
-                    color.a = fadeprogress;
-                    frontsprite.color = color;
-                    fadeprogress -= Time.deltaTime;
-                    if (fadeprogress <= 0f)
+                    UnityEngine.Color color = ButtonInteraction_Data.frontsprite.color;
+                    color.a = ButtonInteraction_Data.fadeprogress;
+                    ButtonInteraction_Data.frontsprite.color = color;
+                    ButtonInteraction_Data.fadeprogress -= Time.deltaTime;
+                    if (ButtonInteraction_Data.fadeprogress <= 0f)
                     {
-                        AlterTitleController.Controller._backgroundRenderer.sprite = originSprite;
+                        AlterTitleController.Controller._backgroundRenderer.sprite = ButtonInteraction_Data.originSprite;
                         AlterTitleController.Controller._backgroundRenderer.gameObject.SetActive(true);
-                        frontsprite.gameObject.SetActive(false);
-                        frontsprite.sprite = null;
-                        fadeprogress = 0f;
-                        currentState = ButtonState.Idle;
+                        ButtonInteraction_Data.frontsprite.gameObject.SetActive(false);
+                        ButtonInteraction_Data.frontsprite.sprite = null;
+                        ButtonInteraction_Data.fadeprogress = 0f;
+                        ButtonInteraction_Data.currentState = ButtonState.Idle;
                     }
                 }
             }
@@ -1667,11 +1671,11 @@ namespace NewGameMode
             try
             {
                 //transform.parent.GetChild(1).GetComponent<UnityEngine.UI.Text>().color = Color.white;
-                frontsprite.sprite = sp;
-                currentState = ButtonState.FadingIn;
-                frontsprite.color = new UnityEngine.Color(1f, 1f, 1f, 0f);
-                frontsprite.gameObject.SetActive(true);
-                fadeprogress = frontsprite.color.a;
+                ButtonInteraction_Data.frontsprite.sprite = ButtonInteraction_Data.sp;
+                ButtonInteraction_Data.currentState = ButtonState.FadingIn;
+                ButtonInteraction_Data.frontsprite.color = new UnityEngine.Color(1f, 1f, 1f, 0f);
+                ButtonInteraction_Data.frontsprite.gameObject.SetActive(true);
+                ButtonInteraction_Data.fadeprogress = ButtonInteraction_Data.frontsprite.color.a;
             }
             catch (Exception ex)
             {
@@ -1683,26 +1687,18 @@ namespace NewGameMode
             try
             {
                 //transform.parent.GetChild(1).GetComponent<UnityEngine.UI.Text>().color = originColor;
-                AlterTitleController.Controller._backgroundRenderer.sprite = originSprite;
-                currentState = ButtonState.FadingOut;
-                fadeprogress = frontsprite.color.a;
-                frontsprite.sprite = sp;
-                frontsprite.color = new UnityEngine.Color(1f, 1f, 1f, 1f);
-                frontsprite.gameObject.SetActive(true);
+                AlterTitleController.Controller._backgroundRenderer.sprite = ButtonInteraction_Data.originSprite;
+                ButtonInteraction_Data.currentState = ButtonState.FadingOut;
+                ButtonInteraction_Data.fadeprogress = ButtonInteraction_Data.frontsprite.color.a;
+                ButtonInteraction_Data.frontsprite.sprite = ButtonInteraction_Data.sp;
+                ButtonInteraction_Data.frontsprite.color = new UnityEngine.Color(1f, 1f, 1f, 1f);
+                ButtonInteraction_Data.frontsprite.gameObject.SetActive(true);
             }
             catch (Exception ex)
             {
                 Harmony_Patch.YKMTLogInstance.Error(ex);
             }
         }
-        private enum ButtonState
-        {
-            Idle,
-            FadingIn,
-            FadingOut
-        }
-
-        private ButtonState currentState = ButtonState.Idle;
     }
 
     public class AwardButtonInteraction : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler

@@ -95,7 +95,7 @@ namespace NewGameMode
         public static int CalculateMemeLevel(int memeLevel, int spendWonder)
         {
             var nowDifficulty = DifficultyManager.GetNowDifficulty();
-            float boomAdder = nowDifficulty.FurnaceBoomAdder();
+            float boomAdder = nowDifficulty.FurnaceBoomAdder() + MemeManager.instance.FurnaceBoomAdder();
             float boomProb = CalculatePercentageInRange(spendWonder, MemeWonderTable[memeLevel][0], MemeWonderTable[memeLevel][1]) * (BaseBoomProb[1] - BaseBoomProb[0]) + BaseBoomProb[0] + MemeBoomAdderTable[memeLevel] + boomAdder * 100;
             // 检查炸炉概率范围
             if (boomProb < BaseBoomProb[0])
@@ -113,7 +113,7 @@ namespace NewGameMode
             }
             else if (memeLevel != 3)
             {
-                float UpLevel1RecipeProbAdder = nowDifficulty.UpLevel1RecipeProbAdder();
+                float UpLevel1RecipeProbAdder = nowDifficulty.UpLevel1RecipeProbAdder() + MemeManager.instance.UpLevel1RecipeProbAdder();
                 float UpLevel1Prob = CalculatePercentageInRange(spendWonder, MemeWonderTable[memeLevel][0], MemeWonderTable[memeLevel][1]) * (UpLevel1RecipeProb[1] - UpLevel1RecipeProb[0]) + UpLevel1RecipeProb[0] + UpLevel1RecipeProbAdder * 100;
                 if (UnityEngine.Random.Range(0f, 100f) < UpLevel1Prob)
                 {
