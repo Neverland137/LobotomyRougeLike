@@ -26,6 +26,7 @@ namespace NewGameMode
         public static YKMTLog YKMTLogInstance;
         public static Action<string> LogInfo = (message) => YKMTLogInstance.Info(message);
         public static Action<string> LogError = (message) => YKMTLogInstance.Error(message);
+        public static Action<Exception> LogErrorEx = (message) => YKMTLogInstance.Error(message);
         public static Action<string> LogWarning = (message) => YKMTLogInstance.Warn(message);
         public static Action<string> LogDebug = (message) => YKMTLogInstance.Debug(message);
         public Harmony_Patch()
@@ -83,6 +84,9 @@ namespace NewGameMode
                 DifficultyManager.Init();
                 // HarmonyPatch
                 new DifficultyPatch(harmony);
+
+                // Technology
+                ZoharModel.LoadZoharData();
             }
             catch (Exception ex)
             {
@@ -1515,85 +1519,6 @@ namespace NewGameMode
             text.color = UnityEngine.Color.white;
             text.transform.localPosition = Vector3.zero;
             text.transform.localScale = Vector3.one * 100;
-        }
-    }
-
-    public class WonderModel
-    {
-        private static WonderModel _instance;
-        public int money;
-
-        private WonderModel()
-        {
-        }
-        public static WonderModel instance
-        {
-            get
-            {
-                if (WonderModel._instance == null)
-                {
-                    WonderModel._instance = new WonderModel();
-                }
-                return WonderModel._instance;
-            }
-        }
-
-        public void Init()
-        {
-            this.money = 0;
-        }
-
-        /*
-        public Dictionary<string, object> GetSaveData()
-        {
-            return new Dictionary<string, object>
-        {
-            {
-                "wonder",
-                this.money
-            }
-        };
-        }
-        */
-
-        public void LoadData(Dictionary<string, object> dic)
-        {
-            GameUtil.TryGetValue<int>(dic, "wonder", ref this.money);
-        }
-        public bool EnoughCheck(int cost)
-        {
-            return this.money >= cost;
-        }
-
-        public void Add(int added)
-        {
-            var nowDifficulty = DifficultyManager.GetNowDifficulty();
-            float wonderTimes = nowDifficulty.WonderTimes();
-            foreach (var meme in MemeManager.instance.current_list)
-            {
-                wonderTimes += meme.script.WonderTimes();
-            }
-            int wonderAdder = nowDifficulty.WonderAdder();
-            foreach (var meme in MemeManager.instance.current_list)
-            {
-                wonderAdder += meme.script.WonderAdder();
-            }
-            int realAdded = (int)(Math.Round(added * wonderTimes)) + wonderAdder;
-            this.money += realAdded;
-            if (this.money < 0)
-            {
-                this.money = 0;
-            }
-        }
-
-        public bool Pay(int cost)
-        {
-            if (this.money >= cost)
-            {
-                this.money -= cost;
-                return true;
-            }
-            return false;
         }
     }
 
