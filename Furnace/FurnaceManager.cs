@@ -21,6 +21,21 @@ namespace NewGameMode
         };
         public static readonly int[] BaseBoomProb = [3, 15];
         public static readonly int[] UpLevel1RecipeProb = [70, 90];
+        /// <summary>
+        /// 合成模因。
+        /// </summary>
+        /// <param name="memeModel1">第一个模因</param>
+        /// <param name="memeModel2">第二个模因</param>
+        /// <param name="memeLevel">模因等级</param>
+        /// <param name="spendWonder">付出的奇思</param>
+        public static void RecipeMeme(MemeModel memeModel1, MemeModel memeModel2, int memeLevel, int spendWonder)
+        {
+            int afterLevel = CalculateMemeLevel(memeLevel, spendWonder);
+            MemeManager.instance.RemoveMemeModel(memeModel1.metaInfo.id);
+            MemeManager.instance.RemoveMemeModel(memeModel2.metaInfo.id);
+            MemeManager.instance.CreateMemeModel(GetRandomMemeUnInhand(afterLevel).id);
+            WonderModel.instance.Pay(spendWonder);
+        }
         public static MemeInfo GetRandomMemeUnInhand(int memeLevel)
         {
             List<MemeInfo> templist = new();
