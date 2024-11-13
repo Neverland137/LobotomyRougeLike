@@ -1,11 +1,14 @@
 ﻿using Assets.Scripts.UI.Utils;
 using DG.Tweening;
 using Harmony;
+using NewGameMode.Diffculty;
 using Steamworks.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -32,12 +35,21 @@ namespace NewGameMode
                 instance.Patch(typeof(GameManager).GetMethod("RestartGame", AccessTools.all), new HarmonyMethod(typeof(Meme_Patch).GetMethod("TurnRestartToMemeScene")), null, null);
                 instance.Patch(typeof(EscapeUI).GetMethod("OpenWindow", AccessTools.all), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("TurnRestartToMemeSceneText")), null);
 
+                // 扳机
                 instance.Patch(typeof(GameManager).GetMethod("StartStage"), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnStageStart"))); num++;
                 instance.Patch(typeof(GameManager).GetMethod("Release", AccessTools.all), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnStageRelease"))); num++;
+                instance.Patch(typeof(EquipmentModel).GetMethod("OnPrepareWeapon"), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnPrepareWeapon")), null); num++;
+                instance.Patch(typeof(EquipmentModel).GetMethod("OnCancelWeapon"), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnCancelWeapon")), null); num++;
+                instance.Patch(typeof(WeaponModel).GetMethod("OnAttack"), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnAttack")), null); num++;
+                instance.Patch(typeof(WeaponModel).GetMethod("OnEndAttackCycle"), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnEndAttackCycle")), null); num++;
+                // FUCK YOU 1.0.9.1
+                /*
+                instance.Patch(typeof(WeaponModel).GetMethod("OnGiveDamage"),null, null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnKillMainTarget"))); num++;
+                */
             }
             catch (Exception ex)
             {
-                File.WriteAllText(Harmony_Patch.path + "/MemePatchError.txt", num + Environment.NewLine + ex.Message + Environment.NewLine + ex.StackTrace);
+                Harmony_Patch.LogError("MemePatch error: " + num + Environment.NewLine + ex.Message + Environment.NewLine + ex.StackTrace);
             }
         }
         public static void LoadAllInfo()
@@ -48,7 +60,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                RGDebug.LogError(ex);
+                Harmony_Patch.YKMTLogInstance.Error(ex);
             }
         }
 
@@ -96,7 +108,7 @@ namespace NewGameMode
                         {
                             if (MemeManager.instance.current_list.Count == 0)
                             {
-                                RGDebug.Log("HasNoMeme");
+                                Harmony_Patch.LogWarning("HasNoMeme");
                                 __result = "";
                                 return false;
                             }
@@ -104,14 +116,14 @@ namespace NewGameMode
                             {
                                 string name;
                                 MemeManager.instance.current_list[i].metaInfo.localizeData.TryGetValue("name", out name);
-                                RGDebug.Log("name:" + name + "    " + "id:" + MemeManager.instance.current_list[i].metaInfo.id);
+                                Harmony_Patch.YKMTLogInstance.Info("name:" + name + "    " + "id:" + MemeManager.instance.current_list[i].metaInfo.id);
                             }
 
                             __result = "";
                             return false;
                         }
                     }
-                    if (type == "wonder")
+                    else if (type == "wonder")
                     {
                         if (type2 == "add")
                         {
@@ -131,12 +143,34 @@ namespace NewGameMode
                             __result = "";
                             return false;
                         }
+                        else if (type2 == "show")
+                        {
+                            Harmony_Patch.LogInfo("Now wonder:" + WonderModel.instance.money.ToString());
+                            __result = "";
+                            return false;
+                        }
                     }
+                    else if (type == "difficult")
+                    {
+                        if (type2 == "set")
+                        {
+                            DifficultyManager.SetDifficulty(value);
+                            Harmony_Patch.LogInfo("Now Difficulty: " + DifficultyManager.GetNowDifficultyIndex().ToString());
+                            __result = "";
+                            return false;
+                        }
+                        else if (type2 == "show")
+                        {
+                            Harmony_Patch.LogInfo("Now Difficulty: " + DifficultyManager.GetNowDifficultyIndex().ToString());
+                            __result = "";
+                            return false;
+                        }
+                    } 
                 }
             }
             catch (Exception ex)
             {
-                RGDebug.LogError(ex);
+                Harmony_Patch.YKMTLogInstance.Error(ex);
             }
             return true;
         }
@@ -211,7 +245,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                RGDebug.LogError(ex);
+                Harmony_Patch.YKMTLogInstance.Error(ex);
             }
         }
 
@@ -235,7 +269,7 @@ namespace NewGameMode
 
                     if (MemeManager.instance.current_list.Count == 0)
                     {
-                        RGDebug.Log("NoMeme");
+                        Harmony_Patch.LogWarning("NoMeme");
                     }
                     if (MemeManager.instance.current_list.Count != 0)
                     {
@@ -269,14 +303,12 @@ namespace NewGameMode
                 }
                 catch (Exception ex)
                 {
-                    RGDebug.LogError(ex);
+                    Harmony_Patch.YKMTLogInstance.Error(ex);
                 }
                 return false;
             }
             return true;
         }
-
-
 
         public static void Meme_OnStageStart()
         {
@@ -286,6 +318,51 @@ namespace NewGameMode
         {
             MemeManager.instance.OnStageRelease();
         }
+        public static void Meme_OnPrepareWeapon(UnitModel actor)
+        {
+            MemeManager.instance.OnPrepareWeapon(actor);
+        }
+        public static void Meme_OnCancelWeapon(UnitModel actor)
+        {
+            MemeManager.instance.OnCancelWeapon(actor);
+        }
+        public static void Meme_OnAttack(UnitModel actor, UnitModel target)
+        {
+            MemeManager.instance.OnAttackStart(actor, target);
+        }
+        public static void Meme_OnEndAttackCycle(WeaponModel __instance)
+        {
+            MemeManager.instance.OnAttackEnd(__instance.owner, __instance.currentTarget);
+        }
+        /*
+        public static IEnumerable<CodeInstruction> Meme_OnKillMainTarget(IEnumerable<CodeInstruction> instructions)
+        {
+            var methodInfo = AccessTools.Method(typeof(MemeManager), nameof(MemeManager.OnKillMainTarget), new System.Type[] { typeof(UnitModel), typeof(UnitModel) });
+            var rawMethodInfo = AccessTools.Method(typeof(EquipmentScriptBase), nameof(EquipmentScriptBase.OnKillMainTarget), new System.Type[] { typeof(UnitModel), typeof(UnitModel) });
+            FieldInfo scriptField = typeof(EquipmentModel).GetField("script", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
+            FieldInfo currentTarget = typeof(EquipmentModel).GetField("currentTarget", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
+            var codes = instructions.ToList();
+            foreach (var code in codes)
+            {
 
+                if (code.opcode == OpCodes.Call)
+                {
+                    if ((MethodInfo)code.operand == rawMethodInfo)
+                    {
+                        yield return new CodeInstruction(OpCodes.Ldarg_0);
+                        yield return new CodeInstruction(OpCodes.Ldfld, scriptField);
+                        yield return new CodeInstruction(OpCodes.Ldarg_1);
+                        yield return new CodeInstruction(OpCodes.Ldarg_0);
+                        yield return new CodeInstruction(OpCodes.Ldfld, currentTarget);
+                        yield return new CodeInstruction(OpCodes.Call, methodInfo);
+                    }
+                }
+                else
+                {
+                    yield return code;
+                }
+            }
+        }
+        */
     }
 }

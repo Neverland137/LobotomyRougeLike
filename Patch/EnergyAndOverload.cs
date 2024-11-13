@@ -1,4 +1,5 @@
 ﻿using Harmony;
+using NewGameMode.Diffculty;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -92,6 +93,8 @@ namespace NewGameMode
                 if (GlobalGameManager.instance.gameMode == rougeLike)
                 {
                     int num = CreatureOverloadManager.instance.GetPrivateField<int>("qliphothOverloadIsolateNum");
+                    var nowDifficulty = DifficultyManager.GetNowDifficulty();
+                    int overloadAdder = nowDifficulty.OverloadAdder() + MemeManager.instance.OverloadAdder();
                     if (overloadlevel <= 2)
                     {
                         num = Mathf.RoundToInt(num * 0.3f);
@@ -111,6 +114,7 @@ namespace NewGameMode
                     {
                         num = Mathf.RoundToInt(num * 1.3f);
                     }
+                    num += overloadAdder;
                     CreatureOverloadManager.instance.SetPrivateField("qliphothOverloadIsolateNum", num);
                 }
             }
@@ -549,7 +553,7 @@ namespace NewGameMode
                     }
                     catch (Exception ex)
                     {
-                        RGDebug.LogError(ex);
+                        Harmony_Patch.YKMTLogInstance.Error(ex);
                     }
                     Sefira sefira = sefiras[UnityEngine.Random.Range(0, sefiras.Length)];
                     childCreatureModel.script = (CreatureBase)obj; num++;
@@ -561,18 +565,18 @@ namespace NewGameMode
                     childCreatureModel.GetMovableNode().SetActive(true); num++;
                     childCreatureModel.Unit.init = true; num++;
                     childCreatureModel.GetMovableNode().StopMoving(); num++;
-                    childCreatureModel.GetMovableNode().SetDirection(global::UnitDirection.LEFT); num++;
+                    childCreatureModel.GetMovableNode().SetDirection(UnitDirection.LEFT); num++;
                     childCreatureModel.SetActivatedState(false); num++;
 
                     childCreatureModel.sefira = sefira; num++;
                     childCreatureModel.sefiraNum = sefira.indexString; num++;
                     childCreatureModel.SetActivatedState(true); num++;
                     childCreatureModel.ClearCommand(); num++;
-                    childCreatureModel.state = global::CreatureState.ESCAPE; num++;
+                    childCreatureModel.state = CreatureState.ESCAPE; num++;
                     childCreatureModel.baseMaxHp = childCreatureModel.metaInfo.maxHp; num++;
                     childCreatureModel.hp = (float)childCreatureModel.metaInfo.maxHp; num++;
-                    childCreatureModel.SetFaction(global::FactionTypeList.StandardFaction.EscapedCreature); num++;
-                    global::Notice.instance.Send(global::NoticeName.OnEscape, new object[]
+                    childCreatureModel.SetFaction(FactionTypeList.StandardFaction.EscapedCreature); num++;
+                    Notice.instance.Send(NoticeName.OnEscape, new object[]
                     {
                         childCreatureModel
                     }); num++;
@@ -610,7 +614,7 @@ namespace NewGameMode
                 __instance.remainAttackDelay -= Time.deltaTime;
             }
             __instance.UpdateBufState();
-            __instance.commandQueue.Execute(__instance.ForceTypeChange<global::CreatureModel>());
+            __instance.commandQueue.Execute(__instance.ForceTypeChange<CreatureModel>());
             bool flag3 = __instance.animAutoSet;
             if (flag3)
             {
@@ -629,19 +633,19 @@ namespace NewGameMode
             {
                 __instance._equipment.weapon.OnFixedUpdate();
             }
-            bool manageStarted = global::GameManager.currentGameManager.ManageStarted;
+            bool manageStarted = GameManager.currentGameManager.ManageStarted;
             if (manageStarted)
             {
-                __instance.script.OnFixedUpdate(__instance.ForceTypeChange<global::CreatureModel>());
+                __instance.script.OnFixedUpdate(__instance.ForceTypeChange<CreatureModel>());
             }
-            bool flag6 = __instance.state == global::CreatureState.ESCAPE;
+            bool flag6 = __instance.state == CreatureState.ESCAPE;
             if (flag6)
             {
                 __instance.script.UniqueEscape();
             }
             else
             {
-                bool flag7 = base.state == global::CreatureState.SUPPRESSED;
+                bool flag7 = base.state == CreatureState.SUPPRESSED;
                 if (flag7)
                 {
                 }
@@ -656,7 +660,7 @@ namespace NewGameMode
                 __instance.movableNode.ProcessMoveNode(__instance.Speed);
             }
             __instance.script.UniqueEscape();
-            __instance.SetFaction(global::FactionTypeList.StandardFaction.EscapedCreature);*/
+            __instance.SetFaction(FactionTypeList.StandardFaction.EscapedCreature);*/
             return true;
         }
 
@@ -688,7 +692,7 @@ namespace NewGameMode
                 }
                 catch (Exception ex)
                 {
-                    RGDebug.LogError(ex);
+                    Harmony_Patch.YKMTLogInstance.Error(ex);
                 }
             }
             public enum MissionRequire
@@ -790,7 +794,7 @@ namespace NewGameMode
                         }
                         if (mission != null)
                         {
-                            RGDebug.Log(mission.count + "/" + mission.goal);
+                            Harmony_Patch.LogInfo(mission.count + "/" + mission.goal);
 
                             if (mission.count >= mission.goal)
                             {
@@ -805,7 +809,7 @@ namespace NewGameMode
                                 " : ",
                                 LocalizeTextDataModel.instance.GetTextAppend(new string[] { "MissionUI", "Clear" })
                                 });
-                                RGDebug.Log(mission.name + "  " + mission.type.ToString() + "Clear");
+                                Harmony_Patch.LogInfo(mission.name + "  " + mission.type.ToString() + "Clear");
                             }
                             else
                             {
@@ -822,7 +826,7 @@ namespace NewGameMode
                                 mission.goal.ToString()
                                 });
 
-                                RGDebug.Log(mission.name + "  " + mission.type.ToString() + "NotClear");
+                                Harmony_Patch.LogInfo(mission.name + "  " + mission.type.ToString() + "NotClear");
                             }
                             if (__instance.AutoResize)
                             {
@@ -836,7 +840,7 @@ namespace NewGameMode
                 }
                 catch (Exception ex)
                 {
-                    RGDebug.LogError(ex);
+                    Harmony_Patch.YKMTLogInstance.Error(ex);
                 }
                 return true;
             }
@@ -861,7 +865,7 @@ namespace NewGameMode
                 }
                 catch (Exception ex)
                 {
-                    RGDebug.LogError(ex);
+                    Harmony_Patch.YKMTLogInstance.Error(ex);
                 }
             }
 
@@ -873,7 +877,14 @@ namespace NewGameMode
                 string text = LocalizeTextDataModel.instance.GetText("RandomEvent_MissionEnd");
                 AngelaConversationUI.instance.AddAngelaMessage(text);
                 AssetBundle bundle = AssetBundle.LoadFromFile(Harmony_Patch.path + "/AssetsBundle/missionrewardbutton");
-                rewardButton = UnityEngine.Object.Instantiate(bundle.LoadAsset<GameObject>("MissionRewardButton"));
+                try
+                {
+                    rewardButton = UnityEngine.Object.Instantiate(bundle.LoadAsset<GameObject>("MissionRewardButton"));
+                }
+                catch
+                {
+                    Harmony_Patch.YKMTLogInstance.Error("MissionRewardButton not found");
+                }
                 bundle.Unload(false);
                 AngelaConversationUI.instance.FadeOut = false;
                 AngelaConversationUI.instance.FadeIn = false;
@@ -1016,7 +1027,7 @@ namespace NewGameMode
                 }
                 catch (Exception ex)
                 {
-                    RGDebug.LogError(ex);
+                    Harmony_Patch.YKMTLogInstance.Error(ex);
                 }
             }
 
@@ -1042,7 +1053,7 @@ namespace NewGameMode
                 }
                 catch (Exception ex)
                 {
-                    RGDebug.LogError(ex);
+                    Harmony_Patch.YKMTLogInstance.Error(ex);
                 }
             }
 
@@ -1052,7 +1063,7 @@ namespace NewGameMode
                 {
                     foreach (EXTRAMission mission in EXTRAMissionManager.instance.GetStartMission())
                     {
-                        RGDebug.Log(mission.name + "  " + mission.type.ToString());
+                        Harmony_Patch.LogInfo(mission.name + "  " + mission.type.ToString());
                     }
                     if (EXTRAMissionManager.instance.GetStartMission().Find((EXTRAMission x) => x.name == "E4") != null)
                     {
@@ -1071,7 +1082,7 @@ namespace NewGameMode
                 }
                 catch (Exception ex)
                 {
-                    RGDebug.LogError(ex);
+                    Harmony_Patch.YKMTLogInstance.Error(ex);
                 }
             }
         }
@@ -1160,7 +1171,7 @@ namespace NewGameMode
             public MarkBuf(UnitModel target)//定义ClockBuf的buf类型,buf层数,是否可叠加，以及存留时间
             {
                 this.type = (UnitBufType)20240907;
-                this.duplicateType = global::BufDuplicateType.UNLIMIT;
+                this.duplicateType = BufDuplicateType.UNLIMIT;
                 this.remainTime = float.PositiveInfinity;
                 unit = target;
             }

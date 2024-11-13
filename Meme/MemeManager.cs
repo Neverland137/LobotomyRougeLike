@@ -18,17 +18,18 @@ namespace NewGameMode
         /// <summary>
         /// 包含模组在内的所有模因,key是模因id
         /// </summary>
-        public Dictionary<int, MemeInfo> all_dic = new Dictionary<int, MemeInfo>();
+        public Dictionary<int, MemeInfo> all_dic = [];
         /// <summary>
         /// 本局肉鸽目前拥有的模因,key是实例id
         /// </summary>
-        public Dictionary<int, MemeModel> current_dic = new Dictionary<int, MemeModel>();
+        public Dictionary<int, MemeModel> current_dic = [];
         /// <summary>
         /// 模因的贴图合集，key是贴图名称
         /// </summary>
-        public Dictionary<string, Sprite> sprite_dic = new Dictionary<string, Sprite>();
-        public List<MemeInfo> all_list = new List<MemeInfo>();
-        public List<MemeModel> current_list = new List<MemeModel>();
+        public Dictionary<string, Sprite> sprite_dic = [];
+        public List<MemeInfo> all_list = [];
+        public List<MemeModel> current_list = [];
+        public List<MemeInfo> uninhand_list = [];
 
         public static MemeManager instance
         {
@@ -56,8 +57,8 @@ namespace NewGameMode
         /// <returns></returns>
         public static Dictionary<int, MemeInfo> LoadSingleXmlInfo(XmlDocument document)
         {
-            Dictionary<int, MemeInfo> dictionary = new Dictionary<int, MemeInfo>();
-            IEnumerator enumerator = document.SelectSingleNode("meme_list").SelectNodes("meme").GetEnumerator(); 
+            Dictionary<int, MemeInfo> dictionary = [];
+            IEnumerator enumerator = document.SelectSingleNode("meme_list").SelectNodes("meme").GetEnumerator();
             try
             {
                 try
@@ -251,18 +252,18 @@ namespace NewGameMode
 
                 //dictionary = LoadSingleXmlInfo(xmlDocument);
                 */
-                Dictionary<int, MemeInfo> dictionary = new Dictionary<int, MemeInfo>();
-                Dictionary<string, Sprite> dictionary2 = new Dictionary<string, Sprite>();
+                Dictionary<int, MemeInfo> dictionary = [];
+                Dictionary<string, Sprite> dictionary2 = [];
 
                 //以上为加载肉鸽自带的模因
 
                 //需要先加载贴图
-                foreach (global::ModInfo modInfo in ((global::Add_On)global::Add_On.instance).ModList)
+                foreach (ModInfo modInfo in ((Add_On)Add_On.instance).ModList)
                 {
-                    ModInfo modInfo2 = (global::ModInfo)modInfo;
+                    ModInfo modInfo2 = (ModInfo)modInfo;
                     DirectoryInfo directoryInfo = EquipmentDataLoader.CheckNamedDir(modInfo2.modpath, "Meme");//在模组里找叫Meme的文件夹
 
-                    
+
                     bool flag7 = directoryInfo != null && Directory.Exists(directoryInfo.FullName + "/Sprite");//在Meme文件夹里找Sprite
                     if (flag7)
                     {
@@ -294,15 +295,15 @@ namespace NewGameMode
                 instance.sprite_dic = dictionary2;
                 foreach (KeyValuePair<string, Sprite> kvp in instance.sprite_dic)
                 {
-                    RGDebug.Log(kvp.Key);
+                    Harmony_Patch.YKMTLogInstance.Debug("Load All Meme Debug Key: " + kvp.Key);
                 }
-                
+
                 LobotomyBaseMod.ModDebug.Log("RougeLike Load 2");
 
                 //再加载模因本身
-                foreach (global::ModInfo modInfo in ((global::Add_On)global::Add_On.instance).ModList)
+                foreach (ModInfo modInfo in ((Add_On)Add_On.instance).ModList)
                 {
-                    ModInfo modInfo2 = (global::ModInfo)modInfo;
+                    ModInfo modInfo2 = (ModInfo)modInfo;
                     DirectoryInfo directoryInfo = EquipmentDataLoader.CheckNamedDir(modInfo2.modpath, "Meme");//在模组里找叫Meme的文件夹
 
                     bool flag2 = directoryInfo != null && Directory.Exists(directoryInfo.FullName + "/txts");//在Meme文件夹里找txt
@@ -347,12 +348,13 @@ namespace NewGameMode
                 foreach (KeyValuePair<int, MemeInfo> pair in instance.all_dic)
                 {
                     instance.all_list.Add(pair.Value);
+                    instance.uninhand_list.Add(pair.Value);
                 }
                 LobotomyBaseMod.ModDebug.Log("RougeLike Load 4");
             }
             catch (Exception ex)
             {
-                RGDebug.LogError(ex);
+                Harmony_Patch.YKMTLogInstance.Error(ex);
             }
         }
 
@@ -404,6 +406,7 @@ namespace NewGameMode
                         }
                         instance.current_dic.Add(_nextInstanceId, memeModel); num++;
                         instance.current_list.Add(memeModel);
+                        instance.uninhand_list.Remove(memeModel.metaInfo);
                         instance._nextInstanceId++; num++;
 
                         memeModel.script.OnGet(); num++;
@@ -411,7 +414,7 @@ namespace NewGameMode
                         //初始化模因对应的模因按钮
                         if (current_list.Count != 1)//这句是跳过第一个模因，后面改
                         {
-                            RGDebug.Log("InitMemeButton");
+                            Harmony_Patch.LogInfo("InitMemeButton");
                             string name_id;
                             memeModel.metaInfo.localizeData.TryGetValue("name", out name_id);
                             string desc_id;
@@ -430,8 +433,9 @@ namespace NewGameMode
                             //点击后设置详情
                             GameObject detail = Meme_Patch.memeScene.transform.Find("WonderandDetail").Find("Detail").gameObject;
                             //memeButton.GetComponent<UnityEngine.UI.Button>().onClick.RemoveAllListeners();
-                            memeButton.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => {
-                                memeButton.GetComponent<UniversalButtonIntereaction>().Click(true,false,true);
+                            memeButton.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() =>
+                            {
+                                memeButton.GetComponent<UniversalButtonIntereaction>().Click(true, false, true);
                                 detail.SetActive(true);
                                 detail.transform.localScale = new Vector3(0, 0, 1);
                                 detail.transform.DOScale(new Vector3(1, 1, 1), 0.3f).SetEase(Ease.OutExpo);
@@ -445,7 +449,7 @@ namespace NewGameMode
                             });
 
                             memeButton.SetActive(true);
-                            RGDebug.Log("InitMemeButtonEnd");
+                            Harmony_Patch.LogInfo("InitMemeButtonEnd");
                         }
                         break;
                     }
@@ -468,12 +472,11 @@ namespace NewGameMode
             {
                 if (meme.metaInfo.id == id)
                 {
-                    current_dic.Remove(meme.instanceId);
-                    current_list.Remove(memeModel);
-
+                    instance.current_dic.Remove(meme.instanceId);
+                    instance.current_list.Remove(memeModel);
+                    instance.uninhand_list.Add(memeModel.metaInfo);
                     meme.script.OnRelease();
                     break;
-
                 }
             }
         }
@@ -513,6 +516,133 @@ namespace NewGameMode
             {
                 meme.script.OnPrepareWeapon(actor);
             }
+        }
+        public void OnCancelWeapon(UnitModel actor)
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.OnCancelWeapon(actor);
+            }
+        }
+        public void OnAttackStart(UnitModel actor, UnitModel target)
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.OnAttackStart(actor, target);
+            }
+        }
+        public void OnAttackEnd(UnitModel actor, UnitModel target)
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.OnAttackEnd(actor, target);
+            }
+        }
+        public void OnKillMainTarget(UnitModel actor, UnitModel target)
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.OnKillMainTarget(actor, target);
+            }
+        }
+        public int BulletAdder()
+        {
+            int num = 0;
+            foreach (MemeModel meme in current_list)
+            {
+                num += meme.script.BulletAdder();
+            }
+            return num;
+        }
+        public int MaxEnergyAdder()
+        {
+            int num = 0;
+            foreach (MemeModel meme in current_list)
+            {
+                num += meme.script.MaxEnergyAdder();
+            }
+            return num;
+        }
+        public float MaxEnergyTimes()
+        {
+            float num = 1f;
+            foreach (MemeModel meme in current_list)
+            {
+                num *= meme.script.MaxEnergyTimes();
+            }
+            return num;
+        }
+        public int AgentDamageAdder()
+        {
+            int num = 0;
+            foreach (MemeModel meme in current_list)
+            {
+                num += meme.script.AgentDamageAdder();
+            }
+            return num;
+        }
+        public float AgentDamageTimes()
+        {
+            float num = 1f;
+            foreach (MemeModel meme in current_list)
+            {
+                num *= meme.script.AgentDamageTimes();
+            }
+            return num;
+        }
+        public int OverloadAdder()
+        {
+            int num = 0;
+            foreach (MemeModel meme in current_list)
+            {
+                num += meme.script.OverloadAdder();
+            }
+            return num;
+        }
+        public float WorkSuccessAdder()
+        {
+            float num = 0f;
+            foreach (MemeModel meme in current_list)
+            {
+                num += meme.script.WorkSuccessAdder();
+            }
+            return num;
+        }
+        public float CreatureMaxHPTimes()
+        {
+            float num = 1f;
+            foreach (MemeModel meme in current_list)
+            {
+                num *= meme.script.CreatureMaxHPTimes();
+            }
+            return num;
+        }
+        public int CreatureTiredTimeAdder()
+        {
+            int num = 0;
+            foreach (MemeModel meme in current_list)
+            {
+                num += meme.script.CreatureTiredTimeAdder();
+            }
+            return num;
+        }
+        public float FurnaceBoomAdder()
+        {
+            float num = 0f;
+            foreach (MemeModel meme in current_list)
+            {
+                num += meme.script.FurnaceBoomAdder();
+            }
+            return num;
+        }
+        public float UpLevel1RecipeProbAdder()
+        {
+            float num = 0f;
+            foreach (MemeModel meme in current_list)
+            {
+                num += meme.script.UpLevel1RecipeProbAdder();
+            }
+            return num;
         }
     }
 }

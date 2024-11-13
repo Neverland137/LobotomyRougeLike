@@ -12,6 +12,7 @@
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -32,7 +33,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Diffculty\DifficultyDataReader.cs" />
+    <Compile Include="Diffculty\DifficultyManager.cs" />
+    <Compile Include="Diffculty\DifficultyPatch.cs" />
+    <Compile Include="Diffculty\DifficultyStruct.cs" />
     <Compile Include="Extension.cs" />
+    <Compile Include="Furnace\FurnaceManager.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Meme\MemeInfo.cs" />
     <Compile Include="Meme\MemeManager.cs" />
@@ -46,6 +52,14 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Shop\ShopManager.cs" />
     <Compile Include="Shop\ShopProduct.cs" />
+    <Compile Include="Technology\TechInfo.cs" />
+    <Compile Include="Technology\TechManager.cs" />
+    <Compile Include="Technology\TechModel.cs" />
+    <Compile Include="Technology\TechScriptBase.cs" />
+    <Compile Include="Technology\ZoharModel.cs" />
+    <Compile Include="UI\ButtonInteraction_Data.cs" />
+    <Compile Include="WonderModel.cs" />
+    <Compile Include="YKMTLog.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="lib\0Harmony.dll" />
@@ -54,12 +68,7 @@
     <Content Include="lib\Facepunch.Steamworks.Win64.dll" />
     <Content Include="lib\LobotomyBaseModLib.dll" />
     <Content Include="lib\Mono.Security.dll" />
-    <Content Include="lib\mscorlib.dll" />
     <Content Include="lib\NAudio.dll" />
-    <Content Include="lib\steam_api64.dll" />
-    <Content Include="lib\System.Core.dll" />
-    <Content Include="lib\System.dll" />
-    <Content Include="lib\System.Xml.dll" />
     <Content Include="lib\UnityEngine.AccessibilityModule.dll" />
     <Content Include="lib\UnityEngine.AIModule.dll" />
     <Content Include="lib\UnityEngine.AnimationModule.dll" />
@@ -432,4 +441,9 @@
     <None Include=".editorconfig" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="CopyFile" AfterTargets="build">
+    <Message Text="正在自动拷贝模组文件。请在NewGameMode.csproj更改复制路径。" Importance="high" />
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(OutputPath)..\..\..\" />
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="D:\Program Files (x86)\Steam\steamapps\common\LobotomyCorp\LobotomyCorp_Data\BaseMods\ykmt_LobotomyRougeLike" />
+  </Target>
 </Project>
