@@ -99,62 +99,66 @@ namespace NewGameMode
                         }
 
                         memeInfo.requires = new List<MemeRequire>();
-                        IEnumerator enumerator2 = xmlNode.SelectNodes("require").GetEnumerator();
-                        try
+                        if (xmlNode.SelectNodes("require") != null)
                         {
-                            while (enumerator2.MoveNext())
+                            IEnumerator enumerator2 = xmlNode.SelectNodes("require").GetEnumerator();
+                            try
                             {
-                                object obj2 = enumerator2.Current;
-                                XmlNode xmlNode7 = (XmlNode)obj2;
-                                string innerText2 = xmlNode7.Attributes.GetNamedItem("type").InnerText; //需求的类型
+                                while (enumerator2.MoveNext())
+                                {
+                                    object obj2 = enumerator2.Current;
+                                    XmlNode xmlNode7 = (XmlNode)obj2;
+                                    string innerText2 = xmlNode7.Attributes.GetNamedItem("type").InnerText; //需求的类型
 
-                                int value = 0;
-                                if (int.TryParse(xmlNode7.InnerText.Trim(), out value))
-                                {
-                                    value = int.Parse(xmlNode7.InnerText.Trim());
-                                }
-
-
-                                MemeRequire memeRequire = new MemeRequire();
-                                if (innerText2 == "day")
-                                {
-                                    memeRequire.type = MemeRequireType.DAY;
-                                    memeRequire.value = value;
-                                }
-                                if (innerText2 == "equip")
-                                {
-                                    memeRequire.type = MemeRequireType.EQUIP;
-                                    memeRequire.value = value;
-                                }
-                                if (innerText2 == "abnormality")
-                                {
-                                    memeRequire.type = MemeRequireType.ABNORMALITY;
-                                    memeRequire.value = value;
-                                }
-                                if (innerText2 == "meme")
-                                {
-                                    memeRequire.type = MemeRequireType.MEME;
-                                    memeRequire.value = value;
-                                }
-                                if (innerText2 == "satisfyall")
-                                {
-                                    if (xmlNode7.InnerText.Trim() == "true")
+                                    int value = 0;
+                                    if (int.TryParse(xmlNode7.InnerText.Trim(), out value))
                                     {
-                                        memeInfo.satisfy_all = true;
+                                        value = int.Parse(xmlNode7.InnerText.Trim());
                                     }
-                                }
 
-                                memeInfo.requires.Add(memeRequire);
+
+                                    MemeRequire memeRequire = new MemeRequire();
+                                    if (innerText2 == "day")
+                                    {
+                                        memeRequire.type = MemeRequireType.DAY;
+                                        memeRequire.value = value;
+                                    }
+                                    if (innerText2 == "equip")
+                                    {
+                                        memeRequire.type = MemeRequireType.EQUIP;
+                                        memeRequire.value = value;
+                                    }
+                                    if (innerText2 == "abnormality")
+                                    {
+                                        memeRequire.type = MemeRequireType.ABNORMALITY;
+                                        memeRequire.value = value;
+                                    }
+                                    if (innerText2 == "meme")
+                                    {
+                                        memeRequire.type = MemeRequireType.MEME;
+                                        memeRequire.value = value;
+                                    }
+                                    if (innerText2 == "satisfyall")
+                                    {
+                                        if (xmlNode7.InnerText.Trim() == "true")
+                                        {
+                                            memeInfo.satisfy_all = true;
+                                        }
+                                    }
+
+                                    memeInfo.requires.Add(memeRequire);
+                                }
                             }
-                        }
-                        finally
-                        {
-                            IDisposable disposable;
-                            if ((disposable = (enumerator2 as IDisposable)) != null)
+                            finally
                             {
-                                disposable.Dispose(); //需要在读取完require这个enumrator后释放它
+                                IDisposable disposable;
+                                if ((disposable = (enumerator2 as IDisposable)) != null)
+                                {
+                                    disposable.Dispose(); //需要在读取完require这个enumrator后释放它
+                                }
                             }
                         }
+                        
 
                         XmlNode xmlNode10 = xmlNode.SelectSingleNode("duplicate");
                         if (xmlNode10 != null)
@@ -430,11 +434,14 @@ namespace NewGameMode
                                 memeButton.GetComponent<UniversalButtonIntereaction>().Click(true,false,true);
                                 detail.SetActive(true);
                                 detail.transform.localScale = new Vector3(0, 0, 1);
-                                detail.transform.DOScale(new Vector3(1, 1, 1), 0.5f).SetEase(Ease.OutExpo);
-
+                                detail.transform.DOScale(new Vector3(1, 1, 1), 0.3f).SetEase(Ease.OutExpo);
+                                //设置文字
                                 detail.transform.Find("Name").gameObject.GetComponent<LocalizeTextLoadScriptWithOutFontLoadScript>().SetText(name_id);
                                 detail.transform.Find("Desc").gameObject.GetComponent<LocalizeTextLoadScriptWithOutFontLoadScript>().SetText(desc_id);
                                 detail.transform.Find("ScrollSpecialDesc").Find("SpecialDesc").gameObject.GetComponent<LocalizeTextLoadScriptWithOutFontLoadScript>().SetText(special_desc_id);
+                                //设置图片
+                                detail.transform.Find("Image").gameObject.GetComponent<Image>().sprite = memeModel.metaInfo.sprite;
+
                             });
 
                             memeButton.SetActive(true);

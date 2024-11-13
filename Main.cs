@@ -1982,6 +1982,14 @@ namespace NewGameMode
             }
         }
     }
+
+    public class UpdateWonder : MonoBehaviour
+    {
+        void Update()
+        {
+            base.gameObject.GetComponent<Text>().text = LocalizeTextDataModel.instance.GetText("Wonder") + ":" + WonderModel.instance.money;
+        }
+    }
 }
 ///////////
 public class LocalizeTextLoadScriptWithOutFontLoadScript : MonoBehaviour, global::ILanguageLinkedData, global::IObserver

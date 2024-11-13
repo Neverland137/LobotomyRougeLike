@@ -192,8 +192,21 @@ namespace NewGameMode
                 detail.transform.Find("BuyButton").Find("Text").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
                 detail.transform.Find("BuyButton").Find("Text").gameObject.AddComponent<FontLoadScript>();
                 */
-
-
+                //奇思设置
+                /*
+                GameObject wonder = memeScene.transform.Find("WonderandDetail").Find("Wonder").gameObject;
+                wonder.transform.Find("Text").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
+                wonder.transform.Find("Text").gameObject.AddComponent<UpdateWonder>();
+                
+                //购买按钮设置
+                GameObject buy = memeScene.transform.Find("WonderandDetail").Find("Detail").Find("BuyButton").gameObject;
+                buy.transform.Find("Text").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
+                buy.transform.Find("Text").gameObject.GetComponent<Text>().text = LocalizeTextDataModel.instance.GetText("Meme_Wonder");
+                //刷新按钮设置
+                GameObject refresh = memeScene.transform.Find("RefreshButton").gameObject;
+                refresh.transform.Find("Text").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
+                refresh.transform.Find("Text").gameObject.GetComponent<Text>().text = LocalizeTextDataModel.instance.GetText("Meme_Wonder");
+                */
 
             }
             catch (Exception ex)
