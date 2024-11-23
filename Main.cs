@@ -51,12 +51,11 @@ namespace NewGameMode
                 harmony.Patch(typeof(AlterTitleController).GetMethod("Start", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NewGameModeButton_Start")), null);
                 harmony.Patch(typeof(ResultScreen).GetMethod("OnSuccessManagement", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("ResultScreen_Board")), null);
 
-
-                //局内机制修改:禁止重开和回库
+                //局内机制修改:禁止重开和回库，禁止重开已在模因处完成修改
 
                 //harmony.Patch(typeof(GameManager).GetMethod("ReturnToCheckPoint", AccessTools.all), new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NoRestartAndCheckPoint")), null, null);
-                harmony.Patch(typeof(EscapeUI).GetMethod("Start", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NoRestartAndCheckPointButton_EscapeUI")), null);
-                harmony.Patch(typeof(ResultScreen).GetMethod("Awake", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NoRestartButton_ResultScreen")), null);
+                //harmony.Patch(typeof(EscapeUI).GetMethod("Start", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NoCheckPointButton_EscapeUI")), null);
+                //harmony.Patch(typeof(ResultScreen).GetMethod("Awake", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NoRestartButton_ResultScreen")), null);
                 //损失全部员工时删档并回到标题页
                 harmony.Patch(typeof(Sefira).GetMethod("OnAgentCannotControll", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("ReturnToTitleOnGameOver")), null);
                 //屏蔽剧情
@@ -1360,14 +1359,10 @@ namespace NewGameMode
             }
         }
 
-
-
-        public static void NoRestartAndCheckPointButton_EscapeUI()
+        public static void NoCheckPointButton_EscapeUI()
         {
             if (GlobalGameManager.instance.gameMode == rougeLike)
             {
-                //GameObject.Destroy(EscapeUI.instance.MiddleAreaControl.transform.GetChild(0).gameObject);
-                //GameObject.Destroy(EscapeUI.instance.MiddleAreaControl.transform.GetChild(1).gameObject);
                 //EscapeUI.instance.MiddleAreaControl.transform.GetChild(0).gameObject.SetActive(false);
                 EscapeUI.instance.MiddleAreaControl.transform.GetChild(1).gameObject.SetActive(false);
             }
@@ -1377,7 +1372,6 @@ namespace NewGameMode
         {
             if (GlobalGameManager.instance.gameMode == rougeLike)
             {
-                //GameObject.Destroy(ResultScreen.instance.root.transform.GetChild(0).GetChild(4).GetChild(0).GetChild(0).gameObject);
                 ResultScreen.instance.root.transform.GetChild(0).GetChild(4).GetChild(0).GetChild(0).gameObject.SetActive(false);
             }
         }
@@ -1807,9 +1801,9 @@ namespace NewGameMode
 
                 if (shrink)
                 {
-                    transform.DOScale(new Vector3(0.85f, 0.85f, 1f), 0.1f).SetEase(Ease.InOutCirc).OnComplete(() =>
+                    transform.DOScale(new Vector3(0.85f, 0.85f, 1f), 0.1f).SetEase(Ease.InOutCirc).SetUpdate(true).OnComplete(() =>
                     {
-                        transform.DOScale(new Vector3(1, 1, 1), 0.1f).SetEase(Ease.InOutCirc);
+                        transform.DOScale(new Vector3(1, 1, 1), 0.1f).SetEase(Ease.InOutCirc).SetUpdate(true);
                     });
                 }
 
@@ -1832,7 +1826,7 @@ namespace NewGameMode
             try
             {
                 transform.localScale = new Vector3(0, 0, 1);
-                transform.DOScale(new Vector3(1, 1, 1), 1).SetEase(Ease.OutExpo);
+                transform.DOScale(new Vector3(1, 1, 1), 1).SetEase(Ease.OutExpo).SetUpdate(true);
             }
             catch (Exception ex)
             {

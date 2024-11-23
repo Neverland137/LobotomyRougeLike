@@ -1,5 +1,6 @@
 ﻿using Assets.Scripts.UI.Utils;
 using DG.Tweening;
+using GameStatusUI;
 using Harmony;
 using NewGameMode.Diffculty;
 using Steamworks.Data;
@@ -9,11 +10,13 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using static Mono.Security.X509.X520;
+using static UnityEngine.Analytics.EnumCase;
 
 namespace NewGameMode
 {
@@ -31,7 +34,7 @@ namespace NewGameMode
                 //设置控制台，也写了一些奇思的指令
                 instance.Patch(typeof(ConsoleScript).GetMethod("GetHmmCommand", AccessTools.all), new HarmonyMethod(typeof(Meme_Patch).GetMethod("GetAllCommand", AccessTools.all)), null, null); num++;
                 //调整UI
-                instance.Patch(typeof(EscapeUI).GetMethod("Awake", AccessTools.all), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("InitMemeScene")), null);
+                instance.Patch(typeof(GameManager).GetMethod("StartStage", AccessTools.all), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("InitMemeScene")), null);
                 instance.Patch(typeof(GameManager).GetMethod("RestartGame", AccessTools.all), new HarmonyMethod(typeof(Meme_Patch).GetMethod("TurnRestartToMemeScene")), null, null);
                 instance.Patch(typeof(EscapeUI).GetMethod("OpenWindow", AccessTools.all), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("TurnRestartToMemeSceneText")), null);
 
@@ -43,9 +46,14 @@ namespace NewGameMode
                 instance.Patch(typeof(WeaponModel).GetMethod("OnAttack"), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnAttack")), null); num++;
                 instance.Patch(typeof(WeaponModel).GetMethod("OnEndAttackCycle"), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnEndAttackCycle")), null); num++;
                 // FUCK YOU 1.0.9.1
-                /*
-                instance.Patch(typeof(WeaponModel).GetMethod("OnGiveDamage"),null, null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnKillMainTarget"))); num++;
-                */
+                //trans生效吧求你了
+                instance.Patch(typeof(EquipmentScriptBase).GetMethod(nameof(EquipmentScriptBase.OnKillMainTarget)),null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnKillTargetWorker")), null); num++;
+                instance.Patch(typeof(EquipmentScriptBase).GetMethod(nameof(EquipmentScriptBase.OnGiveDamage)), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnGiveDamage")), null); num++;
+                instance.Patch(typeof(EquipmentScriptBase).GetMethod(nameof(EquipmentScriptBase.OnGiveDamageAfter)), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnGiveDamageAfter")), null); num++;
+
+                //instance.Patch(typeof(WorkerModel).GetMethod(nameof(WorkerModel.TakeDamage)), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_WorkerTakeDamage")), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_WorkerTakeDamage_After")), null); num++;
+                //instance.Patch(typeof(CreatureModel).GetMethod(nameof(CreatureModel.TakeDamage)), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_CreatureTakeDamage")), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnCreatureTakeDamage_After")), null); num++;
+
             }
             catch (Exception ex)
             {
@@ -165,7 +173,14 @@ namespace NewGameMode
                             __result = "";
                             return false;
                         }
-                    } 
+                    }
+                    else if(type == "log")
+                    {
+                        if (type2 == "remove")
+                        {
+                            GameStatusUI.GameStatusUI.Window.logController.script.DeleteAll();
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -194,7 +209,7 @@ namespace NewGameMode
                 btIn1.pointerEnterSound = false;
                 exitButton.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => {
                     btIn1.Click(true, false, false);
-                    memeScene.transform.DOScale(new Vector3(0, 0, 1), 1).SetEase(Ease.OutExpo).OnComplete(() => {
+                    memeScene.transform.DOScale(new Vector3(0, 0, 1), 1).SetEase(Ease.OutExpo).SetUpdate(true).OnComplete(() => {
                         memeScene.SetActive(false);
                     });
                 });
@@ -211,7 +226,7 @@ namespace NewGameMode
                     btIn2.Click(true, false, true);
                     memeScene.transform.Find("WonderandDetail").Find("Detail").gameObject.SetActive(true);
                     memeScene.transform.Find("WonderandDetail").Find("Detail").gameObject.transform.localScale = new Vector3(0, 0, 1);
-                    memeScene.transform.Find("WonderandDetail").Find("Detail").gameObject.transform.DOScale(new Vector3(1, 1, 1), 0.5f).SetEase(Ease.OutExpo);
+                    memeScene.transform.Find("WonderandDetail").Find("Detail").gameObject.transform.DOScale(new Vector3(1, 1, 1), 0.5f).SetEase(Ease.OutExpo).SetUpdate(true);
                 });
                 //详情页的文本设置
                 GameObject detail = memeScene.transform.Find("WonderandDetail").Find("Detail").gameObject;
@@ -260,12 +275,17 @@ namespace NewGameMode
 
         public static bool TurnRestartToMemeScene()
         {
+            
             if (GlobalGameManager.instance.gameMode == rougeLike)
             {
+                Harmony_Patch.YKMTLogInstance.Info("ShowMemeScene");
                 try
                 {
                     memeScene.SetActive(true);
-                    memeScene.transform.DOScale(new Vector3(1, 1, 1), 1).SetEase(Ease.OutExpo);
+                    memeScene.transform.localScale = new Vector3(0, 0, 1);
+                    memeScene.transform.DOScale(new Vector3(1, 1, 1), 1).SetEase(Ease.OutExpo).SetUpdate(true);
+
+                    memeScene.transform.Find("WonderandDetail").Find("Detail").Find("BuyButton").gameObject.SetActive(false);//查看模因界面时，隐藏购买按钮
 
                     if (MemeManager.instance.current_list.Count == 0)
                     {
@@ -334,35 +354,120 @@ namespace NewGameMode
         {
             MemeManager.instance.OnAttackEnd(__instance.owner, __instance.currentTarget);
         }
+
         /*
-        public static IEnumerable<CodeInstruction> Meme_OnKillMainTarget(IEnumerable<CodeInstruction> instructions)
+        public static IEnumerable<CodeInstruction> Meme_OnKillTargetWorker(IEnumerable<CodeInstruction> instructions)
         {
-            var methodInfo = AccessTools.Method(typeof(MemeManager), nameof(MemeManager.OnKillMainTarget), new System.Type[] { typeof(UnitModel), typeof(UnitModel) });
-            var rawMethodInfo = AccessTools.Method(typeof(EquipmentScriptBase), nameof(EquipmentScriptBase.OnKillMainTarget), new System.Type[] { typeof(UnitModel), typeof(UnitModel) });
-            FieldInfo scriptField = typeof(EquipmentModel).GetField("script", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
-            FieldInfo currentTarget = typeof(EquipmentModel).GetField("currentTarget", BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
+            //要调用的方法和用于定位IL码位置的方法
+            var methodInfo = MemeManager.instance.GetType().GetMethod(nameof(MemeManager.OnKillTargetWorker), BindingFlags.Instance | BindingFlags.Public, null, new Type[] { typeof(UnitModel), typeof(UnitModel) }, null);
+            var rawMethodInfo = typeof(EquipmentScriptBase).GetMethod(nameof(EquipmentScriptBase.OnKillMainTarget), BindingFlags.Instance | BindingFlags.Public, null, new Type[] { typeof(UnitModel), typeof(UnitModel) }, null);
+
+            //要调用的方法所属的实例，如果方法不是static那么这个是必需的
+            FieldInfo instance = typeof(MemeManager).GetField("_instance", BindingFlags.NonPublic | BindingFlags.Static);
+            FieldInfo currentTarget = typeof(EquipmentModel).GetField("currentTarget", BindingFlags.Public | BindingFlags.Instance);
+
+            //原IL和新IL
             var codes = instructions.ToList();
+            List<CodeInstruction> newCodes = new List<CodeInstruction>();
+            IEnumerable<CodeInstruction> newCodes_copy;
+
             foreach (var code in codes)
             {
-
-                if (code.opcode == OpCodes.Call)
+                newCodes.Add(code);
+                if (code.opcode == OpCodes.Callvirt)
                 {
-                    if ((MethodInfo)code.operand == rawMethodInfo)
+                    if (code.operand is MethodInfo)
+                    //if ((MethodInfo)code.operand == rawMethodInfo)
                     {
-                        yield return new CodeInstruction(OpCodes.Ldarg_0);
-                        yield return new CodeInstruction(OpCodes.Ldfld, scriptField);
-                        yield return new CodeInstruction(OpCodes.Ldarg_1);
-                        yield return new CodeInstruction(OpCodes.Ldarg_0);
-                        yield return new CodeInstruction(OpCodes.Ldfld, currentTarget);
-                        yield return new CodeInstruction(OpCodes.Call, methodInfo);
+                        if (((MethodInfo)code.operand).Equals(rawMethodInfo))
+                        {
+                            newCodes.Add(new CodeInstruction(OpCodes.Ldsfld, instance));//在调用一个方法前，如果这个方法不是静态方法，那么必须先向栈内压入方法的实例
+                            newCodes.Add(new CodeInstruction(OpCodes.Ldarg_1));//从被patch的方法中获取第一个参数并压入，按照从左至右，成为第一个参数
+                            newCodes.Add(new CodeInstruction(OpCodes.Ldarg_0));//将WeaponModel实例压入栈内。由于不属于UnitModel，它不会成为方法的参数
+                            newCodes.Add(new CodeInstruction(OpCodes.Ldfld, currentTarget));//从WeaponModel实例中获取target并压入，按照从左至右，成为第二个参数
+                            newCodes.Add(new CodeInstruction(OpCodes.Call, methodInfo));//调用OnKillMainTarget(actor,target)
+
+                        }
                     }
                 }
-                else
+            }
+
+            newCodes_copy = newCodes;
+            return newCodes_copy;
+
+        }
+
+        public static IEnumerable<CodeInstruction> Meme_OnGiveDamage(IEnumerable<CodeInstruction> instructions)
+        {
+            //要调用的方法和用于定位IL码位置的方法
+            var methodInfo = MemeManager.instance.GetType().GetMethod(nameof(MemeManager.OnGiveDamage), BindingFlags.Instance | BindingFlags.Public, null, new Type[] { typeof(UnitModel), typeof(UnitModel) }, null);
+            var rawMethodInfo = typeof(EquipmentScriptBase).GetMethod(nameof(EquipmentScriptBase.OnGiveDamage), BindingFlags.Instance | BindingFlags.Public, null, new Type[] { typeof(UnitModel), typeof(UnitModel), typeof(DamageInfo).MakeByRefType() }, null);
+
+            //要调用的方法所属的实例，如果方法不是static那么这个是必需的
+            FieldInfo instance = typeof(MemeManager).GetField("_instance", BindingFlags.NonPublic | BindingFlags.Static);
+            FieldInfo currentTarget = typeof(EquipmentModel).GetField("currentTarget", BindingFlags.Public | BindingFlags.Instance);
+
+            //原IL和新IL
+            var codes = instructions.ToList();
+            List<CodeInstruction> newCodes = new List<CodeInstruction>();
+            IEnumerable<CodeInstruction> newCodes_copy;
+
+            bool findRawMethod = false;//如果定位用方法被调用后没有立刻结束这一行，而是还有一句IL码，则借此判断，并在下一句IL码之后插入
+            foreach (var code in codes)
+            {
+                newCodes.Add(code);
+                if (code.opcode == OpCodes.Call)//记得检查用于定位IL码的方法到底是call还是callvirt
                 {
-                    yield return code;
+                    if (code.operand is MethodInfo)
+                    //if ((MethodInfo)code.operand == rawMethodInfo)
+                    {
+                        if (((MethodInfo)code.operand).Equals(rawMethodInfo))
+                        {
+                            
+                            newCodes.Add(new CodeInstruction(OpCodes.Ldsfld, instance));//在调用一个方法前，如果这个方法不是静态方法，那么必须先向栈内压入方法的实例
+                            newCodes.Add(new CodeInstruction(OpCodes.Ldarg_1));//从被patch的方法中获取第一个参数并压入，按照从左至右，成为第一个参数
+                            newCodes.Add(new CodeInstruction(OpCodes.Ldarg_0));//将WeaponModel实例压入栈内。由于不属于UnitModel，它不会成为方法的参数
+                            newCodes.Add(new CodeInstruction(OpCodes.Ldfld, currentTarget));//从WeaponModel实例中获取target并压入，按照从左至右，成为第二个参数
+                            newCodes.Add(new CodeInstruction(OpCodes.Ldloca_S, 7));
+                            newCodes.Add(new CodeInstruction(OpCodes.Call, methodInfo));//调用OnGiveDamage(actor,target,dmg)
+
+                        }
+                    }
                 }
             }
+
+            newCodes_copy = newCodes;
+            return newCodes_copy;
+
         }
         */
+        public static void Meme_OnKillTargetWorker(UnitModel actor, UnitModel target)
+        {
+            MemeManager.instance.OnKillTargetWorker(actor, target);
+        }
+        public static void Meme_OnGiveDamage(UnitModel actor, UnitModel target, ref DamageInfo dmg)
+        {
+            MemeManager.instance.OnGiveDamage(actor, target, ref dmg);
+        }
+        public static void Meme_OnGiveDamageAfter(UnitModel actor, UnitModel target, DamageInfo dmg)
+        {
+            MemeManager.instance.OnGiveDamageAfter(actor, target, dmg);
+        }
+        public static void Meme_WorkerTakeDamage(WorkerModel __instance, UnitModel actor, DamageInfo dmg)
+        {
+            MemeManager.instance.WorkerTakeDamage(actor, __instance, dmg);
+        }
+        public static void Meme_OnWorkerTakeDamage_After(WorkerModel __instance, UnitModel actor, float num, RwbpType type)//需要用trans
+        {
+            MemeManager.instance.OnWorkerTakeDamage_After(num, actor, __instance, type);
+        }
+        public static void Meme_CreatureTakeDamage(CreatureModel __instance, UnitModel actor, DamageInfo dmg)
+        {
+            MemeManager.instance.CreatureTakeDamage(actor, __instance, dmg);
+        }
+        public static void Meme_OnCreatureTakeDamage_After(CreatureModel __instance, UnitModel actor, float num, RwbpType type)//需要用trans
+        {
+            MemeManager.instance.OnCreatureTakeDamage_After(num, actor, __instance, type);
+        }
     }
 }

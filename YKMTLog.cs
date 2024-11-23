@@ -33,6 +33,14 @@ namespace NewGameMode
             LogDir = logDir;
         }
         /// <summary>
+        /// 游戏内左下角显示日志。
+        /// </summary>
+        /// <param name="message"></param>
+        public void InGameLog(string message)
+        {
+            Notice.instance.Send("AddSystemLog", new object[] { message });
+        }
+        /// <summary>
         /// 写入日志。
         /// </summary>
         /// <param name="message">日志消息</param>

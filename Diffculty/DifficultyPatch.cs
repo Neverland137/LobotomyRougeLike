@@ -58,13 +58,14 @@ namespace NewGameMode
             __result += adder;
         }
         // 我知道这种代码简直蠢死了，但是反正本来就已经够屎山了，不差这一点
+        //这蠢吗 不蠢吧 摸摸）
         private static Dictionary<CreatureTypeInfo, int> maxHPTable = new();
         public static void PatchCreatureMaxHP_1(ref CreatureModel __instance)
         {
             if (!maxHPTable.ContainsKey(__instance.metaInfo))
             {
                 var NowDifficulty = DifficultyManager.GetNowDifficulty();
-                float CreatureMaxHPTimes = NowDifficulty.CreatureMaxHPTimes() + MemeManager.instance.CreatureMaxHPTimes();
+                float CreatureMaxHPTimes = NowDifficulty.CreatureMaxHPTimes() * MemeManager.instance.CreatureMaxHPTimes();
                 __instance.metaInfo.maxHp = (int)(Math.Round(__instance.metaInfo.maxHp * CreatureMaxHPTimes));
                 maxHPTable.Add(__instance.metaInfo, __instance.metaInfo.maxHp);
             }
@@ -79,7 +80,7 @@ namespace NewGameMode
             if (!maxHPTable_Child.ContainsKey(__instance.childMetaInfo))
             {
                 var NowDifficulty = DifficultyManager.GetNowDifficulty();
-                float CreatureMaxHPTimes = NowDifficulty.CreatureMaxHPTimes() + MemeManager.instance.CreatureMaxHPTimes();
+                float CreatureMaxHPTimes = NowDifficulty.CreatureMaxHPTimes() * MemeManager.instance.CreatureMaxHPTimes();
                 __instance.childMetaInfo.maxHp = (int)(Math.Round(__instance.childMetaInfo.maxHp * CreatureMaxHPTimes));
                 maxHPTable_Child.Add(__instance.childMetaInfo, __instance.childMetaInfo.maxHp);
             }

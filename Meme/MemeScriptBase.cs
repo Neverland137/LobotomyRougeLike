@@ -49,7 +49,7 @@ namespace NewGameMode
         {
         }
 
-        public virtual void OnKillMainTarget(UnitModel actor, UnitModel target)
+        public virtual void OnKillTargetWorker(UnitModel actor, UnitModel target)
         {
         }
 
@@ -61,11 +61,19 @@ namespace NewGameMode
         {
         }
 
-        public virtual void OnTakeDamage(UnitModel actor, UnitModel victim, ref DamageInfo dmg)
+        public virtual void WorkerTakeDamage(UnitModel actor, UnitModel victim, ref DamageInfo dmg)
         {
         }
 
-        public virtual void OnTakeDamage_After(float value, UnitModel victim, RwbpType type)
+        public virtual void OnWorkerTakeDamage_After(float value, UnitModel actor, UnitModel victim, RwbpType type)
+        {
+        }
+
+        public virtual void CreatureTakeDamage(UnitModel actor, UnitModel victim, ref DamageInfo dmg)//在异想体被扣减血量后才生效
+        {
+        }
+
+        public virtual void OnCreatureTakeDamage_After(float value, UnitModel actor, UnitModel victim, RwbpType type)
         {
         }
 
@@ -90,12 +98,12 @@ namespace NewGameMode
             return 1f;
         }
 
-        /*
-        public virtual DamageInfo GetDamage(UnitModel actor)
+        
+        public virtual DamageInfo GetWorkerDamage(WorkerModel actor)
         {
-            
+            return actor.Equipment.weapon.metaInfo.damageInfo.Copy();
         }
-        */
+        
 
         public virtual void OnFixedUpdate()
         {
@@ -106,7 +114,7 @@ namespace NewGameMode
             return 0f;
         }
 
-        public virtual void OnOwnerHeal(bool isMental, float amount)
+        public virtual void OnHeal(bool isMental, float amount)
         {
         }
 

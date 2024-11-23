@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Xml;
 using UnityEngine;
 using UnityEngine.UI;
+using static CreatureGenerate.CreatureGenerateData;
 
 namespace NewGameMode
 {
@@ -23,6 +24,10 @@ namespace NewGameMode
         /// 本局肉鸽目前拥有的模因,key是实例id
         /// </summary>
         public Dictionary<int, MemeModel> current_dic = [];
+        /// <summary>
+        /// 本局肉鸽目前拥有的模因和模因按钮,key是模因id
+        /// </summary>
+        public Dictionary<int, GameObject> meme_button_dic = [];
         /// <summary>
         /// 模因的贴图合集，key是贴图名称
         /// </summary>
@@ -402,7 +407,7 @@ namespace NewGameMode
 
                         if (obj is MemeScriptBase)
                         {
-                            memeModel.script = (MemeScriptBase)obj; num++; File.AppendAllText(Harmony_Patch.path + "/CreateMemeSuccess.txt", "IsMeme" + Environment.NewLine);
+                            memeModel.script = (MemeScriptBase)obj; num++;
                         }
                         instance.current_dic.Add(_nextInstanceId, memeModel); num++;
                         instance.current_list.Add(memeModel);
@@ -438,7 +443,7 @@ namespace NewGameMode
                                 memeButton.GetComponent<UniversalButtonIntereaction>().Click(true, false, true);
                                 detail.SetActive(true);
                                 detail.transform.localScale = new Vector3(0, 0, 1);
-                                detail.transform.DOScale(new Vector3(1, 1, 1), 0.3f).SetEase(Ease.OutExpo);
+                                detail.transform.DOScale(new Vector3(1, 1, 1), 0.3f).SetEase(Ease.OutExpo).SetUpdate(true);
                                 //设置文字
                                 detail.transform.Find("Name").gameObject.GetComponent<LocalizeTextLoadScriptWithOutFontLoadScript>().SetText(name_id);
                                 detail.transform.Find("Desc").gameObject.GetComponent<LocalizeTextLoadScriptWithOutFontLoadScript>().SetText(desc_id);
@@ -449,6 +454,7 @@ namespace NewGameMode
                             });
 
                             memeButton.SetActive(true);
+                            instance.meme_button_dic.Add(id, memeButton);
                             Harmony_Patch.LogInfo("InitMemeButtonEnd");
                         }
                         break;
@@ -457,7 +463,6 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                File.WriteAllText(Harmony_Patch.path + "/CreateMeme.txt", num.ToString());
                 File.WriteAllText(Harmony_Patch.path + "/CreateMemeError.txt", num + Environment.NewLine + ex.Message + Environment.NewLine + ex.StackTrace);
             }
 
@@ -466,18 +471,34 @@ namespace NewGameMode
 
         public void RemoveMemeModel(int id)
         {
-            MemeModel memeModel = new MemeModel();
-
-            foreach (MemeModel meme in instance.current_list)
+            int num = 0;
+            try
             {
-                if (meme.metaInfo.id == id)
+                foreach (MemeModel meme in instance.current_list)
                 {
-                    instance.current_dic.Remove(meme.instanceId);
-                    instance.current_list.Remove(memeModel);
-                    instance.uninhand_list.Add(memeModel.metaInfo);
-                    meme.script.OnRelease();
-                    break;
+                    if (meme.metaInfo.id == id)
+                    {
+                        instance.current_dic.Remove(meme.instanceId);num++;
+                        instance.current_list.Remove(meme); num++;
+                        instance.uninhand_list.Add(meme.metaInfo); num++;
+                        meme.script.OnRelease(); num++;
+                        GameObject memeButton = new GameObject();
+                        instance.meme_button_dic.TryGetValue(id, out memeButton);
+                        GameObject.Destroy(memeButton);
+                        instance.meme_button_dic.Remove(id);
+
+                        Harmony_Patch.YKMTLogInstance.Info("RemoveMemeEnd : " + meme.metaInfo.sprite_name);
+                        foreach (MemeModel current_meme in instance.current_list)
+                        {
+                            Harmony_Patch.YKMTLogInstance.Info("CurrentMeme : " + current_meme.metaInfo.sprite_name);
+                        }
+                        break;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Harmony_Patch.YKMTLogInstance.Error(ex);
             }
         }
 
@@ -538,13 +559,113 @@ namespace NewGameMode
                 meme.script.OnAttackEnd(actor, target);
             }
         }
-        public void OnKillMainTarget(UnitModel actor, UnitModel target)
+        public void OnKillTargetWorker(UnitModel actor, UnitModel target)
         {
             foreach (MemeModel meme in current_list)
             {
-                meme.script.OnKillMainTarget(actor, target);
+                meme.script.OnKillTargetWorker(actor, target);
             }
         }
+
+        public void OnGiveDamage(UnitModel actor, UnitModel target, ref DamageInfo dmg)
+        {
+            int i = 0;
+            foreach (MemeModel meme in current_list)
+            {
+                i++;
+                Harmony_Patch.YKMTLogInstance.InGameLog("GiveDmg" + i);
+                meme.script.OnGiveDamage(actor, target, ref dmg);
+            }
+        }
+
+        public void OnGiveDamageAfter(UnitModel actor, UnitModel target, DamageInfo dmg)
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.OnGiveDamageAfter(actor, target, dmg);
+            }
+        }
+
+        public void WorkerTakeDamage(UnitModel actor, UnitModel victim, DamageInfo dmg)
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.WorkerTakeDamage(actor, victim, ref dmg);
+            }
+        }
+
+        public void OnWorkerTakeDamage_After(float value, UnitModel actor, UnitModel victim, RwbpType type)
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.OnWorkerTakeDamage_After(value, actor, victim, type);
+            }
+        }
+
+        public void CreatureTakeDamage(UnitModel actor, UnitModel victim, DamageInfo dmg)
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.CreatureTakeDamage(actor, victim, ref dmg);
+            }
+        }
+
+        public void OnCreatureTakeDamage_After(float value, UnitModel actor, UnitModel victim, RwbpType type)
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.OnCreatureTakeDamage_After(value, actor, victim, type);
+            }
+        }
+
+        public void GetDefense(UnitModel actor)
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.GetDefense(actor);
+            }
+        }
+
+        public void GetDamageFactor()
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.GetDamageFactor();
+            }
+        }
+
+        public void GetWorkerDamage(WorkerModel actor)
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.GetWorkerDamage(actor);
+            }
+        }
+
+        public void OnFixedUpdate()
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.OnFixedUpdate();
+            }
+        }
+
+        public void GetWorkProbSpecialBonus(UnitModel actor, SkillTypeInfo skill)
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.GetWorkProbSpecialBonus(actor, skill);
+            }
+        }
+
+        public void OnHeal(bool isMental, float amount)
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.OnHeal(isMental, amount);
+            }
+        }
+
         public int BulletAdder()
         {
             int num = 0;
