@@ -2,9 +2,11 @@
 using DG.Tweening;
 using Harmony;
 using NewGameMode.Diffculty;
+using Steamworks.Ugc;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Xml;
 using UnityEngine;
@@ -51,11 +53,12 @@ namespace NewGameMode
                 harmony.Patch(typeof(AlterTitleController).GetMethod("Start", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NewGameModeButton_Start")), null);
                 harmony.Patch(typeof(ResultScreen).GetMethod("OnSuccessManagement", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("ResultScreen_Board")), null);
 
-                //局内机制修改:禁止重开和回库，禁止重开已在模因处完成修改
+                //局内机制修改:禁止重开和回库，禁止重开已在模因处完成修改，所以代码全部废弃
 
                 //harmony.Patch(typeof(GameManager).GetMethod("ReturnToCheckPoint", AccessTools.all), new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NoRestartAndCheckPoint")), null, null);
                 //harmony.Patch(typeof(EscapeUI).GetMethod("Start", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NoCheckPointButton_EscapeUI")), null);
                 //harmony.Patch(typeof(ResultScreen).GetMethod("Awake", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NoRestartButton_ResultScreen")), null);
+                
                 //损失全部员工时删档并回到标题页
                 harmony.Patch(typeof(Sefira).GetMethod("OnAgentCannotControll", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("ReturnToTitleOnGameOver")), null);
                 //屏蔽剧情
@@ -269,30 +272,6 @@ namespace NewGameMode
         }
 
 
-        /*
-        public static void NewGameModeButton_Awake()
-        {
-            //在动作库里添加id为666的动作类型，触发动作时启动CallNewGame_Rougelike
-            Extension.GetPrivateField<Dictionary<AlterTitleController.TitleActionType, AlterTitleController.TitleCall>>(AlterTitleController.Controller, "_actionLibrary").Add((AlterTitleController.TitleActionType)666, new AlterTitleController.TitleCall(CallNewGame_Rougelike));
-        }
-
-        public static void NewGameModeButton_OnClick(int id)
-        {
-            //当按钮id超过原版时，才会触发。在动作库里搜索对应的动作，如果搜索到就call方法
-            if (id >= 9)
-            {
-                AlterTitleController.TitleCall titleCall = null;
-                Dictionary<AlterTitleController.TitleActionType, AlterTitleController.TitleCall> _actionLibrary = Extension.GetPrivateField<Dictionary<AlterTitleController.TitleActionType, AlterTitleController.TitleCall>>(AlterTitleController.Controller, "_actionLibrary");
-
-                if (_actionLibrary.TryGetValue((AlterTitleController.TitleActionType)666, out titleCall))
-                {
-                    Debug.Log((AlterTitleController.TitleActionType)666);
-                    titleCall();
-                }
-            }
-        }
-        */
-
         public static void CallNewGame_Rougelike()
         {
             GlobalGameManager.instance.gameMode = rougeLike;
@@ -307,7 +286,7 @@ namespace NewGameMode
             MemeManager.instance.current_list.Clear();
             WonderModel.instance.money = 0;
             SetRougelikeGlobalData();
-            SetRougelikeDayData();
+            SetDayData();
             SaveGlobalData();
             SaveDayData();
             SaveRougeLikeDayData();
@@ -339,6 +318,33 @@ namespace NewGameMode
             }
         }
 
+        public static void CallDebugGame_Rougelike()
+        {
+            GlobalGameManager.instance.gameMode = rougeLike;
+            GlobalGameManager.instance.isPlayingTutorial = false;
+            CreatureGenerate.CreatureGenerateInfoManager.Instance.Init();
+            GlobalGameManager.instance.InitStoryMode();
+            GlobalGameManager.instance.gameMode = rougeLike;
+            PlayerModel.instance.InitAddingCreatures();
+
+
+            MemeManager.instance.current_dic.Clear();
+            MemeManager.instance.current_list.Clear();
+            WonderModel.instance.money = 0;
+            SetRougelikeGlobalData();
+            SetDebugEquipments();
+            SetDebugDayData();
+            SaveGlobalData();
+            SaveDayData();
+            SaveRougeLikeDayData();
+            GlobalGameManager.instance.gameMode = rougeLike;
+            if (GlobalGameManager.instance.loadingScreen.isLoading)
+            {
+                return;
+            }
+            GlobalGameManager.instance.loadingScene = "TitleEndScene";
+            GlobalGameManager.instance.loadingScreen.LoadScene("StoryV2");
+        }
 
         public static bool SetRougelikeGlobalData()//设置新一局肉鸽的全局存档
         {
@@ -421,7 +427,7 @@ namespace NewGameMode
             return false;
         }
 
-        public static void SetRougelikeDayData()//设置新一局肉鸽的天数存档
+        public static void SetDayData()//设置新一局肉鸽的天数存档
         {
             PlayerModel.instance.SetDay(30);
             for (int i = 0; i < 5; i++)
@@ -447,6 +453,31 @@ namespace NewGameMode
             WonderModel.instance.Init();
         }
 
+        public static void SetDebugDayData()//设置新一局肉鸽的天数存档
+        {
+            PlayerModel.instance.SetDay(30);
+            for (int i = 0; i < 5; i++)
+            {
+                SefiraManager.instance.OpenSefira(SefiraEnum.MALKUT);
+                SefiraManager.instance.OpenSefira(SefiraEnum.YESOD);
+                SefiraManager.instance.OpenSefira(SefiraEnum.NETZACH);
+                SefiraManager.instance.OpenSefira(SefiraEnum.HOD);
+                SefiraManager.instance.OpenSefira(SefiraEnum.TIPERERTH1);
+                SefiraManager.instance.OpenSefira(SefiraEnum.TIPERERTH2);
+            }
+            AgentManager.instance.customAgent.Clear();
+            AgentManager.instance.Clear();
+
+            //SetRandomAgents(15, 25, 60, 90);
+
+            //CreatureManager.instance.Clear();
+
+            SetDebugCreatures();
+            MoneyModel.instance.Add(9999);
+            //以下为肉鸽新增的内容初始化
+            WonderModel.instance.Init();
+            WonderModel.instance.Add(9999);
+        }
 
         public static bool SaveGlobalData()
         {
@@ -698,7 +729,6 @@ namespace NewGameMode
                         }
                     }
 
-                    WonderModel.instance.LoadData(data);
                 }
 
             }
@@ -723,7 +753,7 @@ namespace NewGameMode
                 MemeManager.instance.LoadData(dic);
             }
         }
-        public static void LoadDay(Dictionary<string, object> data)
+        public static void LoadDay(Dictionary<string, object> data)//加载除天数以外的其它内容
         {
             try
             {
@@ -1059,9 +1089,18 @@ namespace NewGameMode
             {
                 YKMTLogInstance.Error(ex);
             }
-
-
             return result;
+        }
+
+        public static void SetDebugEquipments()
+        {
+            foreach (int id in GetAllEquipmentidList())
+            {
+                for (int i = 0; i < 5; i++)
+                {
+                    InventoryModel.Instance.CreateEquipment(id);
+                }
+            }
         }
 
         /// <summary>
@@ -1343,6 +1382,73 @@ namespace NewGameMode
             //CreatureManager.instance.AddCreatureInSefira()
         }
 
+        public static void SetDebugCreatures()
+        {
+            CreatureManager.instance.Clear();
+            try
+            {
+                bool dlcCreatureOn = GlobalGameManager.instance.dlcCreatureOn;
+                List<long> all_creature_list;
+                RiskLevel[] blackList_level = { RiskLevel.ZAYIN, RiskLevel.TETH, RiskLevel.HE };
+                long[] blackList_id = { 100044, 100047,100039,100032 };//穿刺乐园，洋流，贪婪，帽姐，但帽姐只是为了和大坏狼分开
+
+                List<long> deleted_id = new List<long>();
+                if (dlcCreatureOn)
+                {
+                    all_creature_list = new List<long>(CreatureGenerateInfo.all);
+                }
+                else
+                {
+                    all_creature_list = new List<long>(CreatureGenerateInfo.all_except_creditCreatures);
+                }
+                foreach (long id in all_creature_list)
+                {
+                    if (!CreatureTypeList.instance.GetData(id).isEscapeAble)
+                    {
+                        deleted_id.Add(id);
+                    }
+                    RiskLevel riskLevel = CreatureTypeList.instance.GetData(id).GetRiskLevel();
+                    if (blackList_level.Contains(riskLevel))
+                    {
+                        deleted_id.Add(id);
+                    }
+                    if (blackList_id.Contains(id))
+                    {
+                        deleted_id.Add(id);
+                    }
+                }
+                foreach (long item in deleted_id)
+                {
+                    all_creature_list.Remove(item);
+                }
+                foreach (long item in CreatureGenerateInfo.kitCreature)
+                {
+                    all_creature_list.Remove(item);
+                }
+
+                all_creature_list.Add(100020);//惩戒鸟
+                all_creature_list.Add(100064);//深谙
+                all_creature_list.Add(100015);//白夜
+                all_creature_list.Add(100065);//月光女神
+                all_creature_list.Add(100032);//帽姐
+                all_creature_list.Add(100045); //黑天鹅，阳似乎不属于工具异想体，不用额外加
+
+                for (int sefira_id = 1; sefira_id < 7; sefira_id++)//一直到中本2全塞满
+                {
+                    for (int i = 0; i < 4; i++)
+                    {
+                        Sefira sefira = SefiraManager.instance.GetSefira(sefira_id);
+                        AddCreature(all_creature_list[0], sefira);
+                        all_creature_list.RemoveAt(0);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                YKMTLogInstance.Error(ex);
+            }
+        }
+
         public static void AddCreature(long id, Sefira sefira)
         {
             List<long> list2 = new List<long>(CreatureGenerateInfo.GetAll(false));
@@ -1492,7 +1598,8 @@ namespace NewGameMode
                         SaveDayData();
                         LoadGlobalData();
                         LoadDayData(SaveType.LASTDAY);
-                        Extension.CallPrivateMethod<object>(AlterTitleController.Controller, "LoadUnlimitMode", null);
+                        GameManager.currentGameManager.RestartGame();
+                        //Extension.CallPrivateMethod<object>(AlterTitleController.Controller, "LoadUnlimitMode", null);
                         GlobalGameManager.instance.gameMode = rougeLike;
                     }
                 }
@@ -1516,6 +1623,9 @@ namespace NewGameMode
         }
     }
 
+    /// <summary>
+    /// “探索支部”和“继续探索”两个按钮的互动效果
+    /// </summary>
     public class ButtonInteraction : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
 
@@ -1736,8 +1846,11 @@ namespace NewGameMode
 
     }
 
-    //该组件的作用：鼠标放在按钮上时若pointerEnterSound为true则播放第一个音效，
-    //点击时（需手动调用）如果successSound为true则播放第二个音效，failSound是第三个音效，如果shrink为true则使按钮缩放
+    /// <summary>
+    /// 该组件的作用：鼠标放在按钮上时若pointerEnterSound为true则播放第一个音效，
+    /// 点击时（需手动调用）如果successSound为true则播放第二个音效，failSound是第三个音效，如果shrink为true则使按钮缩放
+    /// </summary>
+
     public class UniversalButtonIntereaction : MonoBehaviour, IPointerEnterHandler
     {
         public static string path = Path.GetDirectoryName(Uri.UnescapeDataString(new UriBuilder(Assembly.GetExecutingAssembly().CodeBase).Path));
@@ -1815,6 +1928,9 @@ namespace NewGameMode
         }
     }
 
+    /// <summary>
+    /// 未知作用，无引用
+    /// </summary>
     public class ShowScene : MonoBehaviour
     {
         public static string path = Path.GetDirectoryName(Uri.UnescapeDataString(new UriBuilder(Assembly.GetExecutingAssembly().CodeBase).Path));
@@ -1835,13 +1951,7 @@ namespace NewGameMode
         }
     }
 
-    public class UpdateWonder : MonoBehaviour
-    {
-        void Update()
-        {
-            base.gameObject.GetComponent<Text>().text = LocalizeTextDataModel.instance.GetText("Wonder") + ":" + WonderModel.instance.money;
-        }
-    }
+    
 }
 ///////////
 public class LocalizeTextLoadScriptWithOutFontLoadScript : MonoBehaviour, ILanguageLinkedData, IObserver

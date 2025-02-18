@@ -1,4 +1,5 @@
 ﻿using DG.Tweening;
+using NewGameMode.Meme;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -14,6 +15,10 @@ namespace NewGameMode
     public class MemeManager
     {
         private static MemeManager _instance;
+        public static GameObject memeScene = new GameObject();
+        public static Sprite memeOutlook;
+        public static float originScrollY = 0;
+        public static float originScrollHeight = 0;
 
         private int _nextInstanceId = 0;
         /// <summary>
@@ -24,15 +29,15 @@ namespace NewGameMode
         /// 本局肉鸽目前拥有的模因,key是实例id
         /// </summary>
         public Dictionary<int, MemeModel> current_dic = [];
+
         /// <summary>
-        /// 本局肉鸽目前拥有的模因和模因按钮,key是模因id
-        /// </summary>
-        public Dictionary<int, GameObject> meme_button_dic = [];
-        /// <summary>
-        /// 模因的贴图合集，key是贴图名称
+        /// 模因的贴图合集，key是贴图名称。用来在加载模因时传递模因贴图
         /// </summary>
         public Dictionary<string, Sprite> sprite_dic = [];
         public List<MemeInfo> all_list = [];
+        /// <summary>
+        /// 模因生效顺序由此决定
+        /// </summary>
         public List<MemeModel> current_list = [];
         public List<MemeInfo> uninhand_list = [];
 
@@ -242,6 +247,9 @@ namespace NewGameMode
             return dictionary;
         }
 
+        /// <summary>
+        /// 读取所有xml
+        /// </summary>
         public static void LoadAllInfo()
         {
             try
@@ -417,9 +425,10 @@ namespace NewGameMode
                         memeModel.script.OnGet(); num++;
 
                         //初始化模因对应的模因按钮
-                        if (current_list.Count != 1)//这句是跳过第一个模因，后面改
+                        
+                        if (GlobalGameManager.instance.gameMode == Harmony_Patch.rougeLike)
                         {
-                            Harmony_Patch.LogInfo("InitMemeButton");
+                            Harmony_Patch.LogInfo("InitMemeButtonStart");
                             string name_id;
                             memeModel.metaInfo.localizeData.TryGetValue("name", out name_id);
                             string desc_id;
@@ -427,17 +436,24 @@ namespace NewGameMode
                             string special_desc_id;
                             memeModel.metaInfo.localizeData.TryGetValue("special_desc", out special_desc_id);
 
-                            //复制模板，后面改
-                            GameObject memeButton = UnityEngine.Object.Instantiate(Meme_Patch.memeScene.transform.Find("MemeButtons").Find("Buttons").GetChild(0).gameObject);
-                            memeButton.transform.SetParent(Meme_Patch.memeScene.transform.Find("MemeButtons").Find("Buttons"));
-                            memeButton.transform.localScale = new Vector3(1f, 1f, 1f);
-                            //设置名称和贴图
-                            memeButton.transform.Find("Text").gameObject.GetComponent<LocalizeTextLoadScriptWithOutFontLoadScript>().id = name_id;
-                            memeButton.transform.Find("Image").gameObject.GetComponent<Image>().sprite = memeModel.metaInfo.sprite;
+                            AssetBundle buttonBundle = AssetBundle.LoadFromFile(Harmony_Patch.path + "/AssetsBundle/single_meme_button"); num++;
+                            GameObject memeButton = UnityEngine.Object.Instantiate(buttonBundle.LoadAsset<GameObject>("SingleMemeButton")); num++;
+                            buttonBundle.Unload(false);//关闭AB包，但是保留已加载的资源
+                            memeButton.transform.SetParent(memeScene.transform.Find("MemeButtons").Find("Buttons")); num++;
+                            memeButton.transform.localScale = new Vector3(1f, 1f, 1f); num++;
+
+                            //设置按钮本身的文字、音效和移动效果
+                            memeButton.transform.Find("Text").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>().id = name_id;
+                            memeButton.transform.Find("Text").gameObject.AddComponent<FontLoadScript>();
+                            memeButton.transform.Find("Image").gameObject.GetComponent<Image>().sprite = memeModel.metaInfo.sprite; num++;
+                            memeButton.GetComponent<UnityEngine.UI.Image>().sprite = MemeManager.memeOutlook;
+                            memeButton.AddComponent<UniversalButtonIntereaction>().pointerEnterSound = true;
+                            memeButton.AddComponent<MemeButtonMovement>();
+
 
                             //点击后设置详情
-                            GameObject detail = Meme_Patch.memeScene.transform.Find("WonderandDetail").Find("Detail").gameObject;
-                            //memeButton.GetComponent<UnityEngine.UI.Button>().onClick.RemoveAllListeners();
+                            GameObject detail = memeScene.transform.Find("WonderandDetail").Find("Detail").gameObject; num++;
+                            memeButton.GetComponent<UnityEngine.UI.Button>().onClick.RemoveAllListeners();
                             memeButton.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() =>
                             {
                                 memeButton.GetComponent<UniversalButtonIntereaction>().Click(true, false, true);
@@ -451,10 +467,28 @@ namespace NewGameMode
                                 //设置图片
                                 detail.transform.Find("Image").gameObject.GetComponent<Image>().sprite = memeModel.metaInfo.sprite;
 
-                            });
+                            }); num++;
 
-                            memeButton.SetActive(true);
-                            instance.meme_button_dic.Add(id, memeButton);
+                            //按钮和模因互相对应
+                            memeButton.AddComponent<MemeButtonData>().memeModel = memeModel; num++;
+                            memeButton.SetActive(true); num++;
+
+                            memeModel.button = memeButton; num++;
+
+                            //更新滑动区域
+                            RectTransform rect = memeScene.transform.Find("MemeButtons").Find("Buttons").gameObject.GetComponent<RectTransform>();
+                            if (current_list.Count / 4f > 3)
+                            {
+                                //多出来的行数
+                                int lines = (int)(Math.Ceiling(current_list.Count / 4f) - 3);
+                                rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, originScrollY - 120 * lines);
+                                rect.sizeDelta = new Vector2(rect.sizeDelta.x, originScrollHeight + 240 * lines);
+                            }
+                            else
+                            {
+                                rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, originScrollY);
+                                rect.sizeDelta = new Vector2(rect.sizeDelta.x, originScrollHeight);
+                            }
                             Harmony_Patch.LogInfo("InitMemeButtonEnd");
                         }
                         break;
@@ -482,10 +516,22 @@ namespace NewGameMode
                         instance.current_list.Remove(meme); num++;
                         instance.uninhand_list.Add(meme.metaInfo); num++;
                         meme.script.OnRelease(); num++;
-                        GameObject memeButton = new GameObject();
-                        instance.meme_button_dic.TryGetValue(id, out memeButton);
-                        GameObject.Destroy(memeButton);
-                        instance.meme_button_dic.Remove(id);
+
+                        GameObject.Destroy(meme.button);
+                        //更新滑动区域
+                        RectTransform rect = memeScene.transform.Find("MemeButtons").Find("Buttons").gameObject.GetComponent<RectTransform>();
+                        if (current_list.Count / 4f > 3)
+                        {
+                            //多出来的行数
+                            int lines = (int)(Math.Ceiling(current_list.Count / 4f) - 3);
+                            rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, originScrollY - 120 * lines);
+                            rect.sizeDelta = new Vector2(rect.sizeDelta.x, originScrollHeight + 240 * lines);
+                        }
+                        else
+                        {
+                            rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, originScrollY);
+                            rect.sizeDelta = new Vector2(rect.sizeDelta.x, originScrollHeight);
+                        }
 
                         Harmony_Patch.YKMTLogInstance.Info("RemoveMemeEnd : " + meme.metaInfo.sprite_name);
                         foreach (MemeModel current_meme in instance.current_list)
@@ -569,11 +615,8 @@ namespace NewGameMode
 
         public void OnGiveDamage(UnitModel actor, UnitModel target, ref DamageInfo dmg)
         {
-            int i = 0;
             foreach (MemeModel meme in current_list)
             {
-                i++;
-                Harmony_Patch.YKMTLogInstance.InGameLog("GiveDmg" + i);
                 meme.script.OnGiveDamage(actor, target, ref dmg);
             }
         }

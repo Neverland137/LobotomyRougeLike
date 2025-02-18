@@ -40,6 +40,8 @@
     <Compile Include="Extension.cs" />
     <Compile Include="Furnace\FurnaceManager.cs" />
     <Compile Include="Main.cs" />
+    <Compile Include="Meme\MemeButtonData.cs" />
+    <Compile Include="Meme\MemeButtonMovement.cs" />
     <Compile Include="Meme\MemeInfo.cs" />
     <Compile Include="Meme\MemeManager.cs" />
     <Compile Include="Meme\MemeModel.cs" />

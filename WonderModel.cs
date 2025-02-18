@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace NewGameMode
 {
@@ -83,6 +85,17 @@ namespace NewGameMode
                 return true;
             }
             return false;
+        }
+    }
+
+    /// <summary>
+    /// 更新奇思数量
+    /// </summary>
+    public class UpdateWonder : MonoBehaviour
+    {
+        void Update()
+        {
+            base.gameObject.GetComponent<Text>().text = LocalizeTextDataModel.instance.GetText("Meme_Wonder") + ":" + WonderModel.instance.money;
         }
     }
 }

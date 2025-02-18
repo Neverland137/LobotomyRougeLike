@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace NewGameMode
 {
@@ -11,5 +12,6 @@ namespace NewGameMode
         public MemeInfo metaInfo;
         public int instanceId;
         public MemeScriptBase script = new MemeScriptBase();
+        public GameObject button;
     }
 }
