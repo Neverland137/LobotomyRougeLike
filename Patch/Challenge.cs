@@ -41,7 +41,7 @@ namespace NewGameMode
                             challenges.Add((SefiraEnum)1782);
                         }
                     }
-                    SefiraBossManager.Instance.SetActivatedBoss(challenges[UnityEngine.Random.Range(0, challenges.Count)]);
+                    SefiraBossManager.Instance.SetActivatedBoss(challenges[Harmony_Patch.customRandom.NextInt(0, challenges.Count)]);
                     ///////////
                     SefiraBossManager.Instance.OnStageStart();
                 }
