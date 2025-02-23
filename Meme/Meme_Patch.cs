@@ -188,6 +188,13 @@ namespace NewGameMode
                             return false;
                         }
                     }
+                    else if(type == "seed")
+                    {
+                        if ((type2 != null))
+                        {
+                            Harmony_Patch.customRandom.SetSeed(Convert.ToUInt32(type2));
+                        }
+                    }
                     else if (type == "debug")
                     {
                         if (type2 == "saving")

@@ -22,9 +22,26 @@ namespace NewGameMode
         public static string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "/LOG";
 
         public static GameMode rougeLike = (GameMode)666666;
+        public static CustomRandom customRandom = new CustomRandom(0424);
 
         public static GameObject newRougeButton = new GameObject();
         public static GameObject continueRougeButton = new GameObject();
+
+        public static float[] creatureRate = { 0.1f, 0.3f, 0.6f, 0.9f, 1 };
+        public static float[] equipmentRate = { 0.1f, 0.3f, 0.6f, 0.85f, 1 };
+        public static int equipmentCntMin = 40;
+        public static int equipmentCntMax = 50;
+        public static int agentCntMin = 25;
+        public static int agentCntMax = 35;
+        public static int agentStatMin = 90;
+        public static int agentStatMax = 110;
+        public static int observeStatMin = 0;
+        public static int observeStatMax = 0;
+        public static int observeCubeMin = 20;
+        public static int observeCubeMax = 50;
+        public static int originMoney = 80;
+        public static int originWonder = 100;
+
         public static YKMTLog YKMTLogInstance;
         public static Action<string> LogInfo = (message) => YKMTLogInstance.Info(message);
         public static Action<string> LogError = (message) => YKMTLogInstance.Error(message);
@@ -144,10 +161,18 @@ namespace NewGameMode
 
 
         }
-        public static void NewGameModeButton_Start(AlterTitleController __instance)//记得改按钮文字
+
+        /// <summary>
+        /// 除了修改启动页的按钮以外，也用来设置随机数种子
+        /// </summary>
+        /// <param name="__instance"></param>
+        public static void NewGameModeButton_Start(AlterTitleController __instance)
         {
             try
             {
+                System.Random rand = new System.Random();
+                customRandom.SetSeed(Convert.ToUInt32(rand.Next(Int32.MaxValue)));
+
                 AssetBundle bundle = AssetBundle.LoadFromFile(path + "/AssetsBundle/gamemodebutton");
                 newRougeButton = UnityEngine.Object.Instantiate(bundle.LoadAsset<GameObject>("GameModeButton"));
                 bundle.Unload(false);
@@ -366,7 +391,7 @@ namespace NewGameMode
                     Dictionary<string, object> dic7 = null;
                     if (GameUtil.TryGetValue<Dictionary<string, object>>(dic, "observe", ref dic2))
                     {
-                        CreatureManager.instance.LoadObserveData(SetRandomObserve(dic2, 0, 0, 20, 50));
+                        CreatureManager.instance.LoadObserveData(SetRandomObserve(dic2, observeStatMin, observeStatMax, observeCubeMin, observeCubeMax));
                     }
                     else
                     {
@@ -400,10 +425,8 @@ namespace NewGameMode
                     }
                     if (GameUtil.TryGetValue<Dictionary<string, object>>(dic, "inventory", ref dic3))
                     {
-                        //MissionManager.instance.LoadData(dic3);
 
-                        float[] rate = { 0.1f, 0.3f, 0.6f, 0.85f, 1 };
-                        InventoryModel.Instance.LoadGlobalData(SetRandomEquipment(dic3, 40, 50, rate));
+                        InventoryModel.Instance.LoadGlobalData(SetRandomEquipment(dic3, equipmentCntMin, equipmentCntMax, equipmentRate));
                     }
                     else
                     {
@@ -442,15 +465,12 @@ namespace NewGameMode
             AgentManager.instance.customAgent.Clear();
             AgentManager.instance.Clear();
 
-            SetRandomAgents(15, 25, 60, 90);
+            SetRandomAgents(agentCntMin, agentCntMax, agentStatMin, agentStatMax);
 
-            //CreatureManager.instance.Clear();
-
-            float[] rate = { 0.1f, 0.3f, 0.6f, 0.9f, 1f };
-            SetRandomCreatures(rate);
-            MoneyModel.instance.Add(80);
+            SetRandomCreatures(creatureRate);
+            MoneyModel.instance.Add(originMoney);
             //以下为肉鸽新增的内容初始化
-            WonderModel.instance.Init();
+            WonderModel.instance.Init(originWonder);
         }
 
         public static void SetDebugDayData()//设置新一局肉鸽的天数存档
@@ -475,8 +495,7 @@ namespace NewGameMode
             SetDebugCreatures();
             MoneyModel.instance.Add(9999);
             //以下为肉鸽新增的内容初始化
-            WonderModel.instance.Init();
-            WonderModel.instance.Add(9999);
+            WonderModel.instance.Init(10000);
         }
 
         public static bool SaveGlobalData()
@@ -823,7 +842,7 @@ namespace NewGameMode
 
 
         /// <summary>
-        /// 思考：要不要同时加入最大最小限制和概率？
+        /// 【已停用】
         /// </summary>
         /// <param name="origin_research"></param>
         /// <param name="rate">这是获得部门科技的概率</param>
@@ -842,7 +861,7 @@ namespace NewGameMode
             for (int i = 0; i < research_id_list.Count; i++)
             {
                 Dictionary<string, object> dic = [];
-                if (UnityEngine.Random.value <= rate)
+                if (customRandom.NextFloat() <= rate)
                 {
                     dic.Add("researchItemTypeId", research_id_list[i]);
                     dic.Add("curLevel", 1);
@@ -930,11 +949,11 @@ namespace NewGameMode
                     "care_6",
                 ];
 
-                int stat_num = UnityEngine.Random.Range(stat_min, stat_max);//单个异想体图鉴中随机解锁的条目数量
+                int stat_num = customRandom.NextInt(stat_min, stat_max + 1);//单个异想体图鉴中随机解锁的条目数量
                 for (int i1 = 0; i1 < stat_num; i1++)
                 {
                     // 随机选择一个键
-                    int stat_index = UnityEngine.Random.Range(0, stat_list.Count);
+                    int stat_index = customRandom.NextInt(0, stat_list.Count);
 
                     string keyToChange = stat_list[stat_index];
 
@@ -946,7 +965,7 @@ namespace NewGameMode
                 }
                 single_observe_dic["stat"] = true;
                 single_observe_dic.Add("observeProgress", 0);
-                single_observe_dic.Add("cubeNum", UnityEngine.Random.Range(cube_min, cube_max));
+                single_observe_dic.Add("cubeNum", customRandom.NextInt(cube_min, cube_max + 1));
                 single_observe_dic.Add("totalKitUseCount", 0);
                 single_observe_dic.Add("totalKitUseTime", 0);
 
@@ -966,12 +985,11 @@ namespace NewGameMode
             {
                 List<InventoryModel.EquipmentSaveData> result_list = [];
                 List<string> result_mod_list = [];//没用，占位符
-                //GameUtil.TryGetValue<List<InventoryModel.EquipmentSaveData>>(equipment, "equips", ref result_list);
-                //GameUtil.TryGetValue<List<string>>(equipment, "equipsMod", ref result_mod_list);
+
                 long new_instance_id = 10000;//存储实例id
                 result_list.Clear();//随后清除原列表
 
-                int equip_num = UnityEngine.Random.Range(equip_min, equip_max);
+                int equip_num = customRandom.NextInt(equip_min, equip_max + 1);
 
                 List<int> equip_id = GetAllEquipmentidList();
                 //移除失乐园和薄瞑
@@ -1018,10 +1036,10 @@ namespace NewGameMode
                 {
                     InventoryModel.EquipmentSaveData equipmentSaveData = new InventoryModel.EquipmentSaveData();
 
-                    float value = UnityEngine.Random.value;
+                    float value = customRandom.NextFloat();
                     if (value <= rate[0] && z_equip_id.Count != 0)//刷到Z级
                     {
-                        int random_id = UnityEngine.Random.Range(0, z_equip_id.Count);//随机选取一个id
+                        int random_id = customRandom.NextInt(0, z_equip_id.Count);//随机选取一个id
                         equipmentSaveData.equipTypeId = z_equip_id[random_id];
                         equipmentSaveData.equipInstanceId = new_instance_id + i;
                         if (!InventoryModel.Instance.CheckEquipmentCount(z_equip_id[random_id]))//如果装备已超出自身上限
@@ -1031,7 +1049,7 @@ namespace NewGameMode
                     }
                     else if (value <= rate[1] && t_equip_id.Count != 0)//刷到T级
                     {
-                        int random_id = UnityEngine.Random.Range(0, t_equip_id.Count);//随机选取一个id
+                        int random_id = customRandom.NextInt(0, t_equip_id.Count);//随机选取一个id
                         equipmentSaveData.equipTypeId = t_equip_id[random_id];
                         equipmentSaveData.equipInstanceId = new_instance_id + i;
 
@@ -1042,7 +1060,7 @@ namespace NewGameMode
                     }
                     else if (value <= rate[2] && h_equip_id.Count != 0)//刷到H级
                     {
-                        int random_id = UnityEngine.Random.Range(0, h_equip_id.Count);//随机选取一个id
+                        int random_id = customRandom.NextInt(0, h_equip_id.Count);//随机选取一个id
                         equipmentSaveData.equipTypeId = h_equip_id[random_id];
                         equipmentSaveData.equipInstanceId = new_instance_id + i;
                         if (!InventoryModel.Instance.CheckEquipmentCount(h_equip_id[random_id]))//如果装备已超出自身上限
@@ -1052,7 +1070,7 @@ namespace NewGameMode
                     }
                     else if (value <= rate[3] && w_equip_id.Count != 0)//刷到W级
                     {
-                        int random_id = UnityEngine.Random.Range(0, w_equip_id.Count);//随机选取一个id
+                        int random_id = customRandom.NextInt(0, w_equip_id.Count);//随机选取一个id
                         equipmentSaveData.equipTypeId = w_equip_id[random_id];
                         equipmentSaveData.equipInstanceId = new_instance_id + i;
                         if (!InventoryModel.Instance.CheckEquipmentCount(w_equip_id[random_id]))//如果装备已超出自身上限
@@ -1062,7 +1080,7 @@ namespace NewGameMode
                     }
                     else if (value <= rate[4] && a_equip_id.Count != 0)//刷到A级
                     {
-                        int random_id = UnityEngine.Random.Range(0, a_equip_id.Count);//随机选取一个id
+                        int random_id = customRandom.NextInt(0, a_equip_id.Count);//随机选取一个id
                         equipmentSaveData.equipTypeId = a_equip_id[random_id];
                         equipmentSaveData.equipInstanceId = new_instance_id + i;
                         if (!InventoryModel.Instance.CheckEquipmentCount(a_equip_id[random_id]))//如果装备已超出自身上限
@@ -1080,8 +1098,6 @@ namespace NewGameMode
 
                 }
                 result.Add("equips", result_list);
-                //不要加下面这一条，会导致随机装备爆炸
-                //result.Add("equipsMod", result_mod_list);
                 result.Add("nextInstanceId", 20000L);
             }
 
@@ -1216,15 +1232,15 @@ namespace NewGameMode
                 }
                 else
                 {
-                    agent_count = UnityEngine.Random.Range(count_min, count_max + 1) + agentAdder;
+                    agent_count = customRandom.NextInt(count_min, count_max + 1) + agentAdder;
                 }
                 for (int i = 0; i < agent_count; i++)
                 {
                     AgentModel agentModel = AgentManager.instance.AddSpareAgentModel();
-                    agentModel.primaryStat.hp = UnityEngine.Random.Range(stat_min, stat_max + 1);
-                    agentModel.primaryStat.mental = UnityEngine.Random.Range(stat_min, stat_max + 1);
-                    agentModel.primaryStat.work = UnityEngine.Random.Range(stat_min, stat_max + 1);
-                    agentModel.primaryStat.battle = UnityEngine.Random.Range(stat_min, stat_max + 1);
+                    agentModel.primaryStat.hp = customRandom.NextInt(stat_min, stat_max + 1);
+                    agentModel.primaryStat.mental = customRandom.NextInt(stat_min, stat_max + 1);
+                    agentModel.primaryStat.work = customRandom.NextInt(stat_min, stat_max + 1);
+                    agentModel.primaryStat.battle = customRandom.NextInt(stat_min, stat_max + 1);
 
                     //自动分配部门
                     foreach (Sefira sefira in SefiraManager.instance.GetOpendSefiraList())
@@ -1337,35 +1353,35 @@ namespace NewGameMode
                     long[] random_id = new long[4];
                     for (int i = 0; i < 4; i++)
                     {
-                        float value = UnityEngine.Random.value;
+                        float value = customRandom.NextFloat();
                         int random = 0;
                         if (value <= rate[0])
                         {
-                            random = UnityEngine.Random.Range(0, z_creature_list.Count);
+                            random = customRandom.NextInt(0, z_creature_list.Count);
                             random_id[i] = z_creature_list[random];
                             z_creature_list.RemoveAt(random);//删除异想体避免重复选中
                         }
                         else if (value <= rate[1])
                         {
-                            random = UnityEngine.Random.Range(0, z_creature_list.Count);
+                            random = customRandom.NextInt(0, t_creature_list.Count);
                             random_id[i] = t_creature_list[random];
                             t_creature_list.RemoveAt(random);//删除异想体避免重复选中
                         }
                         else if (value <= rate[2])
                         {
-                            random = UnityEngine.Random.Range(0, h_creature_list.Count);
+                            random = customRandom.NextInt(0, h_creature_list.Count);
                             random_id[i] = h_creature_list[random];
                             h_creature_list.RemoveAt(random);//删除异想体避免重复选中
                         }
                         else if (value <= rate[3])
                         {
-                            random = UnityEngine.Random.Range(0, w_creature_list.Count);
+                            random = customRandom.NextInt(0, w_creature_list.Count);
                             random_id[i] = w_creature_list[random];
                             w_creature_list.RemoveAt(random);//删除异想体避免重复选中
                         }
                         else if (value <= rate[4])
                         {
-                            random = UnityEngine.Random.Range(0, a_creature_list.Count);
+                            random = customRandom.NextInt(0, a_creature_list.Count);
                             random_id[i] = a_creature_list[random];
                             a_creature_list.RemoveAt(random);//删除异想体避免重复选中
                         }

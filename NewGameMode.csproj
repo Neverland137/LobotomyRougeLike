@@ -33,6 +33,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="CustomRandom.cs" />
     <Compile Include="Diffculty\DifficultyDataReader.cs" />
     <Compile Include="Diffculty\DifficultyManager.cs" />
     <Compile Include="Diffculty\DifficultyPatch.cs" />

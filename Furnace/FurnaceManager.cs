@@ -46,7 +46,7 @@ namespace NewGameMode
                     templist.Add(meme);
                 }
             }
-            int randomIndex = UnityEngine.Random.Range(0, templist.Count);
+            int randomIndex = Harmony_Patch.customRandom.NextInt(0, templist.Count);
             var randomItem = templist[randomIndex];
             return randomItem;
         }
@@ -106,7 +106,7 @@ namespace NewGameMode
             {
                 boomProb = BaseBoomProb[1];
             }
-            if (UnityEngine.Random.Range(0f, 100f) < boomProb)
+            if (Harmony_Patch.customRandom.NextFloatPercent() < boomProb)
             {
                 // 炸咯
                 return -1;
@@ -115,7 +115,7 @@ namespace NewGameMode
             {
                 float UpLevel1RecipeProbAdder = nowDifficulty.UpLevel1RecipeProbAdder() + MemeManager.instance.UpLevel1RecipeProbAdder();
                 float UpLevel1Prob = CalculatePercentageInRange(spendWonder, MemeWonderTable[memeLevel][0], MemeWonderTable[memeLevel][1]) * (UpLevel1RecipeProb[1] - UpLevel1RecipeProb[0]) + UpLevel1RecipeProb[0] + UpLevel1RecipeProbAdder * 100;
-                if (UnityEngine.Random.Range(0f, 100f) < UpLevel1Prob)
+                if (Harmony_Patch.customRandom.NextFloatPercent() < UpLevel1Prob)
                 {
                     return memeLevel + 1;
                 }

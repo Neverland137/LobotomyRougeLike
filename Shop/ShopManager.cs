@@ -293,14 +293,13 @@ namespace NewGameMode
                 }
                 num++;
 
-                System.Random random = new System.Random();
                 while (shopProducts.Count < maxCount)
                 {
                     int[] weight = { ShopProb.MemeVer1Prob, ShopProb.MemeVer2Prob, ShopProb.MemeYEProb };
                     int index = Extension.WeightedRandomChoice(weight);//返回weight的索引
                     if (index == 0 && tempMemeVer1.Count > 0)//等级为1的商品
                     {
-                        int memeIndex = random.Next(tempMemeVer1.Count);
+                        int memeIndex = Harmony_Patch.customRandom.NextInt(0, tempMemeVer1.Count);
                         int memeId = tempMemeVer1.Keys.ToArray()[memeIndex];
                         MemeInfo selectedMeme = tempMemeVer1[memeId];
                         ShopProduct shopProduct = new ShopProduct((int)(selectedMeme.price * ProductDiscount), selectedMeme, false);
@@ -309,7 +308,7 @@ namespace NewGameMode
                     }
                     else if (index == 1 && tempMemeVer2.Count > 0)//等级为2的商品
                     {
-                        int memeIndex = random.Next(tempMemeVer2.Count);
+                        int memeIndex = Harmony_Patch.customRandom.NextInt(0, tempMemeVer2.Count);
                         int memeId = tempMemeVer2.Keys.ToArray()[memeIndex];
                         MemeInfo selectedMeme = tempMemeVer2[memeId];
                         ShopProduct shopProduct = new ShopProduct((int)(selectedMeme.price * ProductDiscount), selectedMeme, false);

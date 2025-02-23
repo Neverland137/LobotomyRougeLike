@@ -29,9 +29,9 @@ namespace NewGameMode
             }
         }
 
-        public void Init()
+        public void Init(int wonder)
         {
-            this.money = 0;
+            this.money = wonder;
         }
 
         /*
