@@ -51,7 +51,7 @@ namespace NewGameMode
         /// <returns></returns>
         public float NextFloat()
         {
-            return Next() / (float)(uint.MinValue+1);
+            return Next() / (float)(uint.MaxValue);
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace NewGameMode
         /// <returns></returns>
         public float NextFloatPercent()
         {
-            return Next() / (float)(uint.MinValue + 1) * 100;
+            return Next() / (float)(uint.MaxValue) * 100;
         }
     }
 }

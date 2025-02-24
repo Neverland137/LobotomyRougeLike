@@ -27,34 +27,38 @@ namespace NewGameMode.Meme
 
         public void OnPointerUp(PointerEventData eventData)
         {
-            // 释放按钮时，停止拖动
-            isDragging = false;
-            // 确定新位置的索引
-            int newIndex = GetNewIndex();
-            // 更新子物体的顺序
-            gameObject.transform.SetSiblingIndex(newIndex);
-            LayoutRebuilder.ForceRebuildLayoutImmediate(gameObject.transform.parent.transform as RectTransform);
-
-            //根据子物体顺序更新模因列表顺序
-
-            Transform parentTransform = GetComponentInParent<GridLayoutGroup>().transform;
-            List<MemeModel> newOrder = new List<MemeModel>();
-
-            // 按sibling index顺序遍历子物体
-            for (int i = 0; i < parentTransform.childCount; i++)
+            if (eventData.button == PointerEventData.InputButton.Right)
             {
-                Transform child = parentTransform.GetChild(i);
-                MemeButtonData model = child.GetComponent<MemeButtonData>();
+                // 释放按钮时，停止拖动
+                isDragging = false;
+                // 确定新位置的索引
+                int newIndex = GetNewIndex();
+                // 更新子物体的顺序
+                gameObject.transform.SetSiblingIndex(newIndex);
+                LayoutRebuilder.ForceRebuildLayoutImmediate(gameObject.transform.parent.transform as RectTransform);
 
-                if (model != null && model.memeModel != null)
+                //根据子物体顺序更新模因列表顺序
+
+                Transform parentTransform = GetComponentInParent<GridLayoutGroup>().transform;
+                List<MemeModel> newOrder = new List<MemeModel>();
+
+                // 按sibling index顺序遍历子物体
+                for (int i = 0; i < parentTransform.childCount; i++)
                 {
-                    newOrder.Add(model.memeModel);
-                }
-            }
+                    Transform child = parentTransform.GetChild(i);
+                    MemeButtonData model = child.GetComponent<MemeButtonData>();
 
-            // 更新模因的顺序
-            MemeManager.instance.current_list.Clear();
-            MemeManager.instance.current_list.AddRange(newOrder);
+                    if (model != null && model.memeModel != null)
+                    {
+                        newOrder.Add(model.memeModel);
+                    }
+                }
+
+                // 更新模因的顺序并花钱
+                MemeManager.instance.current_list.Clear();
+                MemeManager.instance.current_list.AddRange(newOrder);
+                WonderModel.instance.Pay(10);
+            }  
         }
 
         public void OnDrag(PointerEventData eventData)

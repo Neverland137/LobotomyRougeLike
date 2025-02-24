@@ -123,9 +123,9 @@ namespace NewGameMode
             return 0;
         }
 
-        public virtual float WonderTimes()
+        public virtual float WonderTimes()//与难度系统的奇思倍率成加算
         {
-            return 1f;
+            return 0f;
         }
 
         public virtual int BulletAdder()
