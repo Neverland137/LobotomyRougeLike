@@ -73,13 +73,12 @@ namespace NewGameMode
         /// <returns></returns>
         public static int WeightedRandomChoice(int[] weights)
         {
-            Random random = new Random();
             int totalWeight = 0;
             foreach (var weight in weights)
             {
                 totalWeight += weight;
             }
-            double randValue = random.NextDouble() * totalWeight;
+            double randValue = Harmony_Patch.customRandom.NextFloat() * totalWeight;
             double cumulativeWeight = 0;
             for (int i = 0; i < weights.Length; i++)
             {

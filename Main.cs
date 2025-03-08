@@ -27,8 +27,8 @@ namespace NewGameMode
         public static GameObject newRougeButton = new GameObject();
         public static GameObject continueRougeButton = new GameObject();
 
-        public static float[] creatureRate = { 0.1f, 0.3f, 0.6f, 0.9f, 1 };
-        public static float[] equipmentRate = { 0.1f, 0.3f, 0.6f, 0.85f, 1 };
+        public static int[] creatureRate = { 100, 200, 300, 300, 100 };
+        public static int[] equipmentRate = { 100, 200, 300, 250, 150 };
         public static int equipmentCntMin = 40;
         public static int equipmentCntMax = 50;
         public static int agentCntMin = 25;
@@ -978,7 +978,7 @@ namespace NewGameMode
             return result;
         }
 
-        public static Dictionary<string, object> SetRandomEquipment(Dictionary<string, object> equipment, int equip_min, int equip_max, float[] rate)
+        public static Dictionary<string, object> SetRandomEquipment(Dictionary<string, object> equipment, int equip_min, int equip_max, int[] rate)
         {
             Dictionary<string, object> result = [];
             try
@@ -1036,59 +1036,55 @@ namespace NewGameMode
                 {
                     InventoryModel.EquipmentSaveData equipmentSaveData = new InventoryModel.EquipmentSaveData();
 
-                    float value = customRandom.NextFloat();
-                    if (value <= rate[0] && z_equip_id.Count != 0)//刷到Z级
+                    int level = Extension.WeightedRandomChoice(rate);
+                    int random_id = 0;
+                    switch (level)
                     {
-                        int random_id = customRandom.NextInt(0, z_equip_id.Count);//随机选取一个id
-                        equipmentSaveData.equipTypeId = z_equip_id[random_id];
-                        equipmentSaveData.equipInstanceId = new_instance_id + i;
-                        if (!InventoryModel.Instance.CheckEquipmentCount(z_equip_id[random_id]))//如果装备已超出自身上限
-                        {
-                            z_equip_id.RemoveAt(random_id);//列表中删除此id避免重复选中
-                        }
-                    }
-                    else if (value <= rate[1] && t_equip_id.Count != 0)//刷到T级
-                    {
-                        int random_id = customRandom.NextInt(0, t_equip_id.Count);//随机选取一个id
-                        equipmentSaveData.equipTypeId = t_equip_id[random_id];
-                        equipmentSaveData.equipInstanceId = new_instance_id + i;
+                        case 0:
+                            random_id = customRandom.NextInt(0, z_equip_id.Count);//随机选取一个id
+                            equipmentSaveData.equipTypeId = z_equip_id[random_id];
+                            equipmentSaveData.equipInstanceId = new_instance_id + i;
+                            if (!InventoryModel.Instance.CheckEquipmentCount(z_equip_id[random_id]))//如果装备已超出自身上限
+                            {
+                                z_equip_id.RemoveAt(random_id);//列表中删除此id避免重复选中
+                            }
+                            break;
+                        case 1:
+                            random_id = customRandom.NextInt(0, t_equip_id.Count);//随机选取一个id
+                            equipmentSaveData.equipTypeId = t_equip_id[random_id];
+                            equipmentSaveData.equipInstanceId = new_instance_id + i;
 
-                        if (!InventoryModel.Instance.CheckEquipmentCount(t_equip_id[random_id]))//如果装备已超出自身上限
-                        {
-                            t_equip_id.RemoveAt(random_id);//列表中删除此id避免重复选中
-                        }
+                            if (!InventoryModel.Instance.CheckEquipmentCount(t_equip_id[random_id]))//如果装备已超出自身上限
+                            {
+                                t_equip_id.RemoveAt(random_id);//列表中删除此id避免重复选中
+                            }
+                            break;
+                        case 2:
+                            random_id = customRandom.NextInt(0, h_equip_id.Count);//随机选取一个id
+                            equipmentSaveData.equipTypeId = h_equip_id[random_id];
+                            equipmentSaveData.equipInstanceId = new_instance_id + i;
+                            if (!InventoryModel.Instance.CheckEquipmentCount(h_equip_id[random_id]))//如果装备已超出自身上限
+                            {
+                                h_equip_id.RemoveAt(random_id);//列表中删除此id避免重复选中
+                            }; break;
+                        case 3:
+                            random_id = customRandom.NextInt(0, w_equip_id.Count);//随机选取一个id
+                            equipmentSaveData.equipTypeId = w_equip_id[random_id];
+                            equipmentSaveData.equipInstanceId = new_instance_id + i;
+                            if (!InventoryModel.Instance.CheckEquipmentCount(w_equip_id[random_id]))//如果装备已超出自身上限
+                            {
+                                w_equip_id.RemoveAt(random_id);//列表中删除此id避免重复选中
+                            }; break;
+                        case 4:
+                            random_id = customRandom.NextInt(0, a_equip_id.Count);//随机选取一个id
+                            equipmentSaveData.equipTypeId = a_equip_id[random_id];
+                            equipmentSaveData.equipInstanceId = new_instance_id + i;
+                            if (!InventoryModel.Instance.CheckEquipmentCount(a_equip_id[random_id]))//如果装备已超出自身上限
+                            {
+                                a_equip_id.RemoveAt(random_id);//列表中删除此id避免重复选中
+                            }; break;
                     }
-                    else if (value <= rate[2] && h_equip_id.Count != 0)//刷到H级
-                    {
-                        int random_id = customRandom.NextInt(0, h_equip_id.Count);//随机选取一个id
-                        equipmentSaveData.equipTypeId = h_equip_id[random_id];
-                        equipmentSaveData.equipInstanceId = new_instance_id + i;
-                        if (!InventoryModel.Instance.CheckEquipmentCount(h_equip_id[random_id]))//如果装备已超出自身上限
-                        {
-                            h_equip_id.RemoveAt(random_id);//列表中删除此id避免重复选中
-                        }
-                    }
-                    else if (value <= rate[3] && w_equip_id.Count != 0)//刷到W级
-                    {
-                        int random_id = customRandom.NextInt(0, w_equip_id.Count);//随机选取一个id
-                        equipmentSaveData.equipTypeId = w_equip_id[random_id];
-                        equipmentSaveData.equipInstanceId = new_instance_id + i;
-                        if (!InventoryModel.Instance.CheckEquipmentCount(w_equip_id[random_id]))//如果装备已超出自身上限
-                        {
-                            w_equip_id.RemoveAt(random_id);//列表中删除此id避免重复选中
-                        }
-                    }
-                    else if (value <= rate[4] && a_equip_id.Count != 0)//刷到A级
-                    {
-                        int random_id = customRandom.NextInt(0, a_equip_id.Count);//随机选取一个id
-                        equipmentSaveData.equipTypeId = a_equip_id[random_id];
-                        equipmentSaveData.equipInstanceId = new_instance_id + i;
-                        if (!InventoryModel.Instance.CheckEquipmentCount(a_equip_id[random_id]))//如果装备已超出自身上限
-                        {
-                            a_equip_id.RemoveAt(random_id);//列表中删除此id避免重复选中
-                        }
-
-                    }
+                    
                     if (equipmentSaveData == null)
                     {
                         File.AppendAllText(path + "/RandomEquipError0.txt", "NoSaveData");
@@ -1281,7 +1277,7 @@ namespace NewGameMode
 
         }
 
-        public static void SetRandomCreatures(float[] rate)
+        public static void SetRandomCreatures(int[] rate)
         {
             CreatureManager.instance.Clear();
             try
@@ -1353,38 +1349,38 @@ namespace NewGameMode
                     long[] random_id = new long[4];
                     for (int i = 0; i < 4; i++)
                     {
-                        float value = customRandom.NextFloat();
+                        int level = Extension.WeightedRandomChoice(rate);
                         int random = 0;
-                        if (value <= rate[0])
+
+                        switch (level)
                         {
-                            random = customRandom.NextInt(0, z_creature_list.Count);
-                            random_id[i] = z_creature_list[random];
-                            z_creature_list.RemoveAt(random);//删除异想体避免重复选中
+                            case 0:
+                                random = customRandom.NextInt(0, z_creature_list.Count);
+                                random_id[i] = z_creature_list[random];
+                                z_creature_list.RemoveAt(random);//删除异想体避免重复选中
+                                break;
+                            case 1:
+                                random = customRandom.NextInt(0, t_creature_list.Count);
+                                random_id[i] = t_creature_list[random];
+                                t_creature_list.RemoveAt(random);//删除异想体避免重复选中
+                                break;
+                            case 2: 
+                                random = customRandom.NextInt(0, h_creature_list.Count);
+                                random_id[i] = h_creature_list[random];
+                                h_creature_list.RemoveAt(random);//删除异想体避免重复选中
+                                break;
+                            case 3:
+                                random = customRandom.NextInt(0, w_creature_list.Count);
+                                random_id[i] = w_creature_list[random];
+                                w_creature_list.RemoveAt(random);//删除异想体避免重复选中
+                                break;
+                            case 4:
+                                random = customRandom.NextInt(0, a_creature_list.Count);
+                                random_id[i] = a_creature_list[random];
+                                a_creature_list.RemoveAt(random);//删除异想体避免重复选中
+                                break ;
                         }
-                        else if (value <= rate[1])
-                        {
-                            random = customRandom.NextInt(0, t_creature_list.Count);
-                            random_id[i] = t_creature_list[random];
-                            t_creature_list.RemoveAt(random);//删除异想体避免重复选中
-                        }
-                        else if (value <= rate[2])
-                        {
-                            random = customRandom.NextInt(0, h_creature_list.Count);
-                            random_id[i] = h_creature_list[random];
-                            h_creature_list.RemoveAt(random);//删除异想体避免重复选中
-                        }
-                        else if (value <= rate[3])
-                        {
-                            random = customRandom.NextInt(0, w_creature_list.Count);
-                            random_id[i] = w_creature_list[random];
-                            w_creature_list.RemoveAt(random);//删除异想体避免重复选中
-                        }
-                        else if (value <= rate[4])
-                        {
-                            random = customRandom.NextInt(0, a_creature_list.Count);
-                            random_id[i] = a_creature_list[random];
-                            a_creature_list.RemoveAt(random);//删除异想体避免重复选中
-                        }
+
                         Sefira sefira = SefiraManager.instance.GetSefira(sefira_id);
                         AddCreature(random_id[i], sefira);
                     }

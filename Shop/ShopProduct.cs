@@ -59,14 +59,21 @@ namespace NewGameMode
     }
     public class ShopProb
     {
-        public static int MemeVer1Prob = 699;
+        //总和不一定是1000，是啥都行
+        public static int MemeVer1Prob = 700;
         public static int MemeVer2Prob = 300;
-        public static int MemeYEProb = 1;
-        public static void ChangeProb(int memeVer1Prob, int memeVer2Prob, int memeYEProb)
+        public static int MemeYEProb = 0;
+        public static int MemeRandomEquipProb = 300;
+        public static int MemeRandomAgentProb = 300;
+        public static int MemeCurseProb = 400;
+        public static void ChangeProb(int memeVer1Prob, int memeVer2Prob, int memeYEProb, int memeRandomEquipProb, int memeRandomAgentProb, int memeCurseProb)
         {
             MemeVer1Prob = memeVer1Prob;
             MemeVer2Prob = memeVer2Prob;
             MemeYEProb = memeYEProb;
+            MemeRandomEquipProb = memeRandomEquipProb;
+            MemeRandomAgentProb = memeRandomAgentProb;
+            MemeCurseProb = memeCurseProb;
         }
     }
 }

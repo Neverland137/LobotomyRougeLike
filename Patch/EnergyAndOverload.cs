@@ -28,27 +28,27 @@ namespace NewGameMode
         /// <summary>
         /// 随机事件的概率，依次为：奖励，疯员工，任务。商店概率独立。
         /// </summary>
-        public static float[] randomEventRate = { 0.25f, 0.35f, 1 };
+        public static int[] randomEventRate = { 250, 100, 650 };
         /// <summary>
         /// 奖励依次为：装备，员工，LOB点
         /// </summary>
-        public static float[] randomAwardTypeRate = {0.3f, 0.7f, 1 };
+        public static int[] randomAwardTypeRate = {300, 400, 300 };
         /// <summary>
         /// 依次为：H，W，A
         /// </summary>
-        public static float[] randomAwardEquipmentRate = {0.7f, 1, 1 };
+        public static int[] randomAwardEquipmentRate = {700, 300, 0 };
         public static int[] randomAwardAgentStat = {60, 70};
         public static int[] randomAwardLOB = {2, 4};
 
         /// <summary>
         /// 疯员工装备，依次为：H，W，A
         /// </summary>
-        public static float[] panicAgentEquipmentRate = { 0.5f, 0.8f, 1 };
+        public static int[] panicAgentEquipmentRate = { 500, 300, 200 };
         public static int[] panicAgentStat = {90, 110};
         /// <summary>
         /// 任务依次为：进行工作，获取能源，解锁观察信息，镇压异想体
         /// </summary>
-        public static float[] missionTypeRate = {0.25f, 0.5f, 0.75f, 1};//任务类型概率
+        public static int[] missionTypeRate = {250, 250, 250, 250};//任务类型概率
         /// <summary>
         /// 出现1级任务的概率，剩下的是2级任务
         /// </summary>
@@ -70,19 +70,19 @@ namespace NewGameMode
         /// <summary>
         /// 奖励依次为：装备15%，员工25%，LOB点20%，奇思30%，模因10%
         /// </summary>
-        public static float[] missionAwardTypeRate = { 0.15f, 0.4f, 0.6f, 0.9f, 1 };
+        public static int[] missionAwardTypeRate = { 150, 250, 200, 300, 100 };
 
-        public static float[] missionAwardEquipmentRate_Level1 = { 0.5f, 1 };
+        public static int[] missionAwardEquipmentRate_Level1 = { 500, 500 };
         public static int[] missionAwardAgentStat_Level1 = { 70, 90 };
         public static int[] missionAwardLOB_Level1 = { 15, 20 };
         public static int[] missionAwardWonder_Level1 = { 100, 120 };
-        public static float[] missionAwardMemeRate_Level1 = { 0.7f, 1 };
+        public static int[] missionAwardMemeRate_Level1 = { 700, 300 };
 
-        public static float[] missionAwardEquipmentRate_Level2 = { 0.5f, 1 };
+        public static int[] missionAwardEquipmentRate_Level2 = { 500, 500 };
         public static int[] missionAwardAgentStat_Level2 = { 90, 110 };
         public static int[] missionAwardLOB_Level2 = { 40, 50 };
         public static int[] missionAwardWonder_Level2 = { 200, 250 };
-        public static float[] missionAwardMemeRate_Level2 = { 0.3f, 1 };
+        public static int[] missionAwardMemeRate_Level2 = { 300, 700 };
 
 
         public EnergyAndOverload_Patch(HarmonyInstance instance)
@@ -207,11 +207,8 @@ namespace NewGameMode
                 {
                     ///////////
                     int day = PlayerModel.instance.GetDay() + 1;
-                    float random = Harmony_Patch.customRandom.NextFloat();//决定事件类型：奖励，疯员工，任务
-                    float random2 = Harmony_Patch.customRandom.NextFloat();//决定细分类型：奖励类型，任务类型
-                    float random3 = Harmony_Patch.customRandom.NextFloat();//如果是任务，则决定任务等级
 
-                    Harmony_Patch.YKMTLogInstance.Info("type:" + random.ToString() + "type2" + random2.ToString() + "missionlevel" + random3.ToString());
+                    float random3 = Harmony_Patch.customRandom.NextFloat();//如果是任务，则决定任务等级
 
                     //【3级任务没做】
                     //【3级任务没做】
@@ -249,106 +246,101 @@ namespace NewGameMode
                         //原方法是null？没获取到原方法？
                     }
                     //奖励事件
-                    else if (random <= randomEventRate[0])
-                    {
-                        if (random <= randomAwardTypeRate[0])
-                        {
-                            Award_GetEquipment(randomAwardEquipmentRate);
-                        }
-                        else if (random <= randomAwardTypeRate[1])
-                        {
-                            Award_GetAgent(randomAwardAgentStat[0], randomAwardAgentStat[1]);
-                        }
-                        else if (random <= randomAwardTypeRate[2])
-                        {
-                            Award_GetLOB(randomAwardLOB[0], randomAwardLOB[1]);
-                        }
-                        else//选中奖励事件但是没有生成
-                        {
-                            string text = LocalizeTextDataModel.instance.GetText("RandomEvent_Fail");
-                            AngelaConversationUI.instance.AddAngelaMessage(text);
-                        }
-                    }
-                    //疯员工
-                    else if (random <= randomEventRate[1]) 
-                    {
-                        CreatePanicAgent(panicAgentStat[0], panicAgentStat[1], panicAgentEquipmentRate);
-                    }
-                    //任务
-                    else if(random <= randomEventRate[2])
-                    {
-                        //任务类型：依次为进行工作，获取能源，解锁观察信息，镇压异想体
-                        if (random2 <= missionTypeRate[0])
-                        {
-                            //任务等级
-                            if (random3 <= missionLevel1Rate)
-                            {
-                                RGRandomEventManager.StartMission(RGRandomEventManager.MissionRequire.WORK, Harmony_Patch.customRandom.NextInt(missionRequireWork_Level1[0], missionRequireWork_Level1[1]), 1);
-                            }
-                            else
-                            {
-                                RGRandomEventManager.StartMission(RGRandomEventManager.MissionRequire.WORK, Harmony_Patch.customRandom.NextInt(missionRequireWork_Level2[0], missionRequireWork_Level2[1]), 2);
-                            }
-                        }
-                        else if(random2 <= missionTypeRate[1]) 
-                        {
-                            if (random3 <= missionLevel1Rate)
-                            {
-                                RGRandomEventManager.StartMission(RGRandomEventManager.MissionRequire.ENERGY, Harmony_Patch.customRandom.NextInt(missionRequireEnegry_Level1[0], missionRequireEnegry_Level1[1] + 1), 1);
-                            }
-                            else
-                            {
-                                RGRandomEventManager.StartMission(RGRandomEventManager.MissionRequire.ENERGY, Harmony_Patch.customRandom.NextInt(missionRequireEnegry_Level2[0], missionRequireEnegry_Level2[1] + 1), 2);
-                            }
-                        }
-                        else if(random2 <= missionTypeRate[2]) 
-                        {
-                            if (random3 <= missionLevel1Rate)
-                            {
-                                RGRandomEventManager.StartMission(RGRandomEventManager.MissionRequire.OBSERVE, Harmony_Patch.customRandom.NextInt(missionRequireObserve_Level1[0], missionRequireObserve_Level1[1] + 1), 1);
-                            }
-                            else
-                            {
-                                RGRandomEventManager.StartMission(RGRandomEventManager.MissionRequire.OBSERVE, Harmony_Patch.customRandom.NextInt(missionRequireObserve_Level2[0], missionRequireObserve_Level2[1] + 1), 2);
-                            }
-                        }
-
-                        else if (random2 <= missionTypeRate[3])//镇压异想体
-                        {
-                            if (random3 <= missionLevel1Rate)//一级任务
-                            {
-                                if (Harmony_Patch.customRandom.NextFloat() <= missionRequireSuppressRate_Level1)//镇压H
-                                {
-                                    RGRandomEventManager.StartMission(RGRandomEventManager.MissionRequire.SUPPRESS, Harmony_Patch.customRandom.NextInt(missionRequireSuppressHE_Level1[0], missionRequireSuppressHE_Level1[1] + 1), 1, 3);
-                                }
-                                else//镇压W
-                                {
-                                    RGRandomEventManager.StartMission(RGRandomEventManager.MissionRequire.SUPPRESS, Harmony_Patch.customRandom.NextInt(missionRequireSuppressWAW_Level1[0], missionRequireSuppressWAW_Level1[1] + 1), 1, 4);
-                                }
-                            }
-                            else//二级任务
-                            {
-                                if (Harmony_Patch.customRandom.NextFloat() <= missionRequireSuppressRate_Level2)//镇压W
-                                {
-                                    RGRandomEventManager.StartMission(RGRandomEventManager.MissionRequire.SUPPRESS, Harmony_Patch.customRandom.NextInt(missionRequireSuppressWAW_Level2[0], missionRequireSuppressWAW_Level2[1] + 1), 2, 4);
-                                }
-                                else//镇压A
-                                {
-                                    RGRandomEventManager.StartMission(RGRandomEventManager.MissionRequire.SUPPRESS, Harmony_Patch.customRandom.NextInt(missionRequireSuppressALEPH_Level2[0], missionRequireSuppressALEPH_Level2[1] + 1), 2, 5);
-                                }
-                            }
-                        }
-                        else//选中任务事件但是没有生成
-                        {
-                            string text = LocalizeTextDataModel.instance.GetText("RandomEvent_Fail");
-                            AngelaConversationUI.instance.AddAngelaMessage(text);
-                        }
-                    }
-                    //不生成任何事件
                     else
                     {
-                        string text = LocalizeTextDataModel.instance.GetText("RandomEvent_Fail");
-                        AngelaConversationUI.instance.AddAngelaMessage(text);
+                        int index = Extension.WeightedRandomChoice(randomEventRate);
+                        
+                        int index3 = Extension.WeightedRandomChoice(randomAwardTypeRate);
+                        switch (index)
+                        {
+                            case 0://奖励
+                                int index0_1 = Extension.WeightedRandomChoice(randomAwardTypeRate);
+                                switch (index0_1)
+                                {
+                                    case 0: 
+                                        Award_GetEquipment(randomAwardEquipmentRate);
+                                        break;
+                                    case 1: 
+                                        Award_GetAgent(randomAwardAgentStat[0], randomAwardAgentStat[1]);
+                                        break;
+                                    case 2: 
+                                        Award_GetLOB(randomAwardLOB[0], randomAwardLOB[1]);
+                                        break;
+                                    default://选中奖励事件但是没有生成
+                                        AngelaConversationUI.instance.AddAngelaMessage(LocalizeTextDataModel.instance.GetText("RandomEvent_Fail"));
+                                        break;
+                                }
+                                break;
+                            case 1://疯员工
+                                CreatePanicAgent(panicAgentStat[0], panicAgentStat[1], panicAgentEquipmentRate);
+                                break;
+                            case 2://任务
+                                int index2_1 = Extension.WeightedRandomChoice(missionTypeRate);
+                                switch (index2_1)//任务类型
+                                {
+                                    case 0://工作
+                                        if (random3 <= missionLevel1Rate)
+                                        {
+                                            RGRandomEventManager.StartMission(RGRandomEventManager.MissionRequire.WORK, Harmony_Patch.customRandom.NextInt(missionRequireWork_Level1[0], missionRequireWork_Level1[1]), 1);
+                                        }
+                                        else
+                                        {
+                                            RGRandomEventManager.StartMission(RGRandomEventManager.MissionRequire.WORK, Harmony_Patch.customRandom.NextInt(missionRequireWork_Level2[0], missionRequireWork_Level2[1]), 2);
+                                        }
+                                        break;
+                                    case 1:
+                                        if (random3 <= missionLevel1Rate)
+                                        {
+                                            RGRandomEventManager.StartMission(RGRandomEventManager.MissionRequire.ENERGY, Harmony_Patch.customRandom.NextInt(missionRequireEnegry_Level1[0], missionRequireEnegry_Level1[1] + 1), 1);
+                                        }
+                                        else
+                                        {
+                                            RGRandomEventManager.StartMission(RGRandomEventManager.MissionRequire.ENERGY, Harmony_Patch.customRandom.NextInt(missionRequireEnegry_Level2[0], missionRequireEnegry_Level2[1] + 1), 2);
+                                        }
+                                        break;
+                                    case 2:
+                                        if (random3 <= missionLevel1Rate)
+                                        {
+                                            RGRandomEventManager.StartMission(RGRandomEventManager.MissionRequire.OBSERVE, Harmony_Patch.customRandom.NextInt(missionRequireObserve_Level1[0], missionRequireObserve_Level1[1] + 1), 1);
+                                        }
+                                        else
+                                        {
+                                            RGRandomEventManager.StartMission(RGRandomEventManager.MissionRequire.OBSERVE, Harmony_Patch.customRandom.NextInt(missionRequireObserve_Level2[0], missionRequireObserve_Level2[1] + 1), 2);
+                                        }
+                                        break;
+                                    case 3:
+                                        if (random3 <= missionLevel1Rate)//一级任务
+                                        {
+                                            if (Harmony_Patch.customRandom.NextFloat() <= missionRequireSuppressRate_Level1)//镇压H
+                                            {
+                                                RGRandomEventManager.StartMission(RGRandomEventManager.MissionRequire.SUPPRESS, Harmony_Patch.customRandom.NextInt(missionRequireSuppressHE_Level1[0], missionRequireSuppressHE_Level1[1] + 1), 1, 3);
+                                            }
+                                            else//镇压W
+                                            {
+                                                RGRandomEventManager.StartMission(RGRandomEventManager.MissionRequire.SUPPRESS, Harmony_Patch.customRandom.NextInt(missionRequireSuppressWAW_Level1[0], missionRequireSuppressWAW_Level1[1] + 1), 1, 4);
+                                            }
+                                        }
+                                        else//二级任务
+                                        {
+                                            if (Harmony_Patch.customRandom.NextFloat() <= missionRequireSuppressRate_Level2)//镇压W
+                                            {
+                                                RGRandomEventManager.StartMission(RGRandomEventManager.MissionRequire.SUPPRESS, Harmony_Patch.customRandom.NextInt(missionRequireSuppressWAW_Level2[0], missionRequireSuppressWAW_Level2[1] + 1), 2, 4);
+                                            }
+                                            else//镇压A
+                                            {
+                                                RGRandomEventManager.StartMission(RGRandomEventManager.MissionRequire.SUPPRESS, Harmony_Patch.customRandom.NextInt(missionRequireSuppressALEPH_Level2[0], missionRequireSuppressALEPH_Level2[1] + 1), 2, 5);
+                                            }
+                                        }
+                                        break;
+                                    default://不生成任务
+                                        AngelaConversationUI.instance.AddAngelaMessage(LocalizeTextDataModel.instance.GetText("RandomEvent_Fail"));
+                                        break;
+                                }
+                                break;
+                            default://不生成随机事件
+                                AngelaConversationUI.instance.AddAngelaMessage(LocalizeTextDataModel.instance.GetText("RandomEvent_Fail"));
+                                break;
+                        }
                     }
                 }
             }
@@ -358,7 +350,7 @@ namespace NewGameMode
             }
         }
 
-        public static void CreatePanicAgent(int stat_min, int stat_max, float[] rate)
+        public static void CreatePanicAgent(int stat_min, int stat_max, int[] rate)
         {
             try
             {
@@ -377,6 +369,7 @@ namespace NewGameMode
                 agentModel.SetCurrentNode(agentModel.GetCurrentSefira().GetDepartNodeByRandom(0));
 
                 //装备
+                int level = Extension.WeightedRandomChoice(rate);
                 List<int> equip_id = Harmony_Patch.GetAllEquipmentidList();
                 //移除失乐园和薄瞑
                 equip_id.Remove(200015);
@@ -443,40 +436,73 @@ namespace NewGameMode
                     }
                 }
 
-                float random = Harmony_Patch.customRandom.NextFloat();
-                if (random <= rate[0] && h_weapon_id.Count != 0)
+                int weaponLoopCnt = 0;
+                int armorLoopCnt = 0;
+                while (agentModel.Equipment.weapon.metaInfo.id == 1)
                 {
-                    EquipmentModel weapon = InventoryModel.Instance.CreateEquipment(h_weapon_id[Harmony_Patch.customRandom.NextInt(0, h_weapon_id.Count)]);
-                    agentModel.SetWeapon(weapon as WeaponModel);
-                }
-                else if (random <= rate[1] && w_weapon_id.Count != 0)
-                {
-                    EquipmentModel weapon = InventoryModel.Instance.CreateEquipment(w_weapon_id[Harmony_Patch.customRandom.NextInt(0, w_weapon_id.Count)]);
-                    agentModel.SetWeapon(weapon as WeaponModel);
-                }
-                else if (random <= rate[2] && a_weapon_id.Count != 0)
-                {
-                    EquipmentModel weapon = InventoryModel.Instance.CreateEquipment(a_weapon_id[Harmony_Patch.customRandom.NextInt(0, a_weapon_id.Count)]);
-                    agentModel.SetWeapon(weapon as WeaponModel);
+                    weaponLoopCnt++;
+                    switch (level)
+                    {
+                        case 0:
+                            if (h_weapon_id.Count != 0)
+                            {
+                                EquipmentModel weapon = InventoryModel.Instance.CreateEquipment(h_weapon_id[Harmony_Patch.customRandom.NextInt(0, h_weapon_id.Count)]);
+                                agentModel.SetWeapon(weapon as WeaponModel);
+                            }
+                            break;
+                        case 1:
+                            if (w_weapon_id.Count != 0)
+                            {
+                                EquipmentModel weapon = InventoryModel.Instance.CreateEquipment(w_weapon_id[Harmony_Patch.customRandom.NextInt(0, w_weapon_id.Count)]);
+                                agentModel.SetWeapon(weapon as WeaponModel);
+                            }
+                            break;
+                        case 2:
+                            if (a_weapon_id.Count != 0)
+                            {
+                                EquipmentModel weapon = InventoryModel.Instance.CreateEquipment(a_weapon_id[Harmony_Patch.customRandom.NextInt(0, a_weapon_id.Count)]);
+                                agentModel.SetWeapon(weapon as WeaponModel);
+                            }
+                            break;
+                    }
+                    if (weaponLoopCnt >= 50)
+                    {
+                        break;
+                    }
                 }
 
-                random = Harmony_Patch.customRandom.NextFloat();
-                if (random <= rate[0] && h_armor_id.Count != 0 && agentModel.Equipment.weapon.metaInfo.grade != "3")//只有在武器不是H的情况下才可能刷到H
+                while (agentModel.Equipment.armor.metaInfo.id == 22)
                 {
-                    EquipmentModel armor = InventoryModel.Instance.CreateEquipment(h_armor_id[Harmony_Patch.customRandom.NextInt(0, h_armor_id.Count)]);
-                    agentModel.SetArmor(armor as ArmorModel);
+                    armorLoopCnt++;
+                    switch (level)
+                    {
+                        case 0:
+                            if (h_armor_id.Count != 0 && agentModel.Equipment.weapon.metaInfo.grade != "3")//武器非H才可能出H甲
+                            {
+                                EquipmentModel armor = InventoryModel.Instance.CreateEquipment(h_armor_id[Harmony_Patch.customRandom.NextInt(0, h_armor_id.Count)]);
+                                agentModel.SetArmor(armor as ArmorModel);
+                            }
+                            break;
+                        case 1:
+                            if (w_armor_id.Count != 0)
+                            {
+                                EquipmentModel armor = InventoryModel.Instance.CreateEquipment(w_armor_id[Harmony_Patch.customRandom.NextInt(0, w_armor_id.Count)]);
+                                agentModel.SetArmor(armor as ArmorModel);
+                            }
+                            break;
+                        case 2:
+                            if (a_armor_id.Count != 0)
+                            {
+                                EquipmentModel armor = InventoryModel.Instance.CreateEquipment(a_armor_id[Harmony_Patch.customRandom.NextInt(0, a_armor_id.Count)]);
+                                agentModel.SetArmor(armor as ArmorModel);
+                            }
+                            break;
+                    }
+                    if (weaponLoopCnt >= 50)
+                    {
+                        break;
+                    }
                 }
-                else if (random <= rate[1] && w_armor_id.Count != 0)
-                {
-                    EquipmentModel armor = InventoryModel.Instance.CreateEquipment(w_armor_id[Harmony_Patch.customRandom.NextInt(0, w_armor_id.Count)]);
-                    agentModel.SetArmor(armor as ArmorModel);
-                }
-                else if (random <= rate[2] && a_armor_id.Count != 0)
-                {
-                    EquipmentModel armor = InventoryModel.Instance.CreateEquipment(a_armor_id[Harmony_Patch.customRandom.NextInt(0, a_armor_id.Count)]);
-                    agentModel.SetArmor(armor as ArmorModel);
-                }
-
                 if (agentModel.Equipment.weapon.metaInfo.damageInfo.type == RwbpType.P)
                 {
                     agentModel.ForcelyPanic(RwbpType.R);
@@ -793,159 +819,170 @@ namespace NewGameMode
                         int award = 0;
                         while (award_type.Count <= i)
                         {
-                            if (value <= missionAwardTypeRate[0] && !award_type.Contains(0))
+                            award = Extension.WeightedRandomChoice(missionAwardTypeRate);
+                            switch (award)
                             {
-                                award_type.Add(0);
-                                award = 0;
-                            }
-                            else if (value <= missionAwardTypeRate[1] && !award_type.Contains(1))
-                            {
-                                award_type.Add(1);
-                                award = 1;
-                            }
-                            else if (value <= missionAwardTypeRate[2] && !award_type.Contains(2))
-                            {
-                                award_type.Add(2);
-                                award = 2;
-                            }
-                            else if (value <= missionAwardTypeRate[3] && !award_type.Contains(3))
-                            {
-                                award_type.Add(3);
-                                award = 3;
-                            }
-                            else
-                            {
-                                award_type.Add(4);
-                                award = 4;
+                                case 0: 
+                                    if (!award_type.Contains(0))
+                                    {
+                                        award_type.Add(0);
+                                    }
+                                    break;
+                                case 1:
+                                    if (!award_type.Contains(1))
+                                    {
+                                        award_type.Add(1);
+                                    }
+                                    break;
+                                case 2:
+                                    if (!award_type.Contains(2))
+                                    {
+                                        award_type.Add(2);
+                                    }
+                                    break;
+                                case 3:
+                                    if (!award_type.Contains(3))
+                                    {
+                                        award_type.Add(3);
+                                    }
+                                    break;
+                                case 4:
+                                    if (!award_type.Contains(4))
+                                    {
+                                        award_type.Add(4);
+                                    }
+                                    break;
                             }
                         }
 
-                        switch (award)
+                        for (int t = 0; t < award_type.Count; t++)
                         {
-                            case 0:
-                                buttonList[i].transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = LocalizeTextDataModel.instance.GetText("RougeLikeAwardText_Equipment" + mission.level);
-                                TooltipMouseOver toolTip = buttonList[i].AddComponent<TooltipMouseOver>();
-                                toolTip.viewDefaultDesc = false;
-                                toolTip.SetDynamicTooltip(LocalizeTextDataModel.instance.GetText("RougeLikeAwardTooltip_Equipment" + mission.level));
-                                if (mission.level == 1)
-                                {
-                                    //按钮点击逻辑
-                                    buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                            switch (award_type[t])
+                            {
+                                case 0:
+                                    buttonList[i].transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = LocalizeTextDataModel.instance.GetText("RougeLikeAwardText_Equipment" + mission.level);
+                                    TooltipMouseOver toolTip = buttonList[i].AddComponent<TooltipMouseOver>();
+                                    toolTip.viewDefaultDesc = false;
+                                    toolTip.SetDynamicTooltip(LocalizeTextDataModel.instance.GetText("RougeLikeAwardTooltip_Equipment" + mission.level));
+                                    if (mission.level == 1)
                                     {
-                                        Award_GetEquipment(missionAwardEquipmentRate_Level1);
-                                        DestroyAwardButton();
-                                    });
-                                }
-                                else
-                                {
-                                    buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                        //按钮点击逻辑
+                                        buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                        {
+                                            Award_GetEquipment(missionAwardEquipmentRate_Level1);
+                                            DestroyAwardButton();
+                                        });
+                                    }
+                                    else
                                     {
-                                        Award_GetEquipment(missionAwardEquipmentRate_Level2);
-                                        DestroyAwardButton();
-                                    });
-                                }
-                                break;
-                            case 1:
-                                buttonList[i].transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = LocalizeTextDataModel.instance.GetText("RougeLikeAwardText_Agent" + mission.level);
-                                TooltipMouseOver toolTip2 = buttonList[i].AddComponent<TooltipMouseOver>();
-                                toolTip2.viewDefaultDesc = false;
-                                toolTip2.SetDynamicTooltip(LocalizeTextDataModel.instance.GetText("RougeLikeAwardTooltip_Agent" + mission.level));
-                                if (mission.level == 1)
-                                {
-                                    buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                        buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                        {
+                                            Award_GetEquipment(missionAwardEquipmentRate_Level2);
+                                            DestroyAwardButton();
+                                        });
+                                    }
+                                    break;
+                                case 1:
+                                    buttonList[i].transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = LocalizeTextDataModel.instance.GetText("RougeLikeAwardText_Agent" + mission.level);
+                                    TooltipMouseOver toolTip2 = buttonList[i].AddComponent<TooltipMouseOver>();
+                                    toolTip2.viewDefaultDesc = false;
+                                    toolTip2.SetDynamicTooltip(LocalizeTextDataModel.instance.GetText("RougeLikeAwardTooltip_Agent" + mission.level));
+                                    if (mission.level == 1)
                                     {
-                                        Award_GetAgent(missionAwardAgentStat_Level1[0], missionAwardAgentStat_Level1[1], set_sefira: false);
-                                        DestroyAwardButton();
-                                    });
-                                }
-                                else
-                                {
-                                    buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                        buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                        {
+                                            Award_GetAgent(missionAwardAgentStat_Level1[0], missionAwardAgentStat_Level1[1], set_sefira: false);
+                                            DestroyAwardButton();
+                                        });
+                                    }
+                                    else
                                     {
-                                        Award_GetAgent(missionAwardAgentStat_Level2[0], missionAwardAgentStat_Level2[1], set_sefira: false);
-                                        DestroyAwardButton();
-                                    });
-                                }
-                                break;
-                            case 2:
-                                buttonList[i].transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = LocalizeTextDataModel.instance.GetText("RougeLikeAwardText_LOB" + mission.level);
-                                TooltipMouseOver toolTip3 = buttonList[i].AddComponent<TooltipMouseOver>();
-                                toolTip3.viewDefaultDesc = false;
-                                toolTip3.SetDynamicTooltip(LocalizeTextDataModel.instance.GetText("RougeLikeAwardTooltip_LOB" + mission.level));
-                                if (mission.level == 1)
-                                {
-                                    buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                        buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                        {
+                                            Award_GetAgent(missionAwardAgentStat_Level2[0], missionAwardAgentStat_Level2[1], set_sefira: false);
+                                            DestroyAwardButton();
+                                        });
+                                    }
+                                    break;
+                                case 2:
+                                    buttonList[i].transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = LocalizeTextDataModel.instance.GetText("RougeLikeAwardText_LOB" + mission.level);
+                                    TooltipMouseOver toolTip3 = buttonList[i].AddComponent<TooltipMouseOver>();
+                                    toolTip3.viewDefaultDesc = false;
+                                    toolTip3.SetDynamicTooltip(LocalizeTextDataModel.instance.GetText("RougeLikeAwardTooltip_LOB" + mission.level));
+                                    if (mission.level == 1)
                                     {
-                                        Award_GetLOB(missionAwardLOB_Level1[0], missionAwardLOB_Level1[1]);
-                                        DestroyAwardButton();
-                                    });
-                                }
-                                else
-                                {
-                                    buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                        buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                        {
+                                            Award_GetLOB(missionAwardLOB_Level1[0], missionAwardLOB_Level1[1]);
+                                            DestroyAwardButton();
+                                        });
+                                    }
+                                    else
                                     {
-                                        Award_GetLOB(missionAwardLOB_Level2[0], missionAwardLOB_Level2[1]);
-                                        DestroyAwardButton();
-                                    });
-                                }
-                                break;
-                            //奇思
-                            case 3:
-                                buttonList[i].transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = LocalizeTextDataModel.instance.GetText("RougeLikeAwardText_Wonder" + mission.level);
-                                TooltipMouseOver toolTip4 = buttonList[i].AddComponent<TooltipMouseOver>();
-                                toolTip4.viewDefaultDesc = false;
-                                toolTip4.SetDynamicTooltip(LocalizeTextDataModel.instance.GetText("RougeLikeAwardTooltip_Wonder" + mission.level));
+                                        buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                        {
+                                            Award_GetLOB(missionAwardLOB_Level2[0], missionAwardLOB_Level2[1]);
+                                            DestroyAwardButton();
+                                        });
+                                    }
+                                    break;
+                                //奇思
+                                case 3:
+                                    buttonList[i].transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = LocalizeTextDataModel.instance.GetText("RougeLikeAwardText_Wonder" + mission.level);
+                                    TooltipMouseOver toolTip4 = buttonList[i].AddComponent<TooltipMouseOver>();
+                                    toolTip4.viewDefaultDesc = false;
+                                    toolTip4.SetDynamicTooltip(LocalizeTextDataModel.instance.GetText("RougeLikeAwardTooltip_Wonder" + mission.level));
 
-                                if (mission.level == 1)
-                                {
-                                    buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                    if (mission.level == 1)
                                     {
-                                        Award_GetWonder(missionAwardWonder_Level1[0], missionAwardWonder_Level1[1]);
-                                        DestroyAwardButton();
-                                    });
-                                }
-                                else
-                                {
-                                    buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                        buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                        {
+                                            Award_GetWonder(missionAwardWonder_Level1[0], missionAwardWonder_Level1[1]);
+                                            DestroyAwardButton();
+                                        });
+                                    }
+                                    else
                                     {
-                                        Award_GetWonder(missionAwardWonder_Level2[0], missionAwardWonder_Level2[1]);
-                                        DestroyAwardButton();
-                                    });
-                                }
-                                break;
-                            //模因
-                            case 4:
-                                buttonList[i].transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = LocalizeTextDataModel.instance.GetText("RougeLikeAwardText_Meme" + mission.level);
-                                TooltipMouseOver toolTip5 = buttonList[i].AddComponent<TooltipMouseOver>();
-                                toolTip5.viewDefaultDesc = false;
-                                toolTip5.SetDynamicTooltip(LocalizeTextDataModel.instance.GetText("RougeLikeAwardTooltip_Meme" + mission.level));
+                                        buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                        {
+                                            Award_GetWonder(missionAwardWonder_Level2[0], missionAwardWonder_Level2[1]);
+                                            DestroyAwardButton();
+                                        });
+                                    }
+                                    break;
+                                //模因
+                                case 4:
+                                    buttonList[i].transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = LocalizeTextDataModel.instance.GetText("RougeLikeAwardText_Meme" + mission.level);
+                                    TooltipMouseOver toolTip5 = buttonList[i].AddComponent<TooltipMouseOver>();
+                                    toolTip5.viewDefaultDesc = false;
+                                    toolTip5.SetDynamicTooltip(LocalizeTextDataModel.instance.GetText("RougeLikeAwardTooltip_Meme" + mission.level));
 
-                                if (mission.level == 1)
-                                {
+                                    if (mission.level == 1)
+                                    {
+                                        buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                        {
+                                            Award_GetMeme(missionAwardMemeRate_Level1);
+                                            DestroyAwardButton();
+                                        });
+                                    }
+                                    else
+                                    {
+                                        buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                        {
+                                            Award_GetMeme(missionAwardMemeRate_Level2);
+                                            DestroyAwardButton();
+                                        });
+                                    }
+                                    break;
+                                default:
+                                    buttonList[i].transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = "ERROR";
                                     buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
                                     {
-                                        Award_GetMeme(missionAwardMemeRate_Level1);
                                         DestroyAwardButton();
                                     });
-                                }
-                                else
-                                {
-                                    buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
-                                    {
-                                        Award_GetMeme(missionAwardMemeRate_Level2);
-                                        DestroyAwardButton();
-                                    });
-                                }
-                                break;
-                            default:
-                                buttonList[i].transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = "ERROR";
-                                buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
-                                {
-                                    DestroyAwardButton();
-                                });
-                                break;
+                                    break;
+                            }
                         }
-
                     }
                     if (mission.level == 1)
                     {
@@ -1062,23 +1099,20 @@ namespace NewGameMode
             }
         }
 
-        public static void Award_GetEquipment(float[] rate, bool angela = true, int equipCnt = 1, bool specialEquipParadiseLost = false, bool specialEquipBossBird = false)
+        public static void Award_GetEquipment(int[] rate, bool angela = true, int equipCnt = 1, bool specialEquipParadiseLost = false, bool specialEquipBossBird = false)
         {
             try
             {
-                float random = Harmony_Patch.customRandom.NextFloat();
                 int level = -1;
-                if (random <= rate[0])
+                int index = Extension.WeightedRandomChoice(rate);
+                switch (index)
                 {
-                    level = 3;
-                }
-                else if (random <= rate[1])
-                {
-                    level = 4;
-                }
-                else if (random <= rate[2])
-                {
-                    level = 5;
+                    case 0:
+                        level = 3; break;
+                    case 1:
+                        level = 4; break;
+                    case 2:
+                        level = 5; break;
                 }
 
                 List<int> id_list = new List<int>();
@@ -1217,11 +1251,11 @@ namespace NewGameMode
             }
         }
 
-        public static void Award_GetMeme(float[] rate, bool angela = true, bool level3 = false)
+        public static void Award_GetMeme(int[] rate, bool angela = true, bool level3 = false)
         {
             try
             {
-                float random = Harmony_Patch.customRandom.NextFloat();
+                int level = Extension.WeightedRandomChoice(rate);
 
                 List<int> nowMemeInfo = [];
                 foreach (var dic in MemeManager.instance.current_dic)
@@ -1258,20 +1292,24 @@ namespace NewGameMode
                     target_id = tempMemeLevel3[Harmony_Patch.customRandom.NextInt(0, tempMemeLevel3.Count)];
                     MemeManager.instance.CreateMemeModel(target_id);
                 }
-                else if (random <= rate[0])//1级模因
+                else
                 {
-                    target_id = tempMemeLevel1[Harmony_Patch.customRandom.NextInt(0, tempMemeLevel1.Count)];
-                    MemeManager.instance.CreateMemeModel(target_id);
-                }
-                else if (random <= rate[1])//2级
-                {
-                    target_id = tempMemeLevel2[Harmony_Patch.customRandom.NextInt(0, tempMemeLevel2.Count)];
-                    MemeManager.instance.CreateMemeModel(target_id);
-                }
-                else //啥都没有
-                {
-                    success = false;
-                }
+                    switch (level)
+                    {
+                        case 0:
+                            target_id = tempMemeLevel1[Harmony_Patch.customRandom.NextInt(0, tempMemeLevel1.Count)];
+                            MemeManager.instance.CreateMemeModel(target_id);
+                            break;
+                        case 1:
+                            target_id = tempMemeLevel2[Harmony_Patch.customRandom.NextInt(0, tempMemeLevel2.Count)];
+                            MemeManager.instance.CreateMemeModel(target_id);
+                            break;
+                        default:
+                            success = false;
+                            break;
+                    }
+                } 
+                
                 if (angela)
                 {
                     if (success)

@@ -14,6 +14,8 @@ namespace NewGameMode
 {
     public class ShopManager
     {
+        public static GameObject shopScene;
+
         /// <summary>
         /// 商店中所有可以购买的等级为1的模因，key是模因id。
         /// </summary>
@@ -22,6 +24,12 @@ namespace NewGameMode
         /// 商店中所有可以购买的等级为2模因，key是模因id。
         /// </summary>
         public static Dictionary<int, MemeInfo> shopMemeVer2 = new Dictionary<int, MemeInfo>();
+        /// <summary>
+        /// 商店中所有可以购买的诅咒模因，key是模因id。
+        /// </summary>
+        public static Dictionary<int, MemeInfo> shopMemeCurse = new Dictionary<int, MemeInfo>();
+
+        public static int[] specialMemeid = { 1, 2, 3 };//1：随机A武，2：随机A甲，3：随机员工
         /// <summary>
         /// 当前商店商品列表。
         /// </summary>
@@ -35,7 +43,9 @@ namespace NewGameMode
         /// </summary>
         public static int RefreshPrice = 50;
 
-        public static GameObject shopScene;
+        public static int specialCnt = 4;
+        public static int defaultMemeId = 100;
+
 
         public static void InitShopScene()
         {
@@ -219,18 +229,22 @@ namespace NewGameMode
         /// </summary>
         public static void InitShopMeme()
         {
-            // 需要满足：不是boss模因，等级为1或2。
+            // 需要满足：不是boss模因，等级为1或2，不是随机员工和随机装备，或者是诅咒模因。
             if (MemeManager.instance.all_dic != null)
             {
                 foreach (var dic in MemeManager.instance.all_dic)
                 {
-                    if (!dic.Value.boss && dic.Value.grade == 1)
+                    if (!dic.Value.boss && dic.Value.grade == 1 && !dic.Value.curse && !specialMemeid.Contains(dic.Value.id))
                     {
                         shopMemeVer1.Add(dic.Key, dic.Value);
                     }
-                    if (!dic.Value.boss && dic.Value.grade == 2)
+                    if (!dic.Value.boss && dic.Value.grade == 2 && !dic.Value.curse && !specialMemeid.Contains(dic.Value.id))
                     {
                         shopMemeVer2.Add(dic.Key, dic.Value);
+                    }
+                    if (!dic.Value.boss && dic.Value.curse)//诅咒模因
+                    {
+                        shopMemeCurse.Add(dic.Key, dic.Value);
                     }
                 }
             }
@@ -258,19 +272,27 @@ namespace NewGameMode
         /// <summary>
         /// 生成商店商品列表。
         /// </summary>
-        /// <param name="maxCount">生成多少商品</param>
+        /// <param name="maxCount">生成多少商品，诅咒要不要无视叠加情况生成？（目前没做）</param>
         /// <returns></returns>
-        public static List<ShopProduct> GenerateShopProducts(int maxCount)
+        public static List<ShopProduct> GenerateShopProducts(int maxCount, bool randomEquip = true, bool randomAgent = true, bool curse = true)
         {
             // 获取当前所有Meme的信息
             int num = 0;
             List<ShopProduct> shopProducts = new List<ShopProduct>();
+            List<ShopProduct> shopProducts_sp = new List<ShopProduct>();
             try
             {
-                Dictionary<int, MemeInfo> nowMemeInfo = [];
-                foreach (var dic in MemeManager.instance.current_dic) 
+                Dictionary<int, MemeInfo> nowMemeInfo = [];//模因id和模因信息，商店刷新用模因信息判断
+                foreach (var dic in MemeManager.instance.current_dic)
                 {
-                    nowMemeInfo.Add(dic.Key, dic.Value.metaInfo);
+                    try
+                    {
+                        nowMemeInfo.Add(dic.Value.metaInfo.id, dic.Value.metaInfo);
+                    }
+                    finally
+                    {
+                        //如果不加这个try会导致nowMemeInfo里重复添加同一个模因而报错，后续程序不执行，商店刷新0个物品
+                    }
                 }
                 num++;
                 // 过滤掉已经拥有的模因（duplicate为true也可以通过）
@@ -279,7 +301,7 @@ namespace NewGameMode
                 {
                     if (dic.Value.duplicate == true || !nowMemeInfo.ContainsValue(dic.Value))
                     {
-                        tempMemeVer1.Add(dic.Key, dic.Value);
+                        tempMemeVer1.Add(dic.Key, dic.Value);//模因id和信息
                     }
                 }
                 num++;
@@ -288,12 +310,21 @@ namespace NewGameMode
                 {
                     if (dic.Value.duplicate == true || !nowMemeInfo.ContainsValue(dic.Value))
                     {
-                        tempMemeVer2.Add(dic.Key, dic.Value);
+                        tempMemeVer2.Add(dic.Key, dic.Value);//模因id和信息
+                    }
+                }
+                num++;
+                Dictionary<int, MemeInfo> tempMemeCurse = [];
+                foreach (var dic in shopMemeCurse)
+                {
+                    if (dic.Value.duplicate == true || !nowMemeInfo.ContainsValue(dic.Value))
+                    {
+                        tempMemeCurse.Add(dic.Key, dic.Value);//模因id和信息
                     }
                 }
                 num++;
 
-                while (shopProducts.Count < maxCount)
+                while (shopProducts.Count < maxCount - specialCnt)//此处生成普通模因：一级二级和热水壶
                 {
                     int[] weight = { ShopProb.MemeVer1Prob, ShopProb.MemeVer2Prob, ShopProb.MemeYEProb };
                     int index = Extension.WeightedRandomChoice(weight);//返回weight的索引
@@ -304,7 +335,7 @@ namespace NewGameMode
                         MemeInfo selectedMeme = tempMemeVer1[memeId];
                         ShopProduct shopProduct = new ShopProduct((int)(selectedMeme.price * ProductDiscount), selectedMeme, false);
                         shopProducts.Add(shopProduct);
-                        tempMemeVer1.Remove(index);
+                        tempMemeVer1.Remove(memeId);
                     }
                     else if (index == 1 && tempMemeVer2.Count > 0)//等级为2的商品
                     {
@@ -313,15 +344,62 @@ namespace NewGameMode
                         MemeInfo selectedMeme = tempMemeVer2[memeId];
                         ShopProduct shopProduct = new ShopProduct((int)(selectedMeme.price * ProductDiscount), selectedMeme, false);
                         shopProducts.Add(shopProduct);
-                        tempMemeVer2.Remove(index);
+                        tempMemeVer2.Remove(memeId);
                     }
                     else//以撒的牛奶
                     {
-                        MemeInfo YEMeme = MemeManager.GetMemeInfo(100);
+                        MemeInfo YEMeme = MemeManager.GetMemeInfo(defaultMemeId);
                         ShopProduct shopProduct = new ShopProduct((int)(YEMeme.price * ProductDiscount), YEMeme, false);
                         shopProducts.Add(shopProduct);
                     }
                 }
+                num++;
+
+                while (shopProducts_sp.Count < specialCnt)//此处生成特殊模因：随机A武，随机A甲，随机员工，诅咒
+                {
+                    int[] weight = { ShopProb.MemeRandomEquipProb, ShopProb.MemeRandomAgentProb, ShopProb.MemeCurseProb };
+                    int index = Extension.WeightedRandomChoice(weight);//返回weight的索引
+                    if (index == 0)//随机装备
+                    {
+                        if (Harmony_Patch.customRandom.NextFloat() <= 0.5f)//A武
+                        {
+                            MemeInfo selectedMeme;
+                            MemeManager.instance.all_dic.TryGetValue(1, out selectedMeme);
+                            ShopProduct shopProduct = new ShopProduct((int)(selectedMeme.price * ProductDiscount), selectedMeme, false);
+                            shopProducts_sp.Add(shopProduct);
+                        }
+                        else//A甲
+                        {
+                            MemeInfo selectedMeme;
+                            MemeManager.instance.all_dic.TryGetValue(2, out selectedMeme);
+                            ShopProduct shopProduct = new ShopProduct((int)(selectedMeme.price * ProductDiscount), selectedMeme, false);
+                            shopProducts_sp.Add(shopProduct);
+                        }
+                    }
+                    else if (index == 1)//随机员工
+                    {
+                        MemeInfo selectedMeme;
+                        MemeManager.instance.all_dic.TryGetValue(3, out selectedMeme);
+                        ShopProduct shopProduct = new ShopProduct((int)(selectedMeme.price * ProductDiscount), selectedMeme, false);
+                        shopProducts_sp.Add(shopProduct);
+                    }
+                    else if (index == 2 && tempMemeCurse.Count > 0)//诅咒
+                    {
+                        int memeIndex = Harmony_Patch.customRandom.NextInt(0, tempMemeCurse.Count);
+                        int memeId = tempMemeCurse.Keys.ToArray()[memeIndex];
+                        MemeInfo selectedMeme = tempMemeCurse[memeId];
+                        ShopProduct shopProduct = new ShopProduct((int)(selectedMeme.price * ProductDiscount), selectedMeme, false);
+                        shopProducts_sp.Add(shopProduct);
+                        tempMemeCurse.Remove(memeId);
+                    }
+                    else//以撒的牛奶，理论上来说不会生成
+                    {
+                        MemeInfo YEMeme = MemeManager.GetMemeInfo(defaultMemeId);
+                        ShopProduct shopProduct = new ShopProduct((int)(YEMeme.price * ProductDiscount), YEMeme, false);
+                        shopProducts_sp.Add(shopProduct);
+                    }
+                }
+                shopProducts.AddRange(shopProducts_sp);
                 num++;
             }
             catch (Exception ex)

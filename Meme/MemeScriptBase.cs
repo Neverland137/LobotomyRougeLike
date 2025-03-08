@@ -4,6 +4,7 @@ namespace NewGameMode
 {
     public class MemeScriptBase
     {
+        
         private MemeModel _model;
         public MemeModel model
         {
@@ -313,6 +314,52 @@ namespace NewGameMode
                 }
             }
             return creatures;
+        }
+
+        public static RwbpType RandomDmgType()
+        {
+            float random = UnityEngine.Random.value;
+            RwbpType type;
+            if (random <= 0.25f)
+            {
+                type = RwbpType.R;
+            }
+            else if (random <= 0.5f)
+            {
+                type = RwbpType.W;
+            }
+            else if (random <= 0.75f)
+            {
+                type = RwbpType.B;
+            }
+            else
+            {
+                type = RwbpType.P;
+            }
+            return type;
+        }
+    }
+
+    public enum DamageType_RougeLike
+    {
+        ADDITIONAL,
+        CRITICAL
+    }
+
+    public class RougeLikeDamageInfo : DamageInfo
+    {
+        public DamageType_RougeLike rougeType;
+        // 必须调用基类的构造函数
+        public RougeLikeDamageInfo(RwbpType type, int min, int max, DamageType_RougeLike rougeType)
+            : base(type, min, max)
+        {
+            this.rougeType = rougeType;
+        }
+
+        public RougeLikeDamageInfo(RwbpType type, float dmg, DamageType_RougeLike rougeType)
+            : base(type, dmg)
+        {
+            this.rougeType = rougeType;
         }
     }
 }
