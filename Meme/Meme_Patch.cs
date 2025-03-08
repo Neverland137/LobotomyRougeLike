@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using static Mono.Security.X509.X520;
+using static NewGameMode.EnergyAndOverload_Patch.RGRandomEventManager;
 using static UnityEngine.Analytics.EnumCase;
 
 namespace NewGameMode
@@ -160,7 +161,7 @@ namespace NewGameMode
                             return false;
                         }
                     }
-                    else if (type == "shop") 
+                    else if (type == "shop")
                     {
                         if (type2 == "show")
                         {
@@ -188,7 +189,18 @@ namespace NewGameMode
                             return false;
                         }
                     }
-                    else if(type == "seed")
+                    else if (type == "mission")
+                    {
+                        if (type2 == "event")
+                        {
+                            EnergyAndOverload_Patch.CallRandomEvent();
+                        }
+                        if (type2 == "complete")
+                        {
+                            EnergyAndOverload_Patch.RGRandomEventManager.EndMission(EXTRAMissionManager.instance.GetStartMission()[0]);
+                        }
+                    }
+                    else if (type == "seed")
                     {
                         if ((type2 != null))
                         {
@@ -209,6 +221,7 @@ namespace NewGameMode
                             GameStatusUI.GameStatusUI.Window.logController.script.DeleteAll();
                         }
                     }
+                    
                     
                 }
             }

@@ -19,11 +19,13 @@ namespace NewGameMode
         public static List<AgentModel> panicAgentList = new List<AgentModel>();
         public static List<long> creatureList = new List<long>();
 
+        /*
         public static GameObject rewardButton = new GameObject();
         public static GameObject rewardButton1 = new GameObject();
         public static GameObject rewardButton2 = new GameObject();
         public static GameObject rewardButton3 = new GameObject();
         public static List<GameObject> buttonList = new List<GameObject>() { rewardButton1, rewardButton2, rewardButton3 };
+        */
 
         /// <summary>
         /// 随机事件的概率，依次为：奖励，疯员工，任务。商店概率独立。
@@ -779,11 +781,19 @@ namespace NewGameMode
             {
                 try
                 {
+                    GameObject rewardButton = new GameObject();
+                    GameObject rewardButton1 = new GameObject();
+                    GameObject rewardButton2 = new GameObject();
+                    GameObject rewardButton3 = new GameObject();
+                    List<GameObject> buttonList = new List<GameObject>{rewardButton1,rewardButton2,rewardButton3};
+
                     mission.IsCleard = true;
                     mission.slot.Refresh();
                     mission.type = EXTRAMissionType.Cleard;
                     string text = LocalizeTextDataModel.instance.GetText("RandomEvent_MissionEnd");
                     AngelaConversationUI.instance.AddAngelaMessage(text);
+                    AngelaConversationUI.instance.FadeOut = false;
+                    AngelaConversationUI.instance.FadeIn = true;
                     AssetBundle bundle = AssetBundle.LoadFromFile(Harmony_Patch.path + "/AssetsBundle/missionrewardbutton");
                     try
                     {
@@ -794,8 +804,7 @@ namespace NewGameMode
                         Harmony_Patch.YKMTLogInstance.Error("MissionRewardButton not found");
                     }
                     bundle.Unload(false);
-                    //AngelaConversationUI.instance.FadeOut = false;
-                    //AngelaConversationUI.instance.FadeIn = false;
+                    
                     rewardButton.transform.SetParent(GameStatusUI.GameStatusUI.Window.transform.Find("Canvas").transform);
                     rewardButton.transform.localPosition = new Vector3(0, -330);
                     rewardButton.transform.localScale = new Vector3(4, 4, 1);
@@ -815,14 +824,13 @@ namespace NewGameMode
 
                         float value = Harmony_Patch.customRandom.NextFloat();
 
-
                         int award = 0;
                         while (award_type.Count <= i)
                         {
                             award = Extension.WeightedRandomChoice(missionAwardTypeRate);
                             switch (award)
                             {
-                                case 0: 
+                                case 0:
                                     if (!award_type.Contains(0))
                                     {
                                         award_type.Add(0);
@@ -855,139 +863,160 @@ namespace NewGameMode
                             }
                         }
 
-                        for (int t = 0; t < award_type.Count; t++)
+                        switch (award_type[i])
                         {
-                            switch (award_type[t])
-                            {
-                                case 0:
-                                    buttonList[i].transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = LocalizeTextDataModel.instance.GetText("RougeLikeAwardText_Equipment" + mission.level);
-                                    TooltipMouseOver toolTip = buttonList[i].AddComponent<TooltipMouseOver>();
-                                    toolTip.viewDefaultDesc = false;
-                                    toolTip.SetDynamicTooltip(LocalizeTextDataModel.instance.GetText("RougeLikeAwardTooltip_Equipment" + mission.level));
-                                    if (mission.level == 1)
-                                    {
-                                        //按钮点击逻辑
-                                        buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
-                                        {
-                                            Award_GetEquipment(missionAwardEquipmentRate_Level1);
-                                            DestroyAwardButton();
-                                        });
-                                    }
-                                    else
-                                    {
-                                        buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
-                                        {
-                                            Award_GetEquipment(missionAwardEquipmentRate_Level2);
-                                            DestroyAwardButton();
-                                        });
-                                    }
-                                    break;
-                                case 1:
-                                    buttonList[i].transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = LocalizeTextDataModel.instance.GetText("RougeLikeAwardText_Agent" + mission.level);
-                                    TooltipMouseOver toolTip2 = buttonList[i].AddComponent<TooltipMouseOver>();
-                                    toolTip2.viewDefaultDesc = false;
-                                    toolTip2.SetDynamicTooltip(LocalizeTextDataModel.instance.GetText("RougeLikeAwardTooltip_Agent" + mission.level));
-                                    if (mission.level == 1)
-                                    {
-                                        buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
-                                        {
-                                            Award_GetAgent(missionAwardAgentStat_Level1[0], missionAwardAgentStat_Level1[1], set_sefira: false);
-                                            DestroyAwardButton();
-                                        });
-                                    }
-                                    else
-                                    {
-                                        buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
-                                        {
-                                            Award_GetAgent(missionAwardAgentStat_Level2[0], missionAwardAgentStat_Level2[1], set_sefira: false);
-                                            DestroyAwardButton();
-                                        });
-                                    }
-                                    break;
-                                case 2:
-                                    buttonList[i].transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = LocalizeTextDataModel.instance.GetText("RougeLikeAwardText_LOB" + mission.level);
-                                    TooltipMouseOver toolTip3 = buttonList[i].AddComponent<TooltipMouseOver>();
-                                    toolTip3.viewDefaultDesc = false;
-                                    toolTip3.SetDynamicTooltip(LocalizeTextDataModel.instance.GetText("RougeLikeAwardTooltip_LOB" + mission.level));
-                                    if (mission.level == 1)
-                                    {
-                                        buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
-                                        {
-                                            Award_GetLOB(missionAwardLOB_Level1[0], missionAwardLOB_Level1[1]);
-                                            DestroyAwardButton();
-                                        });
-                                    }
-                                    else
-                                    {
-                                        buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
-                                        {
-                                            Award_GetLOB(missionAwardLOB_Level2[0], missionAwardLOB_Level2[1]);
-                                            DestroyAwardButton();
-                                        });
-                                    }
-                                    break;
-                                //奇思
-                                case 3:
-                                    buttonList[i].transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = LocalizeTextDataModel.instance.GetText("RougeLikeAwardText_Wonder" + mission.level);
-                                    TooltipMouseOver toolTip4 = buttonList[i].AddComponent<TooltipMouseOver>();
-                                    toolTip4.viewDefaultDesc = false;
-                                    toolTip4.SetDynamicTooltip(LocalizeTextDataModel.instance.GetText("RougeLikeAwardTooltip_Wonder" + mission.level));
-
-                                    if (mission.level == 1)
-                                    {
-                                        buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
-                                        {
-                                            Award_GetWonder(missionAwardWonder_Level1[0], missionAwardWonder_Level1[1]);
-                                            DestroyAwardButton();
-                                        });
-                                    }
-                                    else
-                                    {
-                                        buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
-                                        {
-                                            Award_GetWonder(missionAwardWonder_Level2[0], missionAwardWonder_Level2[1]);
-                                            DestroyAwardButton();
-                                        });
-                                    }
-                                    break;
-                                //模因
-                                case 4:
-                                    buttonList[i].transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = LocalizeTextDataModel.instance.GetText("RougeLikeAwardText_Meme" + mission.level);
-                                    TooltipMouseOver toolTip5 = buttonList[i].AddComponent<TooltipMouseOver>();
-                                    toolTip5.viewDefaultDesc = false;
-                                    toolTip5.SetDynamicTooltip(LocalizeTextDataModel.instance.GetText("RougeLikeAwardTooltip_Meme" + mission.level));
-
-                                    if (mission.level == 1)
-                                    {
-                                        buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
-                                        {
-                                            Award_GetMeme(missionAwardMemeRate_Level1);
-                                            DestroyAwardButton();
-                                        });
-                                    }
-                                    else
-                                    {
-                                        buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
-                                        {
-                                            Award_GetMeme(missionAwardMemeRate_Level2);
-                                            DestroyAwardButton();
-                                        });
-                                    }
-                                    break;
-                                default:
-                                    buttonList[i].transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = "ERROR";
+                            case 0:
+                                buttonList[i].transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = LocalizeTextDataModel.instance.GetText("RougeLikeAwardText_Equipment" + mission.level);
+                                TooltipMouseOver toolTip = buttonList[i].AddComponent<TooltipMouseOver>();
+                                toolTip.viewDefaultDesc = false;
+                                toolTip.SetDynamicTooltip(LocalizeTextDataModel.instance.GetText("RougeLikeAwardTooltip_Equipment" + mission.level));
+                                if (mission.level == 1)
+                                {
+                                    //按钮点击逻辑
                                     buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
                                     {
-                                        DestroyAwardButton();
+                                        Award_GetEquipment(missionAwardEquipmentRate_Level1);
+                                        rewardButton.SetActive(false);
+                                        AngelaConversationUI.instance.FadeOut = true;
+                                        AngelaConversationUI.instance.FadeIn = true;
                                     });
-                                    break;
-                            }
+                                }
+                                else
+                                {
+                                    buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                    {
+                                        Award_GetEquipment(missionAwardEquipmentRate_Level2);
+                                        rewardButton.SetActive(false);
+                                        AngelaConversationUI.instance.FadeOut = true;
+                                        AngelaConversationUI.instance.FadeIn = true;
+                                    });
+                                }
+                                break;
+                            case 1:
+                                buttonList[i].transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = LocalizeTextDataModel.instance.GetText("RougeLikeAwardText_Agent" + mission.level);
+                                TooltipMouseOver toolTip2 = buttonList[i].AddComponent<TooltipMouseOver>();
+                                toolTip2.viewDefaultDesc = false;
+                                toolTip2.SetDynamicTooltip(LocalizeTextDataModel.instance.GetText("RougeLikeAwardTooltip_Agent" + mission.level));
+                                if (mission.level == 1)
+                                {
+                                    buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                    {
+                                        Award_GetAgent(missionAwardAgentStat_Level1[0], missionAwardAgentStat_Level1[1], set_sefira: false);
+                                        rewardButton.SetActive(false);
+                                        AngelaConversationUI.instance.FadeOut = true;
+                                        AngelaConversationUI.instance.FadeIn = true;
+                                    });
+                                }
+                                else
+                                {
+                                    buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                    {
+                                        Award_GetAgent(missionAwardAgentStat_Level2[0], missionAwardAgentStat_Level2[1], set_sefira: false);
+                                        rewardButton.SetActive(false);
+                                        AngelaConversationUI.instance.FadeOut = true;
+                                        AngelaConversationUI.instance.FadeIn = true;
+                                    });
+                                }
+                                break;
+                            case 2:
+                                buttonList[i].transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = LocalizeTextDataModel.instance.GetText("RougeLikeAwardText_LOB" + mission.level);
+                                TooltipMouseOver toolTip3 = buttonList[i].AddComponent<TooltipMouseOver>();
+                                toolTip3.viewDefaultDesc = false;
+                                toolTip3.SetDynamicTooltip(LocalizeTextDataModel.instance.GetText("RougeLikeAwardTooltip_LOB" + mission.level));
+                                if (mission.level == 1)
+                                {
+                                    buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                    {
+                                        Award_GetLOB(missionAwardLOB_Level1[0], missionAwardLOB_Level1[1]);
+                                        rewardButton.SetActive(false);
+                                        AngelaConversationUI.instance.FadeOut = true;
+                                        AngelaConversationUI.instance.FadeIn = true;
+                                    });
+                                }
+                                else
+                                {
+                                    buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                    {
+                                        Award_GetLOB(missionAwardLOB_Level2[0], missionAwardLOB_Level2[1]);
+                                        rewardButton.SetActive(false);
+                                        AngelaConversationUI.instance.FadeOut = true;
+                                        AngelaConversationUI.instance.FadeIn = true;
+                                    });
+                                }
+                                break;
+                            //奇思
+                            case 3:
+                                buttonList[i].transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = LocalizeTextDataModel.instance.GetText("RougeLikeAwardText_Wonder" + mission.level);
+                                TooltipMouseOver toolTip4 = buttonList[i].AddComponent<TooltipMouseOver>();
+                                toolTip4.viewDefaultDesc = false;
+                                toolTip4.SetDynamicTooltip(LocalizeTextDataModel.instance.GetText("RougeLikeAwardTooltip_Wonder" + mission.level));
+
+                                if (mission.level == 1)
+                                {
+                                    buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                    {
+                                        Award_GetWonder(missionAwardWonder_Level1[0], missionAwardWonder_Level1[1]);
+                                        rewardButton.SetActive(false);
+                                        AngelaConversationUI.instance.FadeOut = true;
+                                        AngelaConversationUI.instance.FadeIn = true;
+                                    });
+                                }
+                                else
+                                {
+                                    buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                    {
+                                        Award_GetWonder(missionAwardWonder_Level2[0], missionAwardWonder_Level2[1]);
+                                        rewardButton.SetActive(false);
+                                        AngelaConversationUI.instance.FadeOut = true;
+                                        AngelaConversationUI.instance.FadeIn = true;
+                                    });
+                                }
+                                break;
+                            //模因
+                            case 4:
+                                buttonList[i].transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = LocalizeTextDataModel.instance.GetText("RougeLikeAwardText_Meme" + mission.level);
+                                TooltipMouseOver toolTip5 = buttonList[i].AddComponent<TooltipMouseOver>();
+                                toolTip5.viewDefaultDesc = false;
+                                toolTip5.SetDynamicTooltip(LocalizeTextDataModel.instance.GetText("RougeLikeAwardTooltip_Meme" + mission.level));
+
+                                if (mission.level == 1)
+                                {
+                                    buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                    {
+                                        Award_GetMeme(missionAwardMemeRate_Level1);
+                                        rewardButton.SetActive(false);
+                                        AngelaConversationUI.instance.FadeOut = true;
+                                        AngelaConversationUI.instance.FadeIn = true;
+                                    });
+                                }
+                                else
+                                {
+                                    buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                    {
+                                        Award_GetMeme(missionAwardMemeRate_Level2);
+                                        rewardButton.SetActive(false);
+                                        AngelaConversationUI.instance.FadeOut = true;
+                                        AngelaConversationUI.instance.FadeIn = true;
+                                    });
+                                }
+                                break;
+                            default:
+                                buttonList[i].transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = "ERROR";
+                                buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
+                                {
+                                    rewardButton.SetActive(false);
+                                    AngelaConversationUI.instance.FadeOut = true;
+                                    AngelaConversationUI.instance.FadeIn = true;
+                                });
+                                break;
                         }
                     }
                     if (mission.level == 1)
                     {
                         GameObject.Destroy(rewardButton.transform.GetChild(2).gameObject);
                     }
+
+                    Harmony_Patch.dayResult[2]++;
                 }
                 catch (Exception ex)
                 {
@@ -996,14 +1025,6 @@ namespace NewGameMode
 
             }
 
-            public static void DestroyAwardButton()
-            {
-                rewardButton.SetActive(false);
-                //string text = LocalizeTextDataModel.instance.GetText("RandomEvent_AwardEnd");
-                //AngelaConversationUI.instance.AddAngelaMessage(text);
-                AngelaConversationUI.instance.FadeOut = true;
-                AngelaConversationUI.instance.FadeIn = true;
-            }
 
             public static void CheckEnergyAndWorkMission(UseSkill __instance)
             {
@@ -1047,18 +1068,28 @@ namespace NewGameMode
             {
                 try
                 {
+                    Harmony_Patch.YKMTLogInstance.InGameLog("Suppress1");
                     if (EXTRAMissionManager.instance.GetStartMission().Find((EXTRAMission x) => x.name == "E2") != null)
                     {
+                        Harmony_Patch.YKMTLogInstance.InGameLog("Suppress2");
                         EXTRAMission extraMission = EXTRAMissionManager.instance.GetStartMission().Find((EXTRAMission x) => x.name == "E2");
+                        Harmony_Patch.YKMTLogInstance.InGameLog("Suppress3");
                         if (!extraMission.IsCleard)
                         {
+                            Harmony_Patch.YKMTLogInstance.InGameLog("Suppress4");
                             if (__instance.GetRiskLevel() >= extraMission.risk_level)
+                            {
+                                Harmony_Patch.YKMTLogInstance.InGameLog("Suppress5");
                                 extraMission.count++;
+                            }
+                                
                             if (extraMission.count >= extraMission.goal)
                             {
+                                Harmony_Patch.YKMTLogInstance.InGameLog("Suppress6");
                                 extraMission.IsCleard = true;
                                 EndMission(extraMission);
                             }
+                            Harmony_Patch.YKMTLogInstance.InGameLog("Suppress7");
                             extraMission.slot.Refresh();
                         }
                     }
@@ -1173,6 +1204,11 @@ namespace NewGameMode
                         AngelaConversationUI.instance.AddAngelaMessage(text);
                     }
                 }
+
+                if (level == 5)
+                {
+                    Harmony_Patch.dayResult[1]++;
+                }
             }
             catch (Exception ex)
             {
@@ -1207,6 +1243,8 @@ namespace NewGameMode
                     string text = LocalizeTextDataModel.instance.GetText("RandomAward_GetAgent") + agentModel.name;
                     AngelaConversationUI.instance.AddAngelaMessage(text);
                 }
+
+                Harmony_Patch.dayResult[0]++;
             }
             catch (Exception ex)
             {
