@@ -1,8 +1,8 @@
 ﻿using Assets.Scripts.UI.Utils;
 using DG.Tweening;
 using Harmony;
+using HPHelper;
 using NewGameMode.Diffculty;
-using Steamworks.Ugc;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -42,59 +42,25 @@ namespace NewGameMode
         public static int originMoney = 80;
         public static int originWonder = 100;
 
-        public static YKMTLog YKMTLogInstance;
-        public static Action<string> LogInfo = (message) => YKMTLogInstance.Info(message);
-        public static Action<string> LogError = (message) => YKMTLogInstance.Error(message);
-        public static Action<Exception> LogErrorEx = (message) => YKMTLogInstance.Error(message);
-        public static Action<string> LogWarning = (message) => YKMTLogInstance.Warn(message);
-        public static Action<string> LogDebug = (message) => YKMTLogInstance.Debug(message);
+        public static YKMTLog logger;
+        public static Action<string> LogInfo = (message) => logger.Info(message);
+        public static Action<string> LogError = (message) => logger.Error(message);
+        public static Action<Exception> LogErrorEx = (message) => logger.Error(message);
+        public static Action<string> LogWarning = (message) => logger.Warn(message);
+        public static Action<string> LogDebug = (message) => logger.Debug(message);
         public Harmony_Patch()
         {
             try
             {
-                YKMTLogInstance = new YKMTLog(path + "/Logs", true);
+                logger = new YKMTLog(path + "/Logs", "LobotomyRougeLog", true);
                 LogInfo("NewGameMode by YKMT TEAM. Version " + VERSION);
                 LogInfo("ModPath: " + path);
                 HarmonyInstance harmony = HarmonyInstance.Create("ykmt.NewGameMode");
-                // File.WriteAllText(path + "/Log.txt", "");
-                //复制dll文件
-                harmony.Patch(typeof(GlobalGameManager).GetMethod("Awake", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("CopyDll")), null);
-                //存储数据
-                harmony.Patch(typeof(GlobalGameManager).GetMethod("SaveGlobalData", AccessTools.all), new HarmonyMethod(typeof(Harmony_Patch).GetMethod("SaveGlobalData")), null, null);
-                harmony.Patch(typeof(GlobalGameManager).GetMethod("SaveData", AccessTools.all), new HarmonyMethod(typeof(Harmony_Patch).GetMethod("SaveDayData")), null, null);
-                harmony.Patch(typeof(GlobalGameManager).GetMethod("SaveData", AccessTools.all), new HarmonyMethod(typeof(Harmony_Patch).GetMethod("SaveRougeLikeDayData")), null, null);
-                //结束这一天时存档
-                harmony.Patch(typeof(GameManager).GetMethod("ClearStage", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("OnClearStage")), null);
-
-                //各种UI：主页UI，当天结算界面UI，
-                harmony.Patch(typeof(AlterTitleController).GetMethod("Start", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NewGameModeButton_Start")), null);
-                harmony.Patch(typeof(ResultScreen).GetMethod("OnSuccessManagement", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("ResultScreen_Board")), null);
-
-                //局内机制修改:禁止重开和回库，禁止重开已在模因处完成修改，所以代码全部废弃
-
-                //harmony.Patch(typeof(GameManager).GetMethod("ReturnToCheckPoint", AccessTools.all), new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NoRestartAndCheckPoint")), null, null);
-                //harmony.Patch(typeof(EscapeUI).GetMethod("Start", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NoCheckPointButton_EscapeUI")), null);
-                //harmony.Patch(typeof(ResultScreen).GetMethod("Awake", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NoRestartButton_ResultScreen")), null);
-                
-                //损失全部员工时删档并回到标题页
-                harmony.Patch(typeof(Sefira).GetMethod("OnAgentCannotControll", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("ReturnToTitleOnGameOver")), null);
-                //屏蔽剧情
-                harmony.Patch(typeof(StoryUI).GetMethod("LoadStory", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NoStory")), null);
-                //第40天（即肉鸽模式的第五天）开启挑战
-
-                //harmony.Patch(typeof(AlterTitleController).GetMethod("Awake", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NewGameModeButton_Awake")), null);
-                //harmony.Patch(typeof(AlterTitleController).GetMethod("OnClickButton", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("NewGameModeButton_OnClick")), null);
-                //图鉴相关
-                //harmony.Patch(typeof(CreatureObserveInfoModel).GetMethod("GetObserveCost", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("ObserveCostBoost")), null);
-                harmony.Patch(typeof(CreatureModel).GetMethod("AddObservationLevel", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("ObserveGetLOB")), null);
-                harmony.Patch(typeof(AgentModel).GetMethod("OnStageStart", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("ObserveGetBouns")), null);
-                harmony.Patch(typeof(CreatureModel).GetMethod("GetCubeSpeed"), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("WorkSpeedBoost")));
-                harmony.Patch(typeof(CreatureEquipmentMakeInfo).GetMethod("GetCostAfterUpgrade", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("EquipmentCostDecrease")), null);
-
-                new Challenge_Patch(harmony);
-                new EnergyAndOverload_Patch(harmony);
-                new EnergyAndOverload_Patch.RGRandomEventManager(harmony);
-                new Meme_Patch(harmony);
+                HPPatcher.PatchAll(harmony, typeof(Harmony_Patch));
+                HPPatcher.PatchAll(harmony, typeof(Challenge_Patch));
+                HPPatcher.PatchAll(harmony, typeof(EnergyAndOverload_Patch));
+                HPPatcher.PatchAll(harmony, typeof(EnergyAndOverload_Patch.RGRandomEventManager));
+                HPPatcher.PatchAll(harmony, typeof(Meme_Patch));
 
                 // 初始化商店
                 ShopManager.InitShopMeme();
@@ -102,22 +68,25 @@ namespace NewGameMode
                 // 初始化难度系统
                 DifficultyManager.Init();
                 // HarmonyPatch
-                new DifficultyPatch(harmony);
+                HPPatcher.PatchAll(harmony, typeof(DifficultyPatch));
 
                 // Technology
                 ZoharModel.LoadZoharData();
             }
             catch (Exception ex)
             {
-                YKMTLogInstance.Error("Error While Patching. Exception Message: " + ex.Message + "\nStack Trace: " + ex.StackTrace);
+                logger.Error("Error While Patching. Exception Message: " + ex.Message + "\nStack Trace: " + ex.StackTrace);
             }
         }
-
+        [HPHelper(typeof(CreatureModel), "GetCubeSpeed")]
+        [HPPostfix]
         public static void WorkSpeedBoost(ref float __result)
         {
             __result *= 1.5f;
         }
 
+        [HPHelper(typeof(GlobalGameManager), "Awake")]
+        [HPPostfix]
         public static void CopyDll()
         {
             string[] dllFiles = Directory.GetFiles(path, "*.dll");
@@ -143,7 +112,7 @@ namespace NewGameMode
                     }
                     catch (Exception ex)
                     {
-                        YKMTLogInstance.Error("Could not copy " + fileName + ". Reason: " + ex.ToString());
+                        logger.Error("Could not copy " + fileName + ". Reason: " + ex.ToString());
                     }
                 }
                 else
@@ -154,7 +123,7 @@ namespace NewGameMode
                     }
                     catch (Exception ex)
                     {
-                        YKMTLogInstance.Error("Could not copy " + fileName + ". Reason: " + ex.ToString());
+                        logger.Error("Could not copy " + fileName + ". Reason: " + ex.ToString());
                     }
                 }
             }
@@ -166,6 +135,8 @@ namespace NewGameMode
         /// 除了修改启动页的按钮以外，也用来设置随机数种子
         /// </summary>
         /// <param name="__instance"></param>
+        [HPHelper(typeof(AlterTitleController), "Start")]
+        [HPPostfix]
         public static void NewGameModeButton_Start(AlterTitleController __instance)
         {
             try
@@ -291,7 +262,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                YKMTLogInstance.Error(ex);
+                logger.Error(ex);
             }
 
         }
@@ -337,7 +308,7 @@ namespace NewGameMode
             }
             catch (Exception message)
             {
-                YKMTLogInstance.Error(message);
+                logger.Error(message);
                 Debug.LogError(message);
                 GlobalGameManager.instance.ReleaseGame();
             }
@@ -444,7 +415,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                YKMTLogInstance.Error(ex);
+                logger.Error(ex);
             }
 
             return false;
@@ -497,7 +468,8 @@ namespace NewGameMode
             //以下为肉鸽新增的内容初始化
             WonderModel.instance.Init(10000);
         }
-
+        [HPHelper(typeof(GlobalGameManager), "SaveGlobalData")]
+        [HPPrefix]
         public static bool SaveGlobalData()
         {
             try
@@ -520,12 +492,13 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                YKMTLogInstance.Error(ex);
+                logger.Error(ex);
             }
 
             return true;
         }
-
+        [HPHelper(typeof(GlobalGameManager), "SaveData")]
+        [HPPrefix]
         public static bool SaveDayData()
         {
             try
@@ -564,11 +537,12 @@ namespace NewGameMode
 
             catch (Exception ex)
             {
-                YKMTLogInstance.Error(ex);
+                logger.Error(ex);
             }
             return true;
         }
-
+        [HPHelper(typeof(GlobalGameManager), "SaveData")]
+        [HPPrefix]
         public static void SaveRougeLikeDayData()//存储某天的肉鸽相关内容，例如D35的模因和奇思
         {
             //结构如下：dictionary的key表示存储的内容类型，例如wonder代表奇思，meme代表模因
@@ -656,7 +630,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                YKMTLogInstance.Error(ex);
+                logger.Error(ex);
             }
         }
         //?
@@ -753,7 +727,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                YKMTLogInstance.Error(ex);
+                logger.Error(ex);
             }
             return;
         }
@@ -784,47 +758,48 @@ namespace NewGameMode
                 Dictionary<string, object> dic6 = null;
                 string text = "old";
                 GameUtil.TryGetValue<string>(data, "saveInnerVer", ref text);
-                YKMTLogInstance.Debug("LoadDay Debugnum 1");
+                logger.Debug("LoadDay Debugnum 1");
                 //int dayFromSaveData = GlobalGameManager.instance.GetDayFromSaveData(data);
                 GameUtil.TryGetValue<Dictionary<string, object>>(data, "money", ref dic);
-                YKMTLogInstance.Debug("LoadDay Debugnum 2");
+                logger.Debug("LoadDay Debugnum 2");
                 GameUtil.TryGetValue<Dictionary<string, object>>(data, "agents", ref dic2);
-                YKMTLogInstance.Debug("LoadDay Debugnum 3");
+                logger.Debug("LoadDay Debugnum 3");
                 GameUtil.TryGetValue<Dictionary<string, object>>(data, "creatures", ref dic3);
-                YKMTLogInstance.Debug("LoadDay Debugnum 4");
+                logger.Debug("LoadDay Debugnum 4");
                 GameUtil.TryGetValue<Dictionary<string, object>>(data, "playerData", ref dic4);
-                YKMTLogInstance.Debug("LoadDay Debugnum 5");
+                logger.Debug("LoadDay Debugnum 5");
                 GameUtil.TryGetValue<Dictionary<string, object>>(data, "sefiras", ref dic5);
-                YKMTLogInstance.Debug("LoadDay Debugnum 6");
+                logger.Debug("LoadDay Debugnum 6");
                 GameUtil.TryGetValue<string>(data, "saveState", ref GlobalGameManager.instance.saveState);
-                YKMTLogInstance.Debug("LoadDay Debugnum 7");
+                logger.Debug("LoadDay Debugnum 7");
                 if (GameUtil.TryGetValue<Dictionary<string, object>>(data, "agentName", ref dic6))
                 {
                     AgentNameList.instance.LoadData(dic6);
                 }
                 MoneyModel.instance.LoadData(dic);
-                YKMTLogInstance.Debug("LoadDay Debugnum 8");
+                logger.Debug("LoadDay Debugnum 8");
                 PlayerModel.instance.LoadData(dic4);
-                YKMTLogInstance.Debug("LoadDay Debugnum 9");
+                logger.Debug("LoadDay Debugnum 9");
                 SefiraManager.instance.LoadData(dic5);
-                YKMTLogInstance.Debug("LoadDay Debugnum 10");
+                logger.Debug("LoadDay Debugnum 10");
                 //AgentManager.instance.LoadCustomAgentData();
-                YKMTLogInstance.Debug("LoadDay Debugnum 11");
+                logger.Debug("LoadDay Debugnum 11");
                 CreatureManager.instance.LoadData(dic3);
-                YKMTLogInstance.Debug("LoadDay Debugnum 12");
+                logger.Debug("LoadDay Debugnum 12");
                 //AgentManager.instance.LoadDelAgentData();
-                YKMTLogInstance.Debug("LoadDay Debugnum 13");
+                logger.Debug("LoadDay Debugnum 13");
                 AgentManager.instance.LoadData(dic2);
-                YKMTLogInstance.Debug("LoadDay Debugnum 14");
+                logger.Debug("LoadDay Debugnum 14");
                 GlobalGameManager.instance.gameMode = rougeLike;
             }
             catch (Exception ex)
             {
-                YKMTLogInstance.Error(ex);
+                logger.Error(ex);
             }
         }
 
-
+        [HPHelper(typeof(GameManager), "ClearStage")]
+        [HPPostfix]
         public static void OnClearStage()//只有在开始下一天的时候才会触发该函数
         {
             if (GlobalGameManager.instance.gameMode == rougeLike)
@@ -1084,7 +1059,7 @@ namespace NewGameMode
                                 a_equip_id.RemoveAt(random_id);//列表中删除此id避免重复选中
                             }; break;
                     }
-                    
+
                     if (equipmentSaveData == null)
                     {
                         File.AppendAllText(path + "/RandomEquipError0.txt", "NoSaveData");
@@ -1099,7 +1074,7 @@ namespace NewGameMode
 
             catch (Exception ex)
             {
-                YKMTLogInstance.Error(ex);
+                logger.Error(ex);
             }
             return result;
         }
@@ -1270,7 +1245,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                YKMTLogInstance.Error(ex);
+                logger.Error(ex);
             }
 
             //AgentManager.instance.GetSaveData();
@@ -1364,7 +1339,7 @@ namespace NewGameMode
                                 random_id[i] = t_creature_list[random];
                                 t_creature_list.RemoveAt(random);//删除异想体避免重复选中
                                 break;
-                            case 2: 
+                            case 2:
                                 random = customRandom.NextInt(0, h_creature_list.Count);
                                 random_id[i] = h_creature_list[random];
                                 h_creature_list.RemoveAt(random);//删除异想体避免重复选中
@@ -1378,7 +1353,7 @@ namespace NewGameMode
                                 random = customRandom.NextInt(0, a_creature_list.Count);
                                 random_id[i] = a_creature_list[random];
                                 a_creature_list.RemoveAt(random);//删除异想体避免重复选中
-                                break ;
+                                break;
                         }
 
                         Sefira sefira = SefiraManager.instance.GetSefira(sefira_id);
@@ -1389,7 +1364,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                YKMTLogInstance.Error(ex);
+                logger.Error(ex);
             }
             //CreatureManager.instance.AddCreatureInSefira()
         }
@@ -1402,9 +1377,9 @@ namespace NewGameMode
                 bool dlcCreatureOn = GlobalGameManager.instance.dlcCreatureOn;
                 List<long> all_creature_list;
                 RiskLevel[] blackList_level = { RiskLevel.ZAYIN, RiskLevel.TETH, RiskLevel.HE };
-                long[] blackList_id = { 100044, 100047,100039,100032 };//穿刺乐园，洋流，贪婪，帽姐，但帽姐只是为了和大坏狼分开
+                long[] blackList_id = { 100044, 100047, 100039, 100032 };//穿刺乐园，洋流，贪婪，帽姐，但帽姐只是为了和大坏狼分开
 
-                List<long> deleted_id = new List<long>();
+                List<long> deleted_id = [];
                 if (dlcCreatureOn)
                 {
                     all_creature_list = new List<long>(CreatureGenerateInfo.all);
@@ -1457,7 +1432,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                YKMTLogInstance.Error(ex);
+                logger.Error(ex);
             }
         }
 
@@ -1493,7 +1468,8 @@ namespace NewGameMode
                 ResultScreen.instance.root.transform.GetChild(0).GetChild(4).GetChild(0).GetChild(0).gameObject.SetActive(false);
             }
         }
-
+        [HPHelper(typeof(StoryUI), "LoadStory")]
+        [HPPostfix]
         public static void NoStory(StoryUI __instance)
         {
             if (GlobalGameManager.instance.gameMode == rougeLike)
@@ -1510,7 +1486,8 @@ namespace NewGameMode
                 __result = Convert.ToInt32(__result * 1.5f);
             }
         }
-
+        [HPHelper(typeof(CreatureModel), "AddObservationLevel")]
+        [HPPostfix]
         public static void ObserveGetLOB(CreatureModel __instance)
         {
             if (GlobalGameManager.instance.gameMode == rougeLike)
@@ -1532,7 +1509,8 @@ namespace NewGameMode
                 }
             }
         }
-
+        [HPHelper(typeof(AgentModel), "OnStageStart")]
+        [HPPostfix]
         public static void ObserveGetBouns(AgentModel __instance)
         {
             if (GlobalGameManager.instance.gameMode == rougeLike)
@@ -1580,7 +1558,8 @@ namespace NewGameMode
                 __instance.mental = __instance.maxMental;
             }
         }
-
+        [HPHelper(typeof(CreatureEquipmentMakeInfo), "GetCostAfterUpgrade")]
+        [HPPostfix]
         public static void EquipmentCostDecrease(ref int __result)
         {
             if (GlobalGameManager.instance.gameMode == rougeLike)
@@ -1588,7 +1567,8 @@ namespace NewGameMode
                 __result = Convert.ToInt32(__result * 0.75f);
             }
         }
-
+        [HPHelper(typeof(Sefira), "OnAgentCannotControll")]
+        [HPPostfix]
         public static void ReturnToTitleOnGameOver()
         {
             if (SefiraManager.instance.GameOverCheck())
@@ -1618,7 +1598,8 @@ namespace NewGameMode
             }
 
         }
-
+        [HPHelper(typeof(ResultScreen), "OnSuccessManagement")]
+        [HPPostfix]
         public static void ResultScreen_Board()
         {
             GameObject.Destroy(ResultScreen.instance.root.transform.GetChild(0).GetChild(6).GetChild(0).gameObject.GetComponent<FontLoadScript>());
@@ -1661,8 +1642,8 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Debug(num.ToString());
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Debug(num.ToString());
+                Harmony_Patch.logger.Error(ex);
             }
         }
         public void Update()
@@ -1704,7 +1685,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
         public void OnPointerEnter(PointerEventData eventData)
@@ -1720,7 +1701,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
         public void OnPointerExit(PointerEventData eventData)
@@ -1737,7 +1718,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
     }
@@ -1770,7 +1751,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
         public void Update()
@@ -1800,7 +1781,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
         public void PlayClip(AudioClipPlayer.PlayerData data)
@@ -1838,7 +1819,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
         public void OnPointerExit(PointerEventData eventData)
@@ -1852,7 +1833,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
 
@@ -1878,7 +1859,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
 
@@ -1893,7 +1874,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
 
@@ -1935,7 +1916,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
     }
@@ -1958,12 +1939,12 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
     }
 
-    
+
 }
 ///////////
 public class LocalizeTextLoadScriptWithOutFontLoadScript : MonoBehaviour, ILanguageLinkedData, IObserver

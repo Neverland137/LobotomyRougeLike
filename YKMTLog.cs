@@ -10,6 +10,7 @@ namespace NewGameMode
     {
         public bool IsDebugEnabled = false;
         private string LogDir;
+        private string fileHead;
         public enum LogLevel
         {
             Info,
@@ -20,7 +21,7 @@ namespace NewGameMode
         /// <summary>
         /// 初始化日志系统。
         /// </summary>
-        public YKMTLog(string logDir, bool isDebugEnabled)
+        public YKMTLog(string logDir,string fileHead, bool isDebugEnabled)
         {
             if (!Directory.Exists(logDir))
             {
@@ -31,6 +32,7 @@ namespace NewGameMode
                 IsDebugEnabled = true;
             }
             LogDir = logDir;
+            this.fileHead = fileHead;
         }
         /// <summary>
         /// 游戏内左下角显示日志。
@@ -48,7 +50,7 @@ namespace NewGameMode
         private void AppendLog(string message, string messageHead)
         {
             DateTime currentTime = DateTime.Now;
-            File.AppendAllText(LogDir + $"/LobotomyRougeLog-{currentTime:yyyy-MM-dd}.log", $"[{messageHead}][{currentTime:yyyy/MM/dd HH:mm:ss}] " + message + Environment.NewLine);
+            File.AppendAllText(LogDir + $"/{fileHead}-{currentTime:yyyy-MM-dd}.log", $"[{messageHead}][{currentTime:yyyy/MM/dd HH:mm:ss}] " + message + Environment.NewLine);
         }
         /// <summary>
         /// 写入日志。

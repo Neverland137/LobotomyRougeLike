@@ -1,4 +1,5 @@
 ﻿using Harmony;
+using HPHelper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,11 +12,8 @@ namespace NewGameMode
     public class Challenge_Patch
     {
         public static GameMode rougeLike = (GameMode)666666;
-        public Challenge_Patch(HarmonyInstance instance)
-        {
-            instance.Patch(typeof(DeployUI).GetMethod("Init"), null, new HarmonyMethod(typeof(Challenge_Patch).GetMethod("DeployUI_Init")));
-            instance.Patch(typeof(GameManager).GetMethod("StartGame", AccessTools.all), null, new HarmonyMethod(typeof(Challenge_Patch).GetMethod("CallRandomChallenge")), null);
-        }
+        [HPHelper(typeof(DeployUI), "Init")]
+        [HPPostfix]
         public static void DeployUI_Init()
         {
             if (GlobalGameManager.instance.gameMode == rougeLike)
@@ -26,6 +24,8 @@ namespace NewGameMode
                 }
             }
         }
+        [HPHelper(typeof(GameManager), "StartGame")]
+        [HPPostfix]
         public static void CallRandomChallenge()
         {
             if (GlobalGameManager.instance.gameMode == rougeLike)

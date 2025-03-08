@@ -129,7 +129,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
 
@@ -250,7 +250,7 @@ namespace NewGameMode
             }
             else
             {
-                Harmony_Patch.YKMTLogInstance.Error("MemeManager.all_dic is null. can't init shop meme.");
+                Harmony_Patch.logger.Error("MemeManager.all_dic is null. can't init shop meme.");
             }
         }
 
@@ -404,8 +404,8 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(num.ToString());
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(num.ToString());
+                Harmony_Patch.logger.Error(ex);
             }
             return shopProducts;
         }
@@ -493,7 +493,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
     }
