@@ -25,7 +25,7 @@ namespace NewGameMode
         public static GameObject rewardButton3 = new GameObject();
         public static List<GameObject> buttonList = new List<GameObject>() { rewardButton1, rewardButton2, rewardButton3 };
         ///////////
-        [HPHelper(typeof(OrdealGenInfo), "OrdealGenInfo")]
+        [HPHelper(typeof(OrdealGenInfo), "GenerateOrdeals")]
         [HPPostfix]
         public static void BlockOriginOrdeal(ref List<OrdealBase> __result)
         {
@@ -62,8 +62,7 @@ namespace NewGameMode
                 CreatureOverloadManager.instance.SetPrivateField("_qliphothOverloadMax", 4);
             }
         }
-        [HPHelper(typeof(CreatureOverloadManager), "ActivateOverload")]
-        [HPPrefix]
+        // Need Manual Patch
         public static void SetOverloadMultiply()
         {
             try
@@ -110,9 +109,7 @@ namespace NewGameMode
             }
         }
         ///////////
-
-        [HPHelper(typeof(CreatureOverloadManager), "ActivateOverload")]
-        [HPPostfix]
+        // Need Manual Patch
         public static void CallRandomEvent()
         {
             try

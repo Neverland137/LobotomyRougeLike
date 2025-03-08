@@ -42,6 +42,7 @@
     <Compile Include="Furnace\FurnaceManager.cs" />
     <Compile Include="HPHelper.cs" />
     <Compile Include="Main.cs" />
+    <Compile Include="Patch\ManualPatch.cs" />
     <Compile Include="Meme\MemeButtonData.cs" />
     <Compile Include="Meme\MemeButtonMovement.cs" />
     <Compile Include="Meme\MemeInfo.cs" />

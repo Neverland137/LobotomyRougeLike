@@ -1,31 +1,21 @@
-﻿using Assets.Scripts.UI.Utils;
-using DG.Tweening;
-using DG.Tweening.Plugins.Core.PathCore;
-using GameStatusUI;
+﻿using DG.Tweening;
 using Harmony;
 using HPHelper;
 using NewGameMode.Diffculty;
-using Steamworks.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.UI;
-using static Mono.Security.X509.X520;
-using static UnityEngine.Analytics.EnumCase;
 
 namespace NewGameMode
 {
     public class Meme_Patch
     {
         public static GameMode rougeLike = (GameMode)666666;
-        
+
         [HPHelper(typeof(GameStaticDataLoader), "LoadStaticData")]
         [HPPostfix]
         public static void LoadAllInfo()
@@ -39,7 +29,7 @@ namespace NewGameMode
                 Harmony_Patch.logger.Error(ex);
             }
         }
-        [HPHelper(typeof(ConsoleCommand), "GetHmmCommand")]
+        [HPHelper(typeof(ConsoleScript), "GetHmmCommand")]
         [HPPrefix]
         public static bool GetAllCommand(string cmd, ref string __result)
         {
@@ -127,7 +117,7 @@ namespace NewGameMode
                             return false;
                         }
                     }
-                    else if (type == "shop") 
+                    else if (type == "shop")
                     {
                         if (type2 == "show")
                         {
@@ -155,7 +145,7 @@ namespace NewGameMode
                             return false;
                         }
                     }
-                    else if(type == "seed")
+                    else if (type == "seed")
                     {
                         if ((type2 != null))
                         {
@@ -176,7 +166,7 @@ namespace NewGameMode
                             GameStatusUI.GameStatusUI.Window.logController.script.DeleteAll();
                         }
                     }
-                    
+
                 }
             }
             catch (Exception ex)
@@ -214,16 +204,18 @@ namespace NewGameMode
                 GameObject exitButton = MemeManager.memeScene.transform.Find("ExitButton").gameObject;
                 UniversalButtonIntereaction btIn1 = exitButton.AddComponent<UniversalButtonIntereaction>();
                 btIn1.pointerEnterSound = false;
-                exitButton.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => {
+                exitButton.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() =>
+                {
                     btIn1.Click(true, false, false);
-                    MemeManager.memeScene.transform.DOScale(new Vector3(0, 0, 1), 1).SetEase(Ease.OutExpo).SetUpdate(true).OnComplete(() => {
+                    MemeManager.memeScene.transform.DOScale(new Vector3(0, 0, 1), 1).SetEase(Ease.OutExpo).SetUpdate(true).OnComplete(() =>
+                    {
                         MemeManager.memeScene.SetActive(false);
                     });
                 });
                 exitButton.transform.Find("Text").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>().id = "Meme_ExitButton";
                 exitButton.transform.Find("Text").gameObject.AddComponent<FontLoadScript>();
                 //单个模因按钮写在CreateMemeModel里
-                
+
                 //详情页的文本设置
                 GameObject detail = MemeManager.memeScene.transform.Find("WonderandDetail").Find("Detail").gameObject;
                 detail.transform.Find("Name").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
@@ -239,7 +231,7 @@ namespace NewGameMode
                 detail.transform.Find("BuyButton").Find("Text").gameObject.AddComponent<FontLoadScript>();
                 */
                 //奇思设置
-                
+
                 GameObject wonder = MemeManager.memeScene.transform.Find("WonderandDetail").Find("Wonder").gameObject;
                 wonder.transform.Find("Text").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
                 wonder.transform.Find("Text").gameObject.AddComponent<UpdateWonder>();
@@ -280,7 +272,7 @@ namespace NewGameMode
         [HPPrefix]
         public static bool TurnRestartToMemeScene()
         {
-            
+
             if (GlobalGameManager.instance.gameMode == rougeLike)
             {
                 Harmony_Patch.logger.Info("ShowMemeScene");
@@ -321,7 +313,7 @@ namespace NewGameMode
                             memeScene.transform.Find("MemeButtons").Find("Buttons").GetChild(i).Find("Image").gameObject.GetComponent<UnityEngineImage>().sprite = 
                         }
                         */
-                        
+
                     }
                 }
                 catch (Exception ex)
@@ -426,7 +418,7 @@ namespace NewGameMode
 
             //原IL和新IL
             var codes = instructions.ToList();
-            List<CodeInstruction> newCodes = new List<CodeInstruction>();
+            List<CodeInstruction> newCodes = [];
             IEnumerable<CodeInstruction> newCodes_copy;
 
             bool findRawMethod = false;//如果定位用方法被调用后没有立刻结束这一行，而是还有一句IL码，则借此判断，并在下一句IL码之后插入
@@ -439,7 +431,7 @@ namespace NewGameMode
                 //如果已经跳过方法后的一句IL码，就将findRawMethod重新改为false。
                 if (findRawMethod)//为了避免if的条件判断中调用方法导致误判，需要检查调用方法后的这句IL码是不是正常调用后出现的IL码，如果是，再插入新的。
                 {
-                    findRawMethod = false ;
+                    findRawMethod = false;
                     if (code.opcode == OpCodes.Stloc_S)
                     {
                         methodTimes++;
@@ -451,7 +443,7 @@ namespace NewGameMode
                         {
                             newCodes.Add(new CodeInstruction(OpCodes.Ldloca_S, 7));//压入被patch的方法的第七个局部参数。
                         }
-                        else if(methodTimes == 2)
+                        else if (methodTimes == 2)
                         {
                             newCodes.Add(new CodeInstruction(OpCodes.Ldloca_S, 13));
                         }
@@ -497,7 +489,7 @@ namespace NewGameMode
 
             //原IL和新IL
             var codes = instructions.ToList();
-            List<CodeInstruction> newCodes = new List<CodeInstruction>();
+            List<CodeInstruction> newCodes = [];
             IEnumerable<CodeInstruction> newCodes_copy;
 
             int methodTimes = 0;//记录定位用方法出现了几次，适用于每次调用方法时压入参数不同的情况
@@ -517,7 +509,7 @@ namespace NewGameMode
                             newCodes.Add(new CodeInstruction(OpCodes.Ldsfld, instance));//在调用一个方法前，如果这个方法不是静态方法，那么必须先向栈内压入方法的实例
                             newCodes.Add(new CodeInstruction(OpCodes.Ldarg_1));//从被patch的方法中获取第一个参数并压入，按照从左至右，成为第一个参数
                             newCodes.Add(new CodeInstruction(OpCodes.Ldarg_0));//将WeaponModel实例压入栈内。由于不属于UnitModel，它不会成为方法的参数
-                            
+
                             if (methodTimes == 1)
                             {
                                 newCodes.Add(new CodeInstruction(OpCodes.Ldfld, currentTarget));//从WeaponModel实例中获取target并压入，按照从左至右，成为第二个参数
@@ -543,7 +535,7 @@ namespace NewGameMode
             return newCodes_copy;
 
         }
-        [HPHelper(typeof(EquipmentScriptBase), "OnKillTargetWorker")]
+        [HPHelper(typeof(EquipmentScriptBase), "OnKillMainTarget")]
         [HPPostfix]
         public static void Meme_OnKillTargetWorker(UnitModel actor, UnitModel target)
         {

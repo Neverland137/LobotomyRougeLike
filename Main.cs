@@ -61,6 +61,7 @@ namespace NewGameMode
                 HPPatcher.PatchAll(harmony, typeof(EnergyAndOverload_Patch));
                 HPPatcher.PatchAll(harmony, typeof(EnergyAndOverload_Patch.RGRandomEventManager));
                 HPPatcher.PatchAll(harmony, typeof(Meme_Patch));
+                ManualPatch.PatchMethods(harmony);
 
                 // 初始化商店
                 ShopManager.InitShopMeme();

@@ -171,12 +171,12 @@ namespace HPHelper
             }
             catch (Exception ex)
             {
-                LogError("Error processing method: " + ex.ToString());
+                LogError($"Error processing method {patchMethod.Name}: " + ex.ToString());
             }
         }
         public static Type[] GetParameterTypes(Type type, string methodName)
         {
-            MethodInfo[] methods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
+            MethodInfo[] methods = type.GetMethods(AccessTools.all);
             List<MethodInfo> methodList = new List<MethodInfo>();
             foreach (var method in methods)
             {
