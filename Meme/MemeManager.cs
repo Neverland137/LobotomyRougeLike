@@ -494,6 +494,8 @@ namespace NewGameMode
                         break;
                     }
                 }
+
+                Harmony_Patch.dayResult[3]++;
             }
             catch (Exception ex)
             {

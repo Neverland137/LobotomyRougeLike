@@ -42,6 +42,9 @@ namespace NewGameMode
         public static int originMoney = 80;
         public static int originWonder = 100;
 
+        public static List<int> dayResult = new List<int> { 0,0,0,0,0};//依次为：获得员工数，获得A级EGO数，完成任务数，获得模因数，获得奇思数
+        public static List<int> gameResult = new List<int>{ 0, 0, 0, 0, 0 ,0,0,0};//依次为：获得员工数，获得A武数，获得A甲数，完成任务数，获得模因数，获得3级模因数，获得奇思数，击败BOSS数
+
         public static YKMTLog YKMTLogInstance;
         public static Action<string> LogInfo = (message) => YKMTLogInstance.Info(message);
         public static Action<string> LogError = (message) => YKMTLogInstance.Error(message);
@@ -1628,10 +1631,15 @@ namespace NewGameMode
             title.text = LocalizeTextDataModel.instance.GetText("ResultScreen_Title");
 
             UnityEngine.UI.Text text = ResultScreen.instance.root.transform.GetChild(0).GetChild(6).gameObject.AddComponent<UnityEngine.UI.Text>();
-            text.text = "AAAAAAAA";
+            foreach (int cnt in dayResult)
+            {
+                text.text += LocalizeTextDataModel.instance.GetText("ResultScreen_Text" + cnt) + ":" + cnt.ToString() + Environment.NewLine; 
+            }
+            
             text.color = UnityEngine.Color.white;
             text.transform.localPosition = Vector3.zero;
             text.transform.localScale = Vector3.one * 100;
+            dayResult = new List<int> { 0, 0, 0, 0, 0 };
         }
     }
 

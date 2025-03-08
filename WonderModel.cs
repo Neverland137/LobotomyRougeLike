@@ -75,6 +75,8 @@ namespace NewGameMode
             {
                 this.money = 0;
             }
+
+            Harmony_Patch.dayResult[4] += realAdded;
         }
 
         public bool Pay(int cost)
