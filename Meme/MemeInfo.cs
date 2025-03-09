@@ -7,10 +7,13 @@ using UnityEngine;
 
 namespace NewGameMode
 {
+    [Serializable]
     public class MemeInfo
     {
         public int id = -1;
         public string sprite_name = "UNKNOWN";
+
+        [NonSerialized]
         public Sprite sprite = new Sprite();
 
         public List<MemeRequire> requires;
@@ -44,6 +47,10 @@ namespace NewGameMode
             return false;
         }
 
+        /// <summary>
+        /// 满足条件时返回真
+        /// </summary>
+        /// <returns></returns>
         public bool CheckRequire()
         {
             foreach (MemeRequire require in requires)

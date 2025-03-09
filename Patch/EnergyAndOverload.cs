@@ -1300,13 +1300,13 @@ namespace NewGameMode
                 {
                     nowMemeInfo.Add(dic.Value.metaInfo.id);
                 }
-                // 过滤掉已经拥有的模因，保留duplicate为true的模因或未获得模因
+                // 过滤掉已经拥有的模因或未满足require的模因，保留duplicate为true的模因或未获得模因
                 List<int> tempMemeLevel1 = [];
                 List<int> tempMemeLevel2 = [];
                 List<int> tempMemeLevel3 = [];
                 foreach (KeyValuePair<int, MemeInfo> kvp in MemeManager.instance.all_dic)
                 {
-                    if (kvp.Value.duplicate || !nowMemeInfo.Contains(kvp.Key))
+                    if ((kvp.Value.duplicate || !nowMemeInfo.Contains(kvp.Key)) && kvp.Value.CheckRequire())
                     {
                         if (kvp.Value.grade == 1)
                         {

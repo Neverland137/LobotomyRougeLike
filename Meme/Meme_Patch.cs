@@ -19,6 +19,7 @@ using UnityEngine.UI;
 using static Mono.Security.X509.X520;
 using static NewGameMode.EnergyAndOverload_Patch.RGRandomEventManager;
 using static UnityEngine.Analytics.EnumCase;
+using static WorkerSprite.WorkerSpriteSaveData;
 
 namespace NewGameMode
 {
@@ -36,12 +37,13 @@ namespace NewGameMode
                 //设置控制台，也写了一些奇思的指令
                 instance.Patch(typeof(ConsoleScript).GetMethod("GetHmmCommand", AccessTools.all), new HarmonyMethod(typeof(Meme_Patch).GetMethod("GetAllCommand", AccessTools.all)), null, null); num++;
                 //调整UI
-                instance.Patch(typeof(GameManager).GetMethod("StartStage", AccessTools.all), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("InitMemeScene")), null);
-                instance.Patch(typeof(GameManager).GetMethod("StartStage", AccessTools.all), null, new HarmonyMethod(typeof(ShopManager).GetMethod("InitShopScene")), null);
-                instance.Patch(typeof(GameManager).GetMethod("RestartGame", AccessTools.all), new HarmonyMethod(typeof(Meme_Patch).GetMethod("TurnRestartToMemeScene")), null, null);
-                instance.Patch(typeof(EscapeUI).GetMethod("OpenWindow", AccessTools.all), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("TurnRestartToMemeSceneText")), null);
+                instance.Patch(typeof(GameManager).GetMethod("StartStage", AccessTools.all), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("InitMemeScene")), null); num++;
+                instance.Patch(typeof(GameManager).GetMethod("StartStage", AccessTools.all), null, new HarmonyMethod(typeof(ShopManager).GetMethod("InitShopScene")), null); num++;
+                instance.Patch(typeof(GameManager).GetMethod("RestartGame", AccessTools.all), new HarmonyMethod(typeof(Meme_Patch).GetMethod("TurnRestartToMemeScene")), null, null); num++;
+                instance.Patch(typeof(EscapeUI).GetMethod("OpenWindow", AccessTools.all), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("TurnRestartToMemeSceneText")), null); num++;
 
                 // 扳机
+                instance.Patch(typeof(GameManager).GetMethod("FixedUpdate", BindingFlags.NonPublic | BindingFlags.Instance), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnFixedUpdate"))); num++;
                 instance.Patch(typeof(GameManager).GetMethod("StartStage"), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnStageStart"))); num++;
                 instance.Patch(typeof(GameManager).GetMethod("Release", AccessTools.all), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnStageRelease"))); num++;
                 instance.Patch(typeof(EquipmentModel).GetMethod("OnPrepareWeapon"), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnPrepareWeapon")), null); num++;
@@ -303,6 +305,12 @@ namespace NewGameMode
                     MemeManager.originScrollY = rect.anchoredPosition.y;
                     MemeManager.originScrollHeight = rect.sizeDelta.y;
                 }
+
+                //初始化现有模因的所有按钮
+                foreach (KeyValuePair<int, MemeModel> kvp in MemeManager.instance.current_dic)
+                {
+                    MemeManager.instance.InitMemeButton(kvp.Value);
+                }
             }
             catch (Exception ex)
             {
@@ -374,6 +382,14 @@ namespace NewGameMode
             return true;
         }
 
+
+        public static void Meme_OnFixedUpdate()
+        {
+            if (GameManager.currentGameManager.state == global::GameState.PLAYING)
+            {
+                MemeManager.instance.OnFixedUpdate();
+            }  
+        }
         public static void Meme_OnStageStart()
         {
             MemeManager.instance.OnStageStart();

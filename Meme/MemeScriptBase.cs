@@ -1,23 +1,38 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace NewGameMode
 {
+    [Serializable]
     public class MemeScriptBase
     {
         
-        private MemeModel _model;
-        public MemeModel model
-        {
-            get
-            {
-                return _model;
-            }
-        }
+        public MemeModel model;
+        public bool init = false;
+
+        public static float criticalChance = 0;//基础暴击率
+        public static float criticalMultiply = 2;//基础暴击倍率
+        public static float criticalTempChance = 0;//临时暴击率
+        public static float criticalTempMultiply = 0;//临时暴击倍率
+
         public void SetModel(MemeModel m)
         {
-            _model = m;
+            model = m;
         }
 
+        public void Init()
+        {
+            if (!init)
+            {
+                OnInit();
+                init = true;
+            }
+        }
+
+        public virtual void OnInit()
+        {
+
+        }
         public virtual void OnGet()
         {
         }
@@ -32,6 +47,8 @@ namespace NewGameMode
 
         public virtual void OnStageRelease()
         {
+            criticalTempChance = 0;
+            criticalTempMultiply = 0 ;
         }
 
         public virtual void OnPrepareWeapon(UnitModel actor)
@@ -56,6 +73,38 @@ namespace NewGameMode
 
         public virtual void OnGiveDamage(UnitModel actor, UnitModel target, ref DamageInfo dmg)
         {
+            if (dmg is RougeLikeDamageInfo)
+            {
+                if ((dmg as RougeLikeDamageInfo).rougeType == DamageType_RougeLike.ADDITIONAL)
+                {
+                    return;
+                }
+            }
+            if (UnityEngine.Random.value <= criticalChance)//触发暴击
+            {
+                RougeLikeDamageInfo newDmg = new RougeLikeDamageInfo(dmg.type, (int)(dmg.min * criticalMultiply), (int)(dmg.max * criticalMultiply), DamageType_RougeLike.CRITICAL);
+                dmg = newDmg;
+
+                if (criticalTempChance > 0)
+                {
+                    criticalTempChance = 0;
+                }
+                if (criticalTempMultiply > 0)
+                {
+                    criticalTempMultiply = 0;
+                }
+            }
+            else
+            {
+                if (criticalTempChance < 0)
+                {
+                    criticalTempChance = 0;
+                }
+                if (criticalTempMultiply < 0)
+                {
+                    criticalTempMultiply = 0;
+                }
+            }
         }
 
         public virtual void OnGiveDamageAfter(UnitModel actor, UnitModel target, DamageInfo dmg)
@@ -181,6 +230,27 @@ namespace NewGameMode
         {
             return 0f;
         }
+
+        /// <summary>
+        /// 用于存储模因的“当局数据”，例如“本局游戏中，员工死亡数”
+        /// </summary>
+        /// <param name="meme_id"></param>
+        /// <param name="data"></param>
+        public virtual void Meme_GameDataSave(int meme_id, object data)
+        {
+
+        }
+
+        /// <summary>
+        /// 用于读取模因的“当局数据”，例如“本局游戏中，员工死亡数”
+        /// </summary>
+        /// <param name="meme_id"></param>
+        /// <param name="data"></param>
+        public virtual object Meme_GameDataRead(int meme_id)
+        {
+            return null;
+        }
+
         public List<AgentModel> GetAgentsWithRequire(int equip_id = -1, RwbpType weapon_rwbp = (RwbpType)999999, SefiraEnum sefira = SefiraEnum.DUMMY, bool statisfy_all_require = false)
         {
             List<AgentModel> agents = [];
@@ -253,6 +323,8 @@ namespace NewGameMode
             }
             return agents;
         }
+
+        
 
         public List<CreatureModel> GetCreaturesWithRequire(int qli_max = 999, int qli_current = 999, SefiraEnum sefira = SefiraEnum.DUMMY, bool statisfy_all_require = false)
         {
@@ -338,28 +410,68 @@ namespace NewGameMode
             }
             return type;
         }
+
+        public static RwbpType WeakDmgType(UnitModel target)
+        {
+            RwbpType result = RwbpType.R;
+
+            if (target.defense != null)
+            {
+                float weak = target.defense.R;
+                if (target.defense.W > weak)
+                {
+                    result = RwbpType.W;
+                    weak = target.defense.W;
+                }
+                if (target.defense.B > weak)
+                {
+                    result = RwbpType.B;
+                    weak = target.defense.B;
+                }
+                if (target.defense.P > weak)
+                {
+                    result = RwbpType.P;
+                    weak = target.defense.P;
+                }
+            }
+
+            return result;
+        }
+
     }
 
     public enum DamageType_RougeLike
     {
         ADDITIONAL,
-        CRITICAL
+        CRITICAL,
+        NULL
     }
 
     public class RougeLikeDamageInfo : DamageInfo
     {
         public DamageType_RougeLike rougeType;
+        public bool realDmg = false;
         // 必须调用基类的构造函数
-        public RougeLikeDamageInfo(RwbpType type, int min, int max, DamageType_RougeLike rougeType)
+        public RougeLikeDamageInfo(RwbpType type, int min, int max, DamageType_RougeLike rougeType = DamageType_RougeLike.NULL, bool realDmg = false)
             : base(type, min, max)
         {
             this.rougeType = rougeType;
+            if (realDmg)
+            {
+                realDmg = true;
+            }
         }
 
-        public RougeLikeDamageInfo(RwbpType type, float dmg, DamageType_RougeLike rougeType)
+        public RougeLikeDamageInfo(RwbpType type, float dmg, DamageType_RougeLike rougeType = DamageType_RougeLike.NULL, bool realDmg = false)
             : base(type, dmg)
         {
             this.rougeType = rougeType;
+            if (realDmg)
+            {
+                realDmg = true;
+            }
         }
     }
+
+    
 }

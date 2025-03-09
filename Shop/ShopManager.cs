@@ -287,7 +287,7 @@ namespace NewGameMode
                 {
                     try
                     {
-                        nowMemeInfo.Add(dic.Value.metaInfo.id, dic.Value.metaInfo);
+                        nowMemeInfo.Add(dic.Key, dic.Value.metaInfo);
                     }
                     finally
                     {
@@ -299,7 +299,7 @@ namespace NewGameMode
                 Dictionary<int, MemeInfo> tempMemeVer1 = [];
                 foreach (var dic in shopMemeVer1)
                 {
-                    if (dic.Value.duplicate == true || !nowMemeInfo.ContainsValue(dic.Value))
+                    if ((dic.Value.duplicate == true || !nowMemeInfo.ContainsValue(dic.Value)) && dic.Value.CheckRequire())
                     {
                         tempMemeVer1.Add(dic.Key, dic.Value);//模因id和信息
                     }
@@ -308,7 +308,7 @@ namespace NewGameMode
                 Dictionary<int, MemeInfo> tempMemeVer2 = [];
                 foreach (var dic in shopMemeVer2)
                 {
-                    if (dic.Value.duplicate == true || !nowMemeInfo.ContainsValue(dic.Value))
+                    if (dic.Value.duplicate == true || !nowMemeInfo.ContainsValue(dic.Value) && dic.Value.CheckRequire())
                     {
                         tempMemeVer2.Add(dic.Key, dic.Value);//模因id和信息
                     }
@@ -317,7 +317,7 @@ namespace NewGameMode
                 Dictionary<int, MemeInfo> tempMemeCurse = [];
                 foreach (var dic in shopMemeCurse)
                 {
-                    if (dic.Value.duplicate == true || !nowMemeInfo.ContainsValue(dic.Value))
+                    if (dic.Value.duplicate == true || !nowMemeInfo.ContainsValue(dic.Value) && dic.Value.CheckRequire())
                     {
                         tempMemeCurse.Add(dic.Key, dic.Value);//模因id和信息
                     }

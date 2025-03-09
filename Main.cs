@@ -65,7 +65,7 @@ namespace NewGameMode
                 //存储数据
                 harmony.Patch(typeof(GlobalGameManager).GetMethod("SaveGlobalData", AccessTools.all), new HarmonyMethod(typeof(Harmony_Patch).GetMethod("SaveGlobalData")), null, null);
                 harmony.Patch(typeof(GlobalGameManager).GetMethod("SaveData", AccessTools.all), new HarmonyMethod(typeof(Harmony_Patch).GetMethod("SaveDayData")), null, null);
-                harmony.Patch(typeof(GlobalGameManager).GetMethod("SaveData", AccessTools.all), new HarmonyMethod(typeof(Harmony_Patch).GetMethod("SaveRougeLikeDayData")), null, null);
+                //harmony.Patch(typeof(GlobalGameManager).GetMethod("SaveData", AccessTools.all), new HarmonyMethod(typeof(Harmony_Patch).GetMethod("SaveRougeLikeDayData")), null, null);
                 //结束这一天时存档
                 harmony.Patch(typeof(GameManager).GetMethod("ClearStage", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("OnClearStage")), null);
 
@@ -535,6 +535,7 @@ namespace NewGameMode
             {
                 if (GlobalGameManager.instance.gameMode == rougeLike)
                 {
+                    SaveRougeLikeDayData();
                     Dictionary<string, object> dictionary = new Dictionary<string, object>
                     {
                         { "saveVer", "ver1" },
@@ -576,13 +577,20 @@ namespace NewGameMode
         {
             //结构如下：dictionary的key表示存储的内容类型，例如wonder代表奇思，meme代表模因
             //dictionary的value里是具体存储的内容
-            Dictionary<string, object> dictionary = new Dictionary<string, object>
+            try
             {
-                { "wonder", WonderModel.instance.money },
-                { "meme", MemeManager.instance.current_dic }
-            };
+                Dictionary<string, object> dictionary = new Dictionary<string, object>
+                {
+                    { "wonder", WonderModel.instance.money },
+                    { "meme", MemeManager.instance.current_dic }
+                };
 
-            SaveUtil.WriteSerializableFile(path + "/Save/RougeLikeDayData.dat", dictionary);
+                SaveUtil.WriteSerializableFile(path + "/Save/RougeLikeDayData.dat", dictionary);
+            }
+            catch (Exception ex)
+            {
+                YKMTLogInstance.Error(ex);
+            }
         }
 
         public static void LoadGlobalData()
@@ -828,17 +836,32 @@ namespace NewGameMode
         }
 
 
+        /// <summary>
+        /// 未生效？？？
+        /// </summary>
         public static void OnClearStage()//只有在开始下一天的时候才会触发该函数
         {
-            if (GlobalGameManager.instance.gameMode == rougeLike)
+            try
             {
-                SaveGlobalData();
-                SaveDayData();
-                SaveRougeLikeDayData();
-                if (PlayerModel.instance.GetDay() + 1 == 40)
+                YKMTLogInstance.Info("OnClearStage1");
+                if (GlobalGameManager.instance.gameMode == rougeLike)
                 {
-                    ReturnToTitleOnGameOver();
+                    YKMTLogInstance.Info("OnClearStage2");
+                    //SaveGlobalData();
+                    YKMTLogInstance.Info("OnClearStage3");
+                    //SaveDayData();
+                    YKMTLogInstance.Info("OnClearStage4");
+                    SaveRougeLikeDayData();
+                    YKMTLogInstance.Info("OnClearStage5");
+                    if (PlayerModel.instance.GetDay() + 1 == 40)
+                    {
+                        ReturnToTitleOnGameOver();
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                YKMTLogInstance.Error(ex);
             }
         }
 
@@ -1624,8 +1647,8 @@ namespace NewGameMode
 
         public static void ResultScreen_Board()
         {
-            GameObject.Destroy(ResultScreen.instance.root.transform.GetChild(0).GetChild(6).GetChild(0).gameObject.GetComponent<FontLoadScript>());
             GameObject.Destroy(ResultScreen.instance.root.transform.GetChild(0).GetChild(6).GetChild(0).gameObject.GetComponent<LocalizeTextLoadScript>());
+            GameObject.Destroy(ResultScreen.instance.root.transform.GetChild(0).GetChild(6).GetChild(0).gameObject.GetComponent<FontLoadScript>());
 
             UnityEngine.UI.Text title = ResultScreen.instance.root.transform.GetChild(0).GetChild(6).GetChild(0).GetComponent<UnityEngine.UI.Text>();
             title.text = LocalizeTextDataModel.instance.GetText("ResultScreen_Title");

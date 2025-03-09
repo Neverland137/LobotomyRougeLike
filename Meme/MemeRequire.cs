@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace NewGameMode
 {
+    [Serializable]
     public class MemeRequire
     {
         public MemeRequireType type;

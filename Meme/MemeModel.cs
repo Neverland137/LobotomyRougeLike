@@ -7,11 +7,13 @@ using UnityEngine;
 
 namespace NewGameMode
 {
+    [Serializable]
     public class MemeModel
     {
         public MemeInfo metaInfo;
         public int instanceId;
         public MemeScriptBase script = new MemeScriptBase();
+        [NonSerialized]
         public GameObject button;
     }
 }
