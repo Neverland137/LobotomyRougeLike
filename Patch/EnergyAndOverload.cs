@@ -86,6 +86,16 @@ namespace NewGameMode
         public static int[] missionAwardWonder_Level2 = { 200, 250 };
         public static int[] missionAwardMemeRate_Level2 = { 300, 700 };
 
+        public static int randomAwardAgentCnt = 1;
+        public static int missionAwardAgentCnt = 1;
+        public static int memeAwardAgentCnt = 1;
+        public static int randomAwardEquipCnt = 1;
+        public static int missionAwardEquipCnt = 1;
+        public static int memeAwardEquipCnt = 1;
+        public static int randomAwardMemeCnt = 1;
+        public static int missionAwardMemeCnt = 1;
+        public static int memeAwardMemeCnt = 1;
+
 
         public EnergyAndOverload_Patch(HarmonyInstance instance)
         {
@@ -260,10 +270,10 @@ namespace NewGameMode
                                 switch (index0_1)
                                 {
                                     case 0: 
-                                        Award_GetEquipment(randomAwardEquipmentRate);
+                                        Award_GetEquipment(randomAwardEquipmentRate, randomAwardEquipCnt);
                                         break;
                                     case 1: 
-                                        Award_GetAgent(randomAwardAgentStat[0], randomAwardAgentStat[1]);
+                                        Award_GetAgent(randomAwardAgentStat[0], randomAwardAgentStat[1], randomAwardAgentCnt);
                                         break;
                                     case 2: 
                                         Award_GetLOB(randomAwardLOB[0], randomAwardLOB[1]);
@@ -875,7 +885,7 @@ namespace NewGameMode
                                     //按钮点击逻辑
                                     buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
                                     {
-                                        Award_GetEquipment(missionAwardEquipmentRate_Level1);
+                                        Award_GetEquipment(missionAwardEquipmentRate_Level1, missionAwardEquipCnt);
                                         rewardButton.SetActive(false);
                                         AngelaConversationUI.instance.FadeOut = true;
                                         AngelaConversationUI.instance.FadeIn = true;
@@ -885,7 +895,7 @@ namespace NewGameMode
                                 {
                                     buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
                                     {
-                                        Award_GetEquipment(missionAwardEquipmentRate_Level2);
+                                        Award_GetEquipment(missionAwardEquipmentRate_Level2, missionAwardEquipCnt);
                                         rewardButton.SetActive(false);
                                         AngelaConversationUI.instance.FadeOut = true;
                                         AngelaConversationUI.instance.FadeIn = true;
@@ -901,7 +911,7 @@ namespace NewGameMode
                                 {
                                     buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
                                     {
-                                        Award_GetAgent(missionAwardAgentStat_Level1[0], missionAwardAgentStat_Level1[1], set_sefira: false);
+                                        Award_GetAgent(missionAwardAgentStat_Level1[0], missionAwardAgentStat_Level1[1], missionAwardAgentCnt, set_sefira: false );
                                         rewardButton.SetActive(false);
                                         AngelaConversationUI.instance.FadeOut = true;
                                         AngelaConversationUI.instance.FadeIn = true;
@@ -911,7 +921,7 @@ namespace NewGameMode
                                 {
                                     buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
                                     {
-                                        Award_GetAgent(missionAwardAgentStat_Level2[0], missionAwardAgentStat_Level2[1], set_sefira: false);
+                                        Award_GetAgent(missionAwardAgentStat_Level2[0], missionAwardAgentStat_Level2[1], missionAwardAgentCnt, set_sefira: false);
                                         rewardButton.SetActive(false);
                                         AngelaConversationUI.instance.FadeOut = true;
                                         AngelaConversationUI.instance.FadeIn = true;
@@ -1130,7 +1140,7 @@ namespace NewGameMode
             }
         }
 
-        public static void Award_GetEquipment(int[] rate, bool angela = true, int equipCnt = 1, bool specialEquipParadiseLost = false, bool specialEquipBossBird = false)
+        public static void Award_GetEquipment(int[] rate, int equipCnt = 1, bool angela = true, bool specialEquipParadiseLost = false, bool specialEquipBossBird = false)
         {
             try
             {
@@ -1186,14 +1196,18 @@ namespace NewGameMode
 
                 if (id_list.Count != 0)
                 {
+                    string name = "";
+
                     for (int i = 0; i < equipCnt; i++)
                     {
                         EquipmentModel equip = InventoryModel.Instance.CreateEquipment(id_list[Harmony_Patch.customRandom.NextInt(0, id_list.Count)]);
-                        if (angela)
-                        {
-                            string text = LocalizeTextDataModel.instance.GetText("RandomAward_GetEquipment") + equip.metaInfo.Name;
-                            AngelaConversationUI.instance.AddAngelaMessage(text);
-                        }
+                        name += equip.metaInfo.Name + "  ";
+                    }
+
+                    if (angela)
+                    {
+                        string text = LocalizeTextDataModel.instance.GetText("RandomAward_GetEquipment");
+                        AngelaConversationUI.instance.AddAngelaMessage(text + name);
                     }
                 }
                 else
@@ -1216,35 +1230,40 @@ namespace NewGameMode
             }
         }
 
-        public static void Award_GetAgent(int stat_min, int stat_max, bool angela = true, bool set_sefira = true)
+        public static void Award_GetAgent(int stat_min, int stat_max, int agentCnt = 1, bool angela = true, bool set_sefira = true)
         {
             try
             {
-                AgentModel agentModel = AgentManager.instance.AddSpareAgentModel();
-                agentModel.primaryStat.hp = Harmony_Patch.customRandom.NextInt(stat_min, stat_max);
-                agentModel.primaryStat.mental = Harmony_Patch.customRandom.NextInt(stat_min, stat_max);
-                agentModel.primaryStat.work = Harmony_Patch.customRandom.NextInt(stat_min, stat_max);
-                agentModel.primaryStat.battle = Harmony_Patch.customRandom.NextInt(stat_min, stat_max);
-
-                //部门
-                if (set_sefira)
+                string name = "";
+                for (int i = 0; i < agentCnt; i++)
                 {
-                    Sefira[] sefiras = PlayerModel.instance.GetOpenedAreaList();
-                    agentModel.SetCurrentSefira(sefiras[Harmony_Patch.customRandom.NextInt(0, sefiras.Length)].name);
+                    AgentModel agentModel = AgentManager.instance.AddSpareAgentModel();
+                    agentModel.primaryStat.hp = Harmony_Patch.customRandom.NextInt(stat_min, stat_max);
+                    agentModel.primaryStat.mental = Harmony_Patch.customRandom.NextInt(stat_min, stat_max);
+                    agentModel.primaryStat.work = Harmony_Patch.customRandom.NextInt(stat_min, stat_max);
+                    agentModel.primaryStat.battle = Harmony_Patch.customRandom.NextInt(stat_min, stat_max);
 
-                    agentModel.SetCurrentNode(agentModel.GetCurrentSefira().GetDepartNodeByRandom(0));
+                    //部门
+                    if (set_sefira)
+                    {
+                        Sefira[] sefiras = PlayerModel.instance.GetOpenedAreaList();
+                        agentModel.SetCurrentSefira(sefiras[Harmony_Patch.customRandom.NextInt(0, sefiras.Length)].name);
 
-                    agentModel.hp = agentModel.maxHp * 0.2f;
-                    agentModel.mental = agentModel.maxMental * 0.2f;
+                        agentModel.SetCurrentNode(agentModel.GetCurrentSefira().GetDepartNodeByRandom(0));
+
+                        agentModel.hp = agentModel.maxHp * 0.2f;
+                        agentModel.mental = agentModel.maxMental * 0.2f;
+                    }
+
+                    name += agentModel.name + "  ";
+                    Harmony_Patch.dayResult[0]++;
                 }
 
                 if (angela)
                 {
-                    string text = LocalizeTextDataModel.instance.GetText("RandomAward_GetAgent") + agentModel.name;
-                    AngelaConversationUI.instance.AddAngelaMessage(text);
+                    string text = LocalizeTextDataModel.instance.GetText("RandomAward_GetAgent");
+                    AngelaConversationUI.instance.AddAngelaMessage(text + name);
                 }
-
-                Harmony_Patch.dayResult[0]++;
             }
             catch (Exception ex)
             {
@@ -1289,7 +1308,7 @@ namespace NewGameMode
             }
         }
 
-        public static void Award_GetMeme(int[] rate, bool angela = true, bool level3 = false)
+        public static void Award_GetMeme(int[] rate, int memeCnt = 1, bool angela = true, bool level3 = false)
         {
             try
             {
@@ -1323,38 +1342,47 @@ namespace NewGameMode
                     }
                 }
 
-                int target_id = -1;
+                List<int> target_id = new List<int>();
                 bool success = true;
-                if (level3)//3级模因
+                for (int i = 0; i < memeCnt; i++)
                 {
-                    target_id = tempMemeLevel3[Harmony_Patch.customRandom.NextInt(0, tempMemeLevel3.Count)];
-                    MemeManager.instance.CreateMemeModel(target_id);
-                }
-                else
-                {
-                    switch (level)
+                    if (level3)//3级模因
                     {
-                        case 0:
-                            target_id = tempMemeLevel1[Harmony_Patch.customRandom.NextInt(0, tempMemeLevel1.Count)];
-                            MemeManager.instance.CreateMemeModel(target_id);
-                            break;
-                        case 1:
-                            target_id = tempMemeLevel2[Harmony_Patch.customRandom.NextInt(0, tempMemeLevel2.Count)];
-                            MemeManager.instance.CreateMemeModel(target_id);
-                            break;
-                        default:
-                            success = false;
-                            break;
+                        target_id.Add(tempMemeLevel3[Harmony_Patch.customRandom.NextInt(0, tempMemeLevel3.Count)]);
+                        MemeManager.instance.CreateMemeModel(target_id[i]);
                     }
-                } 
+                    else
+                    {
+                        switch (level)
+                        {
+                            case 0:
+                                target_id.Add(tempMemeLevel1[Harmony_Patch.customRandom.NextInt(0, tempMemeLevel1.Count)]);
+                                MemeManager.instance.CreateMemeModel(target_id[i]);
+                                break;
+                            case 1:
+                                target_id.Add(tempMemeLevel2[Harmony_Patch.customRandom.NextInt(0, tempMemeLevel2.Count)]);
+                                MemeManager.instance.CreateMemeModel(target_id[i]);
+                                break;
+                            default:
+                                success = false;
+                                break;
+                        }
+                    }
+                }
+                 
                 
                 if (angela)
                 {
                     if (success)
                     {
                         string text = LocalizeTextDataModel.instance.GetText("RandomAward_GetMeme");
-                        string name = "UNKNOWN";
-                        MemeManager.GetMemeInfo(target_id).GetLocalizedText("name", out name);
+                        string name = "";
+                        foreach (int id in target_id)
+                        {
+                            string tempName;
+                            MemeManager.GetMemeInfo(id).GetLocalizedText("name", out tempName);
+                            name += tempName + "  ";
+                        }
                         AngelaConversationUI.instance.AddAngelaMessage(text + name);
                     }
                     else

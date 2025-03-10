@@ -50,15 +50,18 @@ namespace NewGameMode
                 instance.Patch(typeof(EquipmentModel).GetMethod("OnCancelWeapon"), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnCancelWeapon")), null); num++;
                 instance.Patch(typeof(WeaponModel).GetMethod("OnAttack"), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnAttack")), null); num++;
                 instance.Patch(typeof(WeaponModel).GetMethod("OnEndAttackCycle"), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnEndAttackCycle")), null); num++;
+                instance.Patch(typeof(CreatureModel).GetMethod("Suppressed"), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnCreatureSuppressed"))); num++;
+                instance.Patch(typeof(WorkerModel).GetMethod("OnDie"), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnWorkerDie"))); num++;
                 // FUCK YOU 1.0.9.1
                 //trans生效吧求你了
                 instance.Patch(typeof(EquipmentScriptBase).GetMethod(nameof(EquipmentScriptBase.OnKillMainTarget)),null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnKillTargetWorker")), null); num++;
-                instance.Patch(typeof(WeaponModel).GetMethod(nameof(WeaponModel.OnGiveDamage)), null, null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnGiveDamage"))); num++;//需要用trans
-                instance.Patch(typeof(WeaponModel).GetMethod(nameof(WeaponModel.OnGiveDamage)), null, null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnGiveDamageAfter"))); num++;//需要用trans
+                instance.Patch(typeof(WeaponModel).GetMethod(nameof(WeaponModel.OnGiveDamage)), null, null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnGiveDamage"))); num++;
+                instance.Patch(typeof(WeaponModel).GetMethod(nameof(WeaponModel.OnGiveDamage)), null, null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnGiveDamageAfter"))); num++;
 
                 instance.Patch(typeof(WorkerModel).GetMethod("TakeDamage", new Type[] {typeof(UnitModel), typeof(DamageInfo) }), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_WorkerTakeDamage")), null); num++;
                 //instance.Patch(typeof(CreatureModel).GetMethod("TakeDamage", BindingFlags.Instance | BindingFlags.Public), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_CreatureTakeDamage")), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnCreatureTakeDamage_After")), null); num++;
                 instance.Patch(typeof(CreatureModel).GetMethod("TakeDamage", new Type[] { typeof(UnitModel), typeof(DamageInfo) }), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_CreatureTakeDamage")), null);
+                // 员工和异想体的TakeDmgAfter需要trans，没写
             }
             catch (Exception ex)
             {
@@ -415,6 +418,16 @@ namespace NewGameMode
             MemeManager.instance.OnAttackEnd(__instance.owner, __instance.currentTarget);
         }
 
+        public static void OnCreatureSuppressed(CreatureModel __instance)
+        {
+            MemeManager.instance.OnCreatureSuppressed(__instance);
+        }
+
+        public static void OnWorkerDie(WorkerModel __instance)
+        {
+            MemeManager.instance.OnWorkerDie(__instance);
+        }
+
         /*
         public static IEnumerable<CodeInstruction> Meme_OnKillTargetWorker(IEnumerable<CodeInstruction> instructions)
         {
@@ -596,7 +609,7 @@ namespace NewGameMode
         {
             MemeManager.instance.WorkerTakeDamage(actor, __instance, dmg);
         }
-        public static void Meme_OnWorkerTakeDamage_After(WorkerModel __instance, UnitModel actor, float num, RwbpType type)//需要用trans
+        public static void Meme_WorkerTakeDamage_After(WorkerModel __instance, UnitModel actor, float num, RwbpType type)//需要用trans
         {
             MemeManager.instance.OnWorkerTakeDamage_After(num, actor, __instance, type);
         }
@@ -604,7 +617,7 @@ namespace NewGameMode
         {
             MemeManager.instance.CreatureTakeDamage(actor, __instance, dmg);
         }
-        public static void Meme_OnCreatureTakeDamage_After(CreatureModel __instance, UnitModel actor, float num, RwbpType type)//需要用trans
+        public static void Meme_CreatureTakeDamage_After(CreatureModel __instance, UnitModel actor, float num, RwbpType type)//需要用trans
         {
             MemeManager.instance.OnCreatureTakeDamage_After(num, actor, __instance, type);
         }

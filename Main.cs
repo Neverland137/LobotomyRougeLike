@@ -582,7 +582,9 @@ namespace NewGameMode
                 Dictionary<string, object> dictionary = new Dictionary<string, object>
                 {
                     { "wonder", WonderModel.instance.money },
-                    { "meme", MemeManager.instance.current_dic }
+                    { "meme", MemeManager.instance.current_dic },
+                    { "memeData", MemeScriptBase.allMemeGameDataDic },
+                    { "memeNextInstanceId", MemeManager.instance._nextInstanceId }
                 };
 
                 SaveUtil.WriteSerializableFile(path + "/Save/RougeLikeDayData.dat", dictionary);
@@ -781,6 +783,8 @@ namespace NewGameMode
 
                 WonderModel.instance.LoadData(dic);
                 MemeManager.instance.LoadData(dic);
+                MemeScriptBase.LoadData(dic);
+                GameUtil.TryGetValue<int>(dic, "memeNextInstanceId", ref MemeManager.instance._nextInstanceId);
             }
         }
         public static void LoadDay(Dictionary<string, object> data)//加载除天数以外的其它内容

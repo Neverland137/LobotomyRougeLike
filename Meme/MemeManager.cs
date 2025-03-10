@@ -9,6 +9,8 @@ using System.Xml;
 using UnityEngine;
 using UnityEngine.UI;
 using static CreatureGenerate.CreatureGenerateData;
+using static Steamworks.InventoryItem;
+using static WorkerSprite.WorkerSpriteSaveData;
 
 namespace NewGameMode
 {
@@ -20,7 +22,7 @@ namespace NewGameMode
         public static float originScrollY = 0;
         public static float originScrollHeight = 0;
 
-        private int _nextInstanceId = 0;
+        public int _nextInstanceId = 0;
         /// <summary>
         /// 包含模组在内的所有模因,key是模因id
         /// </summary>
@@ -383,10 +385,9 @@ namespace NewGameMode
             {
                 return;
             }
-            foreach (KeyValuePair<int, MemeModel> pair in instance.current_dic)//部分模因数据初始化，例如基础暴击，以及无法存储的模因按钮
+            foreach (KeyValuePair<int, MemeModel> pair in MemeManager.instance.current_dic)
             {
                 instance.current_list.Add(pair.Value);
-                pair.Value.script.Init();
             }
         }
 
@@ -509,21 +510,24 @@ namespace NewGameMode
                         instance.uninhand_list.Remove(memeModel.metaInfo);
                         instance._nextInstanceId++; num++;
 
+                        memeModel.script.SetModel(memeModel);
                         memeModel.script.OnGet(); num++;
 
                         InitMemeButton(memeModel);
                         //初始化模因对应的模因按钮
-                        
+
                         break;
                     }
                 }
 
                 Harmony_Patch.dayResult[3]++;
             }
+            
             catch (Exception ex)
             {
                 File.WriteAllText(Harmony_Patch.path + "/CreateMemeError.txt", num + Environment.NewLine + ex.Message + Environment.NewLine + ex.StackTrace);
             }
+            
 
             return memeModel;
         }
@@ -731,6 +735,22 @@ namespace NewGameMode
             foreach (MemeModel meme in current_list)
             {
                 meme.script.OnHeal(isMental, amount);
+            }
+        }
+
+        public void OnCreatureSuppressed(CreatureModel creature)
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.OnCreatureSuppressed(creature);
+            }
+        }
+
+        public void OnWorkerDie(WorkerModel worker)
+        {
+            foreach (MemeModel meme in current_list)
+            {
+                meme.script.OnWorkerDie(worker);
             }
         }
 

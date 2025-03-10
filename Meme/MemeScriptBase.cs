@@ -9,11 +9,9 @@ namespace NewGameMode
         
         public MemeModel model;
         public bool init = false;
+        public static Dictionary<int, object> allMemeGameDataDic = new Dictionary<int, object>();
 
-        public static float criticalChance = 0;//基础暴击率
-        public static float criticalMultiply = 2;//基础暴击倍率
-        public static float criticalTempChance = 0;//临时暴击率
-        public static float criticalTempMultiply = 0;//临时暴击倍率
+        
 
         public void SetModel(MemeModel m)
         {
@@ -35,6 +33,7 @@ namespace NewGameMode
         }
         public virtual void OnGet()
         {
+            Harmony_Patch.YKMTLogInstance.Info("GetMeme:" + model.metaInfo.sprite_name);
         }
 
         public virtual void OnRelease()
@@ -47,8 +46,7 @@ namespace NewGameMode
 
         public virtual void OnStageRelease()
         {
-            criticalTempChance = 0;
-            criticalTempMultiply = 0 ;
+            
         }
 
         public virtual void OnPrepareWeapon(UnitModel actor)
@@ -73,38 +71,7 @@ namespace NewGameMode
 
         public virtual void OnGiveDamage(UnitModel actor, UnitModel target, ref DamageInfo dmg)
         {
-            if (dmg is RougeLikeDamageInfo)
-            {
-                if ((dmg as RougeLikeDamageInfo).rougeType == DamageType_RougeLike.ADDITIONAL)
-                {
-                    return;
-                }
-            }
-            if (UnityEngine.Random.value <= criticalChance)//触发暴击
-            {
-                RougeLikeDamageInfo newDmg = new RougeLikeDamageInfo(dmg.type, (int)(dmg.min * criticalMultiply), (int)(dmg.max * criticalMultiply), DamageType_RougeLike.CRITICAL);
-                dmg = newDmg;
-
-                if (criticalTempChance > 0)
-                {
-                    criticalTempChance = 0;
-                }
-                if (criticalTempMultiply > 0)
-                {
-                    criticalTempMultiply = 0;
-                }
-            }
-            else
-            {
-                if (criticalTempChance < 0)
-                {
-                    criticalTempChance = 0;
-                }
-                if (criticalTempMultiply < 0)
-                {
-                    criticalTempMultiply = 0;
-                }
-            }
+            
         }
 
         public virtual void OnGiveDamageAfter(UnitModel actor, UnitModel target, DamageInfo dmg)
@@ -124,6 +91,14 @@ namespace NewGameMode
         }
 
         public virtual void OnCreatureTakeDamage_After(float value, UnitModel actor, UnitModel victim, RwbpType type)
+        {
+        }
+
+        public virtual void OnCreatureSuppressed(CreatureModel creature)
+        {
+        }
+
+        public virtual void OnWorkerDie(WorkerModel worker)
         {
         }
 
@@ -231,23 +206,78 @@ namespace NewGameMode
             return 0f;
         }
 
-        /// <summary>
-        /// 用于存储模因的“当局数据”，例如“本局游戏中，员工死亡数”
-        /// </summary>
-        /// <param name="meme_id"></param>
-        /// <param name="data"></param>
-        public virtual void Meme_GameDataSave(int meme_id, object data)
-        {
 
+        public static void LoadData(Dictionary<string, object> dic) //不用写存储，存储已经在Harmony_Patch的SaveRougeLikeDayData里了
+        {
+            GameUtil.TryGetValue<Dictionary<int, object>>(dic, "memeData", ref allMemeGameDataDic);
+            if (allMemeGameDataDic.Count == 0)
+            {
+                return;
+            }
+            foreach (KeyValuePair<int, MemeModel> pair in MemeManager.instance.current_dic)//部分模因数据初始化，例如基础暴击，以及无法存储的模因按钮
+            {
+                pair.Value.script.Init();
+            }
         }
+
+
+        /// <summary>
+        /// 用于存储单个模因的“当局数据”，例如“本局游戏中，员工死亡数”。
+        /// 对于不同模因，该数据不同，所以不能使用static。。
+        /// </summary>
+        /// <param name="data"></param>
+        public void Meme_GameDataSave(object data, int instanceId = -1)
+        {
+            try
+            {
+                if (instanceId != -1)
+                {
+                    if (allMemeGameDataDic.ContainsKey(instanceId))
+                    {
+                        allMemeGameDataDic[instanceId] = data;
+                    }
+                    else
+                    {
+                        allMemeGameDataDic.Add(instanceId, data);
+                    }
+                }
+                else
+                {
+                    if (allMemeGameDataDic.ContainsKey(model.instanceId))
+                    {
+                        allMemeGameDataDic[model.instanceId] = data;
+                    }
+                    else
+                    {
+                        allMemeGameDataDic.Add(model.instanceId, data);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Harmony_Patch.YKMTLogInstance.Error(e);
+            }
+        }
+
 
         /// <summary>
         /// 用于读取模因的“当局数据”，例如“本局游戏中，员工死亡数”
         /// </summary>
-        /// <param name="meme_id"></param>
-        /// <param name="data"></param>
-        public virtual object Meme_GameDataRead(int meme_id)
+        public object Meme_GameDataRead(int instanceId = -1)
         {
+            object result = null;
+            if (allMemeGameDataDic.Count != 0)
+            {
+                if (instanceId != -1)
+                {
+                    allMemeGameDataDic.TryGetValue(instanceId, out result);
+                }
+                else
+                {
+                    allMemeGameDataDic.TryGetValue(model.instanceId, out result);
+                }
+            }
+            
             return null;
         }
 
