@@ -310,7 +310,7 @@ namespace NewGameMode
                 instance.sprite_dic = dictionary2;
                 foreach (KeyValuePair<string, Sprite> kvp in instance.sprite_dic)
                 {
-                    Harmony_Patch.YKMTLogInstance.Debug("Load All Meme Sprite Debug Key: " + kvp.Key);
+                    Harmony_Patch.logger.Debug("Load All Meme Sprite Debug Key: " + kvp.Key);
                 }
 
                 LobotomyBaseMod.ModDebug.Log("RougeLike Load 2");
@@ -362,7 +362,7 @@ namespace NewGameMode
 
                 foreach (KeyValuePair<int, MemeInfo> kvp in instance.all_dic)
                 {
-                    Harmony_Patch.YKMTLogInstance.Debug("Load All Meme Debug Key: " + kvp.Value.script.ToString());
+                    Harmony_Patch.logger.Debug("Load All Meme Debug Key: " + kvp.Value.script.ToString());
                 }
 
                 foreach (KeyValuePair<int, MemeInfo> pair in instance.all_dic)
@@ -374,7 +374,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
 
@@ -385,7 +385,7 @@ namespace NewGameMode
             {
                 return;
             }
-            foreach (KeyValuePair<int, MemeModel> pair in MemeManager.instance.current_dic)
+            foreach (KeyValuePair<int, MemeModel> pair in instance.current_dic)
             {
                 instance.current_list.Add(pair.Value);
             }
@@ -465,7 +465,7 @@ namespace NewGameMode
             }
             catch (Exception e)
             {
-                Harmony_Patch.YKMTLogInstance.Error(e);
+                Harmony_Patch.logger.Error(e);
             }
 
             return memeButton;
@@ -562,10 +562,10 @@ namespace NewGameMode
                             rect.sizeDelta = new Vector2(rect.sizeDelta.x, originScrollHeight);
                         }
 
-                        Harmony_Patch.YKMTLogInstance.Info("RemoveMemeEnd : " + meme.metaInfo.sprite_name);
+                        Harmony_Patch.logger.Info("RemoveMemeEnd : " + meme.metaInfo.sprite_name);
                         foreach (MemeModel current_meme in instance.current_list)
                         {
-                            Harmony_Patch.YKMTLogInstance.Info("CurrentMeme : " + current_meme.metaInfo.sprite_name);
+                            Harmony_Patch.logger.Info("CurrentMeme : " + current_meme.metaInfo.sprite_name);
                         }
                         break;
                     }
@@ -573,7 +573,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
 

@@ -41,7 +41,9 @@
     <Compile Include="Diffculty\DifficultyStruct.cs" />
     <Compile Include="Extension.cs" />
     <Compile Include="Furnace\FurnaceManager.cs" />
+    <Compile Include="HPHelper.cs" />
     <Compile Include="Main.cs" />
+    <Compile Include="ManualPatch.cs" />
     <Compile Include="Meme\MemeButtonData.cs" />
     <Compile Include="Meme\MemeButtonMovement.cs" />
     <Compile Include="Meme\MemeInfo.cs" />

@@ -35,6 +35,12 @@ namespace NewGameMode
         public string modid;
 
 
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as MemeInfo);
+        }
+
         public bool Equals(MemeInfo info)
         {
             if (this.id == info.id)

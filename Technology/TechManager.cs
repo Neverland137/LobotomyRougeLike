@@ -166,7 +166,7 @@ namespace NewGameMode
                 instance.TechSpriteDic = TechSprite;
                 foreach (KeyValuePair<string, Sprite> kvp in instance.TechSpriteDic)
                 {
-                    Harmony_Patch.YKMTLogInstance.Debug("Load All Tech Debug Key: " + kvp.Key);
+                    Harmony_Patch.logger.Debug("Load All Tech Debug Key: " + kvp.Key);
                 }
 
                 LobotomyBaseMod.ModDebug.Log("RougeLike TECH Load 2");
@@ -211,7 +211,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
         public TechModel CreateTechModel(int id)

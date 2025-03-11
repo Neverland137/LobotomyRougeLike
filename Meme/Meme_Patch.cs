@@ -3,6 +3,7 @@ using DG.Tweening;
 using DG.Tweening.Plugins.Core.PathCore;
 using GameStatusUI;
 using Harmony;
+using HPHelper;
 using NewGameMode.Diffculty;
 using Steamworks.Data;
 using System;
@@ -26,48 +27,9 @@ namespace NewGameMode
     public class Meme_Patch
     {
         public static GameMode rougeLike = (GameMode)666666;
-        
-        public Meme_Patch(HarmonyInstance instance)
-        {
-            int num = 0;
-            try
-            {
-                //加载模因
-                instance.Patch(typeof(GameStaticDataLoader).GetMethod("LoadStaticData"), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("LoadAllInfo"))); num++;
-                //设置控制台，也写了一些奇思的指令
-                instance.Patch(typeof(ConsoleScript).GetMethod("GetHmmCommand", AccessTools.all), new HarmonyMethod(typeof(Meme_Patch).GetMethod("GetAllCommand", AccessTools.all)), null, null); num++;
-                //调整UI
-                instance.Patch(typeof(GameManager).GetMethod("StartStage", AccessTools.all), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("InitMemeScene")), null); num++;
-                instance.Patch(typeof(GameManager).GetMethod("StartStage", AccessTools.all), null, new HarmonyMethod(typeof(ShopManager).GetMethod("InitShopScene")), null); num++;
-                instance.Patch(typeof(GameManager).GetMethod("RestartGame", AccessTools.all), new HarmonyMethod(typeof(Meme_Patch).GetMethod("TurnRestartToMemeScene")), null, null); num++;
-                instance.Patch(typeof(EscapeUI).GetMethod("OpenWindow", AccessTools.all), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("TurnRestartToMemeSceneText")), null); num++;
 
-                // 扳机
-                instance.Patch(typeof(GameManager).GetMethod("FixedUpdate", BindingFlags.NonPublic | BindingFlags.Instance), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnFixedUpdate"))); num++;
-                instance.Patch(typeof(GameManager).GetMethod("StartStage"), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnStageStart"))); num++;
-                instance.Patch(typeof(GameManager).GetMethod("Release", AccessTools.all), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnStageRelease"))); num++;
-                instance.Patch(typeof(EquipmentModel).GetMethod("OnPrepareWeapon"), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnPrepareWeapon")), null); num++;
-                instance.Patch(typeof(EquipmentModel).GetMethod("OnCancelWeapon"), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnCancelWeapon")), null); num++;
-                instance.Patch(typeof(WeaponModel).GetMethod("OnAttack"), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnAttack")), null); num++;
-                instance.Patch(typeof(WeaponModel).GetMethod("OnEndAttackCycle"), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnEndAttackCycle")), null); num++;
-                instance.Patch(typeof(CreatureModel).GetMethod("Suppressed"), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnCreatureSuppressed"))); num++;
-                instance.Patch(typeof(WorkerModel).GetMethod("OnDie"), null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnWorkerDie"))); num++;
-                // FUCK YOU 1.0.9.1
-                //trans生效吧求你了
-                instance.Patch(typeof(EquipmentScriptBase).GetMethod(nameof(EquipmentScriptBase.OnKillMainTarget)),null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnKillTargetWorker")), null); num++;
-                instance.Patch(typeof(WeaponModel).GetMethod(nameof(WeaponModel.OnGiveDamage)), null, null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnGiveDamage"))); num++;
-                instance.Patch(typeof(WeaponModel).GetMethod(nameof(WeaponModel.OnGiveDamage)), null, null, new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnGiveDamageAfter"))); num++;
-
-                instance.Patch(typeof(WorkerModel).GetMethod("TakeDamage", new Type[] {typeof(UnitModel), typeof(DamageInfo) }), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_WorkerTakeDamage")), null); num++;
-                //instance.Patch(typeof(CreatureModel).GetMethod("TakeDamage", BindingFlags.Instance | BindingFlags.Public), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_CreatureTakeDamage")), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_OnCreatureTakeDamage_After")), null); num++;
-                instance.Patch(typeof(CreatureModel).GetMethod("TakeDamage", new Type[] { typeof(UnitModel), typeof(DamageInfo) }), new HarmonyMethod(typeof(Meme_Patch).GetMethod("Meme_CreatureTakeDamage")), null);
-                // 员工和异想体的TakeDmgAfter需要trans，没写
-            }
-            catch (Exception ex)
-            {
-                Harmony_Patch.LogError("MemePatch error: " + num + Environment.NewLine + ex.Message + Environment.NewLine + ex.StackTrace);
-            }
-        }
+        [HPHelper(typeof(GameStaticDataLoader), "LoadStaticData")]
+        [HPPostfix]
         public static void LoadAllInfo()
         {
             try
@@ -76,10 +38,11 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
-
+        [HPHelper(typeof(ConsoleScript), "GetHmmCommand")]
+        [HPPrefix]
         public static bool GetAllCommand(string cmd, ref string __result)
         {
             try
@@ -132,7 +95,7 @@ namespace NewGameMode
                             {
                                 string name;
                                 MemeManager.instance.current_list[i].metaInfo.localizeData.TryGetValue("name", out name);
-                                Harmony_Patch.YKMTLogInstance.Info("name:" + name + "    " + "id:" + MemeManager.instance.current_list[i].metaInfo.id);
+                                Harmony_Patch.logger.Info("name:" + name + "    " + "id:" + MemeManager.instance.current_list[i].metaInfo.id);
                             }
 
                             __result = "";
@@ -170,7 +133,7 @@ namespace NewGameMode
                     {
                         if (type2 == "show")
                         {
-                            Harmony_Patch.YKMTLogInstance.Info("ShowShopScene");
+                            Harmony_Patch.logger.Info("ShowShopScene");
                             ShopManager.shopScene.SetActive(true);
                             ShopManager.shopScene.transform.localScale = new Vector3(0, 0, 1);
                             ShopManager.shopScene.transform.DOScale(new Vector3(1, 1, 1), 1).SetEase(Ease.OutExpo).SetUpdate(true);
@@ -209,7 +172,7 @@ namespace NewGameMode
                     {
                         if ((type2 != null))
                         {
-                            Harmony_Patch.customRandom.SetSeed(Convert.ToUInt32(type2));
+                            Harmony_Patch.customRandom.SetSeed(type2);
                         }
                     }
                     else if (type == "debug")
@@ -232,7 +195,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
             return true;
         }
@@ -240,6 +203,8 @@ namespace NewGameMode
         /// <summary>
         /// 思考：把显示模因页面和商店页面分开？显示模因用MemeManager.memeScene，商店页面用ShopManager.shopScene？
         /// </summary>
+        [HPHelper(typeof(GameManager), "StartStage")]
+        [HPPostfix]
         public static void InitMemeScene()
         {
             try
@@ -263,9 +228,11 @@ namespace NewGameMode
                 GameObject exitButton = MemeManager.memeScene.transform.Find("ExitButton").gameObject;
                 UniversalButtonIntereaction btIn1 = exitButton.AddComponent<UniversalButtonIntereaction>();
                 btIn1.pointerEnterSound = false;
-                exitButton.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => {
+                exitButton.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => 
+                {
                     btIn1.Click(true, false, false);
-                    MemeManager.memeScene.transform.DOScale(new Vector3(0, 0, 1), 1).SetEase(Ease.OutExpo).SetUpdate(true).OnComplete(() => {
+                    MemeManager.memeScene.transform.DOScale(new Vector3(0, 0, 1), 1).SetEase(Ease.OutExpo).SetUpdate(true).OnComplete(() => 
+                    {
                         MemeManager.memeScene.SetActive(false);
                     });
                 });
@@ -308,7 +275,7 @@ namespace NewGameMode
                     MemeManager.originScrollY = rect.anchoredPosition.y;
                     MemeManager.originScrollHeight = rect.sizeDelta.y;
                 }
-
+                ShopManager.InitShopScene();//为啥当时把这个拿走
                 //初始化现有模因的所有按钮
                 foreach (KeyValuePair<int, MemeModel> kvp in MemeManager.instance.current_dic)
                 {
@@ -317,10 +284,11 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
-
+        [HPHelper(typeof(EscapeUI), "OpenWindow")]
+        [HPPostfix]
         public static void TurnRestartToMemeSceneText()
         {
             if (GlobalGameManager.instance.gameMode == rougeLike)
@@ -329,13 +297,14 @@ namespace NewGameMode
 
             }
         }
-
+        [HPHelper(typeof(GameManager), "RestartGame")]
+        [HPPrefix]
         public static bool TurnRestartToMemeScene()
         {
             
             if (GlobalGameManager.instance.gameMode == rougeLike)
             {
-                Harmony_Patch.YKMTLogInstance.Info("ShowMemeScene");
+                Harmony_Patch.logger.Info("ShowMemeScene");
                 try
                 {
                     MemeManager.memeScene.SetActive(true);
@@ -378,14 +347,14 @@ namespace NewGameMode
                 }
                 catch (Exception ex)
                 {
-                    Harmony_Patch.YKMTLogInstance.Error(ex);
+                    Harmony_Patch.logger.Error(ex);
                 }
                 return false;
             }
             return true;
         }
-
-
+        [HPHelper(typeof(GameManager), "FixedUpdate")]
+        [HPPostfix]
         public static void Meme_OnFixedUpdate()
         {
             if (GameManager.currentGameManager.state == global::GameState.PLAYING)
@@ -393,36 +362,52 @@ namespace NewGameMode
                 MemeManager.instance.OnFixedUpdate();
             }  
         }
+        [HPHelper(typeof(GameManager), "StartStage")]
+        [HPPostfix]
         public static void Meme_OnStageStart()
         {
             MemeManager.instance.OnStageStart();
         }
+        [HPHelper(typeof(GameManager), "Release")]
+        [HPPostfix]
         public static void Meme_OnStageRelease()
         {
             MemeManager.instance.OnStageRelease();
         }
+        [HPHelper(typeof(EquipmentModel), "OnPrepareWeapon")]
+        [HPPrefix]
         public static void Meme_OnPrepareWeapon(UnitModel actor)
         {
             MemeManager.instance.OnPrepareWeapon(actor);
         }
+        [HPHelper(typeof(EquipmentModel), "OnCancelWeapon")]
+        [HPPrefix]
         public static void Meme_OnCancelWeapon(UnitModel actor)
         {
             MemeManager.instance.OnCancelWeapon(actor);
         }
+        [HPHelper(typeof(WeaponModel), "OnAttack")]
+        [HPPrefix]
         public static void Meme_OnAttack(UnitModel actor, UnitModel target)
         {
             MemeManager.instance.OnAttackStart(actor, target);
         }
+        [HPHelper(typeof(WeaponModel), "OnEndAttackCycle")]
+        [HPPrefix]
         public static void Meme_OnEndAttackCycle(WeaponModel __instance)
         {
             MemeManager.instance.OnAttackEnd(__instance.owner, __instance.currentTarget);
         }
 
+        [HPHelper(typeof(CreatureModel), "Suppressed")]
+        [HPPrefix]
         public static void OnCreatureSuppressed(CreatureModel __instance)
         {
             MemeManager.instance.OnCreatureSuppressed(__instance);
         }
 
+        [HPHelper(typeof(WorkerModel), "OnDie")]
+        [HPPrefix]
         public static void OnWorkerDie(WorkerModel __instance)
         {
             MemeManager.instance.OnWorkerDie(__instance);
@@ -470,6 +455,8 @@ namespace NewGameMode
 
         }
         */
+        [HPHelper(typeof(WeaponModel), "OnGiveDamage")]
+        [HPTranspiler]
         public static IEnumerable<CodeInstruction> Meme_OnGiveDamage(IEnumerable<CodeInstruction> instructions)
         {
             //要调用的方法和用于定位IL码位置的方法
@@ -483,7 +470,7 @@ namespace NewGameMode
 
             //原IL和新IL
             var codes = instructions.ToList();
-            List<CodeInstruction> newCodes = new List<CodeInstruction>();
+            List<CodeInstruction> newCodes = [];
             IEnumerable<CodeInstruction> newCodes_copy;
 
             bool findRawMethod = false;//如果定位用方法被调用后没有立刻结束这一行，而是还有一句IL码，则借此判断，并在下一句IL码之后插入
@@ -496,7 +483,7 @@ namespace NewGameMode
                 //如果已经跳过方法后的一句IL码，就将findRawMethod重新改为false。
                 if (findRawMethod)//为了避免if的条件判断中调用方法导致误判，需要检查调用方法后的这句IL码是不是正常调用后出现的IL码，如果是，再插入新的。
                 {
-                    findRawMethod = false ;
+                    findRawMethod = false;
                     if (code.opcode == OpCodes.Stloc_S)
                     {
                         methodTimes++;
@@ -508,7 +495,7 @@ namespace NewGameMode
                         {
                             newCodes.Add(new CodeInstruction(OpCodes.Ldloca_S, 7));//压入被patch的方法的第七个局部参数。
                         }
-                        else if(methodTimes == 2)
+                        else if (methodTimes == 2)
                         {
                             newCodes.Add(new CodeInstruction(OpCodes.Ldloca_S, 13));
                         }
@@ -539,7 +526,8 @@ namespace NewGameMode
             return newCodes_copy;
 
         }
-
+        [HPHelper(typeof(WeaponModel), "OnGiveDamage")]
+        [HPTranspiler]
         public static IEnumerable<CodeInstruction> Meme_OnGiveDamageAfter(IEnumerable<CodeInstruction> instructions)
         {
             //要调用的方法和用于定位IL码位置的方法
@@ -553,7 +541,7 @@ namespace NewGameMode
 
             //原IL和新IL
             var codes = instructions.ToList();
-            List<CodeInstruction> newCodes = new List<CodeInstruction>();
+            List<CodeInstruction> newCodes = [];
             IEnumerable<CodeInstruction> newCodes_copy;
 
             int methodTimes = 0;//记录定位用方法出现了几次，适用于每次调用方法时压入参数不同的情况
@@ -599,12 +587,14 @@ namespace NewGameMode
             return newCodes_copy;
 
         }
-
+        [HPHelper(typeof(EquipmentScriptBase), "OnKillMainTarget")]
+        [HPPostfix]
         public static void Meme_OnKillTargetWorker(UnitModel actor, UnitModel target)
         {
             MemeManager.instance.OnKillTargetWorker(actor, target);
         }
-
+        [HPHelper(typeof(WorkerModel), "TakeDamage", typeof(UnitModel), typeof(DamageInfo))]
+        [HPPrefix]
         public static void Meme_WorkerTakeDamage(WorkerModel __instance, UnitModel actor, DamageInfo dmg)
         {
             MemeManager.instance.WorkerTakeDamage(actor, __instance, dmg);
@@ -613,6 +603,8 @@ namespace NewGameMode
         {
             MemeManager.instance.OnWorkerTakeDamage_After(num, actor, __instance, type);
         }
+        [HPHelper(typeof(CreatureModel), "TakeDamage", typeof(UnitModel), typeof(DamageInfo))]
+        [HPPrefix]
         public static void Meme_CreatureTakeDamage(CreatureModel __instance, UnitModel actor, DamageInfo dmg)
         {
             MemeManager.instance.CreatureTakeDamage(actor, __instance, dmg);

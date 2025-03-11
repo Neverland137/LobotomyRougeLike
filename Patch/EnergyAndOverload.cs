@@ -1,4 +1,5 @@
 ﻿using Harmony;
+using HPHelper;
 using NewGameMode.Diffculty;
 using System;
 using System.Collections.Generic;
@@ -97,38 +98,8 @@ namespace NewGameMode
         public static int memeAwardMemeCnt = 1;
 
 
-        public EnergyAndOverload_Patch(HarmonyInstance instance)
-        {
-            int num = 0;
-            try
-            {
-                instance.Patch(typeof(StageTypeInfo).GetMethod("GetEnergyNeed"), null, new HarmonyMethod(typeof(EnergyAndOverload_Patch).GetMethod("EnergyNeedDecrease")), null);
-                num++;
-
-                //后面那三个null啥意思 好谢了 我build一下 好好
-
-                //第三个和第五个不知道什么意思，第四个是参数 没有就null，空Type数组也行，你等会我去隔壁偷个随机考验
-                instance.Patch(typeof(CreatureOverloadManager).GetMethod("ActivateOverload", BindingFlags.NonPublic | BindingFlags.Instance), new HarmonyMethod(typeof(EnergyAndOverload_Patch).GetMethod("SetOverloadMultiply")), null, null);
-
-                instance.Patch(typeof(CreatureOverloadManager).GetMethod("ActivateOverload", BindingFlags.NonPublic | BindingFlags.Instance), null, new HarmonyMethod(typeof(EnergyAndOverload_Patch).GetMethod("CallRandomEvent")), null);
-                num++;
-                instance.Patch(typeof(CreatureOverloadManager).GetMethod("OnStageStart", AccessTools.all), null, new HarmonyMethod(typeof(EnergyAndOverload_Patch).GetMethod("SetQliphothOverloadMax")), null);
-                num++;
-                instance.Patch(typeof(OrdealGenInfo).GetMethod("GenerateOrdeals", AccessTools.all), null, new HarmonyMethod(typeof(EnergyAndOverload_Patch).GetMethod("BlockOriginOrdeal")), null);
-                num++;
-                instance.Patch(typeof(OrdealManager).GetMethod("InitAvailableFixers"), null, new HarmonyMethod(typeof(EnergyAndOverload_Patch).GetMethod("InitFixers")));
-
-                instance.Patch(typeof(AgentModel).GetMethod("OnStageEnd"), null, new HarmonyMethod(typeof(EnergyAndOverload_Patch).GetMethod("CheckPanicAgentAlive")));
-
-                instance.Patch(typeof(EventCreatureModel).GetMethod("OnFixedUpdate"), new HarmonyMethod(typeof(EnergyAndOverload_Patch).GetMethod("RandomCreatureOnFixedUpdate")), null);
-                instance.Patch(typeof(CreatureModel).GetMethod("Suppressed"), null, new HarmonyMethod(typeof(EnergyAndOverload_Patch).GetMethod("CheckCreatureSuppress")));
-            }
-            catch (Exception ex)
-            {
-                File.WriteAllText(Harmony_Patch.path + "/EAOError" + num.ToString() + ".txt", ex.Message + Environment.NewLine + ex.StackTrace);
-            }
-        }
-        ///////////
+        [HPHelper(typeof(OrdealGenInfo), "GenerateOrdeals")]
+        [HPPostfix]
         public static void BlockOriginOrdeal(ref List<OrdealBase> __result)
         {
             if (GlobalGameManager.instance.gameMode == rougeLike)
@@ -136,6 +107,8 @@ namespace NewGameMode
                 __result = new List<OrdealBase>();
             }
         }
+        [HPHelper(typeof(OrdealManager), "InitAvailableFixers")]
+        [HPPostfix]
         public static void InitFixers()
         {
             if (GlobalGameManager.instance.gameMode == rougeLike)
@@ -144,6 +117,8 @@ namespace NewGameMode
             }
         }
         ///////////
+        [HPHelper(typeof(StageTypeInfo), "GetEnergyNeed")]
+        [HPPostfix]
         public static void EnergyNeedDecrease(ref float __result)
         {
             if (GlobalGameManager.instance.gameMode == rougeLike)
@@ -151,7 +126,8 @@ namespace NewGameMode
                 __result *= 0.25f;
             }
         }
-
+        [HPHelper(typeof(CreatureOverloadManager), "OnStageStart")]
+        [HPPostfix]
         public static void SetQliphothOverloadMax()
         {
             if (GlobalGameManager.instance.gameMode == rougeLike)
@@ -159,7 +135,7 @@ namespace NewGameMode
                 CreatureOverloadManager.instance.SetPrivateField("_qliphothOverloadMax", 4);
             }
         }
-
+        // Need Manual Patch
         public static void SetOverloadMultiply()
         {
             try
@@ -206,7 +182,7 @@ namespace NewGameMode
             }
         }
         ///////////
-
+        // Need Manual Patch
 
         /// <summary>
         /// 【没做3级任务的逻辑！！！3级任务会顶掉考验】
@@ -358,7 +334,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
 
@@ -536,7 +512,8 @@ namespace NewGameMode
                 File.WriteAllText(Harmony_Patch.path + "/PanicAgentError.txt", ex.Message + Environment.NewLine + ex.StackTrace);
             }
         }
-
+        [HPHelper(typeof(AgentModel), "OnStageEnd")]
+        [HPPostfix]
         public static void CheckPanicAgentAlive()
         {
             try
@@ -565,7 +542,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
 
@@ -574,24 +551,19 @@ namespace NewGameMode
         private static EventBase _tmpEvent = new EventBase();
         public class RGRandomEventManager
         {
-            public static RGRandomEventManager instance { get; private set; }
-            public RGRandomEventManager(HarmonyInstance instance)
+            public static RGRandomEventManager _instance;
+            public static RGRandomEventManager instance
             {
-                RGRandomEventManager.instance = this;
-                try
+                get
                 {
-                    instance.Patch(typeof(MissionSlot).GetMethod("Refresh", AccessTools.all), new HarmonyMethod(typeof(RGRandomEventManager).GetMethod("MissionSlot_Refresh")), null, null);
-                    instance.Patch(typeof(UseSkill).GetMethod("FinishWorkSuccessfully", AccessTools.all), null, new HarmonyMethod(typeof(RGRandomEventManager).GetMethod("CheckEnergyAndWorkMission")), null);
-                    instance.Patch(typeof(CreatureModel).GetMethod("Suppressed", AccessTools.all), null, new HarmonyMethod(typeof(RGRandomEventManager).GetMethod("CheckSuppressMission")), null);
-                    instance.Patch(typeof(CreatureObserveInfoModel).GetMethod("OnObserveRegion", AccessTools.all), null, new HarmonyMethod(typeof(RGRandomEventManager).GetMethod("CheckObserveMission")), null);
-                    instance.Patch(typeof(GameManager).GetMethod("ClearStage", AccessTools.all), null, new HarmonyMethod(typeof(Harmony_Patch).GetMethod("ClearMissionList")), null);
-
-                }
-                catch (Exception ex)
-                {
-                    Harmony_Patch.YKMTLogInstance.Error(ex);
+                    if (_instance == null)
+                    {
+                        _instance = new RGRandomEventManager();
+                    }
+                    return _instance;
                 }
             }
+        
             public enum MissionRequire
             {
                 ENERGY,
@@ -649,7 +621,7 @@ namespace NewGameMode
                     }
                     catch (Exception ex)
                     {
-                        Harmony_Patch.YKMTLogInstance.Error(ex);
+                        Harmony_Patch.logger.Error(ex);
                     }
                     return mission;
                     //RGDebug.Log("NotFoundMission");
@@ -667,6 +639,8 @@ namespace NewGameMode
                 {
                     return Missionlist.FindAll((EXTRAMission x) => x.type == EXTRAMissionType.Cleard);
                 }
+                [HPHelper(typeof(GameManager), "ClearStage")]
+                [HPPostfix]
                 public static void ClearMissionList()
                 {
                     Missionlist.Clear();
@@ -684,6 +658,8 @@ namespace NewGameMode
                 }
 
             }
+            [HPHelper(typeof(MissionSlot), "Refresh")]
+            [HPPrefix]
             public static bool MissionSlot_Refresh(MissionSlot __instance)
             {
                 try
@@ -746,7 +722,7 @@ namespace NewGameMode
                 }
                 catch (Exception ex)
                 {
-                    Harmony_Patch.YKMTLogInstance.Error(ex);
+                    Harmony_Patch.logger.Error(ex);
                 }
                 return true;
             }
@@ -783,7 +759,7 @@ namespace NewGameMode
                 }
                 catch (Exception ex)
                 {
-                    Harmony_Patch.YKMTLogInstance.Error(ex);
+                    Harmony_Patch.logger.Error(ex);
                 }
             }
 
@@ -811,7 +787,7 @@ namespace NewGameMode
                     }
                     catch
                     {
-                        Harmony_Patch.YKMTLogInstance.Error("MissionRewardButton not found");
+                        Harmony_Patch.logger.Error("MissionRewardButton not found");
                     }
                     bundle.Unload(false);
                     
@@ -1014,7 +990,7 @@ namespace NewGameMode
                                 buttonList[i].transform.GetChild(0).GetComponent<UnityEngine.UI.Text>().text = "ERROR";
                                 buttonList[i].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(delegate
                                 {
-                                    rewardButton.SetActive(false);
+                                    GameObject.Destroy(rewardButton);
                                     AngelaConversationUI.instance.FadeOut = true;
                                     AngelaConversationUI.instance.FadeIn = true;
                                 });
@@ -1030,11 +1006,12 @@ namespace NewGameMode
                 }
                 catch (Exception ex)
                 {
-                    Harmony_Patch.YKMTLogInstance.Error(ex);
+                    Harmony_Patch.logger.Error(ex);
                 }
 
             }
-
+            [HPHelper(typeof(UseSkill), "FinishWorkSuccessfully")]
+            [HPPostfix]
 
             public static void CheckEnergyAndWorkMission(UseSkill __instance)
             {
@@ -1070,46 +1047,40 @@ namespace NewGameMode
                 }
                 catch (Exception ex)
                 {
-                    Harmony_Patch.YKMTLogInstance.Error(ex);
+                    Harmony_Patch.logger.Error(ex);
                 }
             }
-
+            [HPHelper(typeof(CreatureModel), "Suppressed")]
+            [HPPostfix]
             public static void CheckSuppressMission(CreatureModel __instance)
             {
                 try
                 {
-                    Harmony_Patch.YKMTLogInstance.InGameLog("Suppress1");
                     if (EXTRAMissionManager.instance.GetStartMission().Find((EXTRAMission x) => x.name == "E2") != null)
                     {
-                        Harmony_Patch.YKMTLogInstance.InGameLog("Suppress2");
                         EXTRAMission extraMission = EXTRAMissionManager.instance.GetStartMission().Find((EXTRAMission x) => x.name == "E2");
-                        Harmony_Patch.YKMTLogInstance.InGameLog("Suppress3");
                         if (!extraMission.IsCleard)
                         {
-                            Harmony_Patch.YKMTLogInstance.InGameLog("Suppress4");
                             if (__instance.GetRiskLevel() >= extraMission.risk_level)
                             {
-                                Harmony_Patch.YKMTLogInstance.InGameLog("Suppress5");
                                 extraMission.count++;
-                            }
-                                
+                            }   
                             if (extraMission.count >= extraMission.goal)
                             {
-                                Harmony_Patch.YKMTLogInstance.InGameLog("Suppress6");
                                 extraMission.IsCleard = true;
                                 EndMission(extraMission);
                             }
-                            Harmony_Patch.YKMTLogInstance.InGameLog("Suppress7");
                             extraMission.slot.Refresh();
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    Harmony_Patch.YKMTLogInstance.Error(ex);
+                    Harmony_Patch.logger.Error(ex);
                 }
             }
-
+            [HPHelper(typeof(CreatureObserveInfoModel), "OnObserveRegion")]
+            [HPPostfix]
             public static void CheckObserveMission()
             {
                 try
@@ -1135,7 +1106,7 @@ namespace NewGameMode
                 }
                 catch (Exception ex)
                 {
-                    Harmony_Patch.YKMTLogInstance.Error(ex);
+                    Harmony_Patch.logger.Error(ex);
                 }
             }
         }
@@ -1226,7 +1197,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
 
@@ -1267,7 +1238,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
 
@@ -1286,7 +1257,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
 
@@ -1304,7 +1275,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
 
@@ -1394,7 +1365,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
 

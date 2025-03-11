@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-
+using UnityEngine;
 namespace NewGameMode
 {
     public class CustomRandom
@@ -20,6 +21,19 @@ namespace NewGameMode
         public void SetSeed(uint seed)
         {
             state = seed;
+        }
+        public void SetSeed(string seed)
+        {
+            if (uint.TryParse(seed, out uint result))
+            {
+                SetSeed(result);
+                return;
+            }
+            using MD5 md5 = MD5.Create();
+            byte[] hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(seed));
+            uint computeSeed = BitConverter.ToUInt32(hashBytes, 0);
+            Harmony_Patch.logger.Info($"Seed: {seed} -> {computeSeed}");
+            state = computeSeed;
         }
         // 生成下一个随机数
         public long Next()

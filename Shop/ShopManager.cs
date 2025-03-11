@@ -132,7 +132,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
 
@@ -233,7 +233,6 @@ namespace NewGameMode
         public static void InitShopMeme()
         {
             // 需要满足：不是boss模因，等级为1或2，不是随机员工和随机装备，或者是诅咒模因。
-
             if (MemeManager.instance.all_dic != null)
             {
                 foreach (var dic in MemeManager.instance.all_dic)
@@ -263,7 +262,7 @@ namespace NewGameMode
             }
             else
             {
-                Harmony_Patch.YKMTLogInstance.Error("MemeManager.all_dic is null. can't init shop meme.");
+                Harmony_Patch.logger.Error("MemeManager.all_dic is null. can't init shop meme.");
             }
         }
 
@@ -295,7 +294,7 @@ namespace NewGameMode
             List<ShopProduct> shopProducts_sp = new List<ShopProduct>();
             try
             {
-                //实例id和模因信息，商店刷新用模因信息判断
+                //实例id和模因信息，商店刷新用模因id判断
                 List<int> nowMemeId = [];
                 foreach (var dic in MemeManager.instance.current_dic)
                 {
@@ -310,7 +309,7 @@ namespace NewGameMode
                     {
                         tempMemeVer1.Add(dic.Key, dic.Value);//模因id和信息
                     }
-                    Harmony_Patch.YKMTLogInstance.Info("  alreadyHave:" + nowMemeId.Contains(dic.Value.id).ToString());
+                    Harmony_Patch.logger.Info("  alreadyHave:" + nowMemeId.Contains(dic.Value.id).ToString());
                 }
                 num++;
                 Dictionary<int, MemeInfo> tempMemeVer2 = [];
@@ -412,8 +411,8 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(num.ToString());
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(num.ToString());
+                Harmony_Patch.logger.Error(ex);
             }
             return shopProducts;
         }
@@ -501,7 +500,7 @@ namespace NewGameMode
             }
             catch (Exception ex)
             {
-                Harmony_Patch.YKMTLogInstance.Error(ex);
+                Harmony_Patch.logger.Error(ex);
             }
         }
     }

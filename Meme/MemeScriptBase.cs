@@ -20,7 +20,6 @@ namespace NewGameMode
 
         public void Init()
         {
-            Harmony_Patch.YKMTLogInstance.Info("ScriptBaseInit");
             if (!init)
             {
                 OnInit();
@@ -34,7 +33,7 @@ namespace NewGameMode
         }
         public virtual void OnGet()
         {
-            Harmony_Patch.YKMTLogInstance.Info("GetMeme:" + model.metaInfo.sprite_name);
+            Harmony_Patch.logger.Info("GetMeme:" + model.metaInfo.sprite_name);
         }
 
         public virtual void OnRelease()
@@ -252,7 +251,7 @@ namespace NewGameMode
             }
             catch (Exception e)
             {
-                Harmony_Patch.YKMTLogInstance.Error(e);
+                Harmony_Patch.logger.Error(e);
             }
         }
 

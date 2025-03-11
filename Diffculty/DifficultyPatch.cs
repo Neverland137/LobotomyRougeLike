@@ -1,5 +1,6 @@
 ﻿using GlobalBullet;
 using Harmony;
+using HPHelper;
 using NewGameMode.Diffculty;
 using System;
 using System.Collections.Generic;
@@ -8,23 +9,8 @@ namespace NewGameMode
 {
     public class DifficultyPatch
     {
-        public DifficultyPatch(HarmonyInstance instance)
-        {
-            try
-            {
-                instance.Patch(typeof(GlobalBulletManager).GetMethod("SetMaxBullet"), new HarmonyMethod(typeof(DifficultyPatch).GetMethod("PatchMaxBullet")), null);
-                instance.Patch(typeof(StageTypeInfo).GetMethod("GetEnergyNeed"), null, new HarmonyMethod(typeof(DifficultyPatch).GetMethod("PatchMaxEnergy")));
-                instance.Patch(typeof(WorkerModel).GetMethod("TakeDamage", new Type[] { typeof(UnitModel), typeof(DamageInfo) }), new HarmonyMethod(typeof(DifficultyPatch).GetMethod("PatchTakeDamage")), null);
-                instance.Patch(typeof(CreatureModel).GetMethod("GetWorkSuccessProb"), null, new HarmonyMethod(typeof(DifficultyPatch).GetMethod("PatchWorkSuccessAdder")));
-                instance.Patch(typeof(CreatureModel).GetMethod("SetFeelingStateInWork"), null, new HarmonyMethod(typeof(DifficultyPatch).GetMethod("PatchCreatureTiredTime")));
-                instance.Patch(typeof(CreatureModel).GetMethod("Escape"), new HarmonyMethod(typeof(DifficultyPatch).GetMethod("PatchCreatureMaxHP_1")), null);
-                instance.Patch(typeof(ChildCreatureModel).GetMethod("Escape"), new HarmonyMethod(typeof(DifficultyPatch).GetMethod("PatchCreatureMaxHP_2")), null);
-            }
-            catch (Exception ex)
-            {
-                Harmony_Patch.LogError("Difficulty Patch Error.\n" + ex.ToString());
-            }
-        }
+        [HPHelper(typeof(GlobalBulletManager), "SetMaxBullet")]
+        [HPPrefix]
         public static void PatchMaxBullet(ref int max)
         {
             if (PlayerModel.instance.GetDay() == 30)
@@ -35,6 +21,8 @@ namespace NewGameMode
             int Adder2 = MemeManager.instance.BulletAdder();
             max += Adder2;
         }
+        [HPHelper(typeof(StageTypeInfo), "GetEnergyNeed")]
+        [HPPostfix]
         public static void PatchMaxEnergy(int day, ref float __result)
         {
             var NowDifficulty = DifficultyManager.GetNowDifficulty();
@@ -43,6 +31,8 @@ namespace NewGameMode
             float energy = (__result * Times) + Adder;
             __result = energy;
         }
+        [HPHelper(typeof(WorkerModel), "TakeDamage", typeof(UnitModel), typeof(DamageInfo))]
+        [HPPrefix]
         public static void PatchTakeDamage(UnitModel actor, ref DamageInfo dmg)
         {
             var NowDifficulty = DifficultyManager.GetNowDifficulty();
@@ -51,6 +41,8 @@ namespace NewGameMode
             dmg.min = (int)(dmg.min * times) + Adder;
             dmg.max = (int)(dmg.max * times) + Adder;
         }
+        [HPHelper(typeof(CreatureModel), "GetWorkSuccessProb")]
+        [HPPostfix]
         public static void PatchWorkSuccessAdder(AgentModel actor, SkillTypeInfo skill, ref float __result)
         {
             var NowDifficulty = DifficultyManager.GetNowDifficulty();
@@ -60,6 +52,8 @@ namespace NewGameMode
         // 我知道这种代码简直蠢死了，但是反正本来就已经够屎山了，不差这一点
         //这蠢吗 不蠢吧 摸摸）
         private static Dictionary<CreatureTypeInfo, int> maxHPTable = new();
+        [HPHelper(typeof(CreatureModel), "Escape")]
+        [HPPrefix]
         public static void PatchCreatureMaxHP_1(ref CreatureModel __instance)
         {
             if (!maxHPTable.ContainsKey(__instance.metaInfo))
@@ -75,6 +69,8 @@ namespace NewGameMode
             }
         }
         private static Dictionary<ChildCreatureTypeInfo, int> maxHPTable_Child = new();
+        [HPHelper(typeof(ChildCreatureModel), "Escape")]
+        [HPPrefix]
         public static void PatchCreatureMaxHP_2(ref ChildCreatureModel __instance)
         {
             if (!maxHPTable_Child.ContainsKey(__instance.childMetaInfo))
@@ -122,6 +118,8 @@ namespace NewGameMode
             }
         }
         */
+        [HPHelper(typeof(CreatureModel), "SetFeelingStateInWork")]
+        [HPPostfix]
         public static void PatchCreatureTiredTime(CreatureFeelingState state, CreatureModel __instance)
         {
             var NowDifficulty = DifficultyManager.GetNowDifficulty();
