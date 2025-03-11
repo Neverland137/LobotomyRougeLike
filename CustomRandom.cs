@@ -41,8 +41,15 @@ namespace NewGameMode
         /// <returns></returns>
         public int NextInt(int min, int max)
         {
-            uint range = (uint)(max - min);
-            return (int)(min + Next() % range);
+            if (min != max)
+            {
+                uint range = (uint)(max - min);
+                return (int)(min + Next() % range);
+            }
+            else
+            {
+                return max;
+            }
         }
 
         /// <summary>

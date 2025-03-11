@@ -273,7 +273,7 @@ namespace NewGameMode
                                         Award_GetEquipment(randomAwardEquipmentRate, randomAwardEquipCnt);
                                         break;
                                     case 1: 
-                                        Award_GetAgent(randomAwardAgentStat[0], randomAwardAgentStat[1], randomAwardAgentCnt);
+                                        Award_GetAgent(randomAwardAgentStat[0], randomAwardAgentStat[1], randomAwardAgentCnt, set_sefira:false);
                                         break;
                                     case 2: 
                                         Award_GetLOB(randomAwardLOB[0], randomAwardLOB[1]);

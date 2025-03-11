@@ -34,6 +34,36 @@ namespace NewGameMode
         [NonSerialized]
         public string modid;
 
+
+        public bool Equals(MemeInfo info)
+        {
+            if (this.id == info.id)
+            {
+                if (this.sprite_name == info.sprite_name)
+                {
+                    if (this.satisfy_all == info.satisfy_all)
+                    {
+                        if (this.duplicate == info.duplicate)
+                        {
+                            if (this.curse == info.curse)
+                            {
+                                if (this.boss == info.boss)
+                                {
+                                    if (this.suit == info.suit)
+                                    {
+                                        if (this.script == info.script && this.grade == info.grade && this.price == info.price)
+                                        {
+                                            return true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        }
         public bool GetLocalizedText(string region, out string output)
         {
             string empty = string.Empty;
@@ -53,7 +83,11 @@ namespace NewGameMode
         /// <returns></returns>
         public bool CheckRequire()
         {
-            foreach (MemeRequire require in requires)
+            if (requires == null || requires.Count == 0)
+            {
+                return true;
+            }
+            foreach (MemeRequire require in requires)//检查每一条模因需求是否满足
             {
                 if (require.type == MemeRequireType.DAY)
                 {
@@ -102,8 +136,8 @@ namespace NewGameMode
                     {
                         return false;
                     }
-                    return true;
                 }
+                return true;
             }
             else
             {
@@ -113,11 +147,9 @@ namespace NewGameMode
                     {
                         return true;
                     }
-                    return false;
                 }
+                return false;
             }
-
-            return false;
         }
     }
 }

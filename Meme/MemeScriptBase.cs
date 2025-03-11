@@ -20,6 +20,7 @@ namespace NewGameMode
 
         public void Init()
         {
+            Harmony_Patch.YKMTLogInstance.Info("ScriptBaseInit");
             if (!init)
             {
                 OnInit();
@@ -210,10 +211,6 @@ namespace NewGameMode
         public static void LoadData(Dictionary<string, object> dic) //不用写存储，存储已经在Harmony_Patch的SaveRougeLikeDayData里了
         {
             GameUtil.TryGetValue<Dictionary<int, object>>(dic, "memeData", ref allMemeGameDataDic);
-            if (allMemeGameDataDic.Count == 0)
-            {
-                return;
-            }
             foreach (KeyValuePair<int, MemeModel> pair in MemeManager.instance.current_dic)//部分模因数据初始化，例如基础暴击，以及无法存储的模因按钮
             {
                 pair.Value.script.Init();

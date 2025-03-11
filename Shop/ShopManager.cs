@@ -52,78 +52,81 @@ namespace NewGameMode
             try
             {
                 //对于memeScene的基础设置
-                AssetBundle bundle = AssetBundle.LoadFromFile(Harmony_Patch.path + "/AssetsBundle/universal_meme_scene");
-                shopScene = UnityEngine.Object.Instantiate(bundle.LoadAsset<GameObject>("UniversalMemeScene"));
-                shopScene.transform.SetParent(GameStatusUI.GameStatusUI.Window.gameObject.transform.Find("Canvas"));
-                shopScene.transform.localPosition = new Vector3(0, 0, 0);
-                shopScene.transform.localScale = new Vector3(0, 0, 1);
-                //shopScene.AddComponent<Canvas>();
-                shopScene.SetActive(false);
-                bundle.Unload(false);//关闭AB包，但是保留已加载的资源
-
-                //对于子对象的详细设置，例如哪些按钮应当播放哪些音效，以及对于文字的设置
-                //离开按钮
-                GameObject exitButton = shopScene.transform.Find("ExitButton").gameObject;
-                UniversalButtonIntereaction btIn1 = exitButton.AddComponent<UniversalButtonIntereaction>();
-                btIn1.pointerEnterSound = false;
-                //关闭商店页面时，详情页也一并隐藏，避免下次打开商店后出现上次商店的商品
-                exitButton.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => {
-                    btIn1.Click(true, false, false);
-                    shopScene.transform.DOScale(new Vector3(0, 0, 1), 1).SetEase(Ease.OutExpo).SetUpdate(true).OnComplete(() => {
-                        shopScene.SetActive(false);
-                        shopScene.transform.Find("WonderandDetail").Find("Detail").gameObject.SetActive(false);
-                    });
-                });
-                exitButton.transform.Find("Text").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>().id = "Shop_ExitButton";
-                exitButton.transform.Find("Text").gameObject.AddComponent<FontLoadScript>();
-                //单个模因按钮
-                //GameObject singleMemeButton = MemeManager.memeScene.transform.Find("MemeButtons").Find("Buttons").GetChild(0).gameObject;
-
-                //详情页的文本设置
-                GameObject detail = shopScene.transform.Find("WonderandDetail").Find("Detail").gameObject;
-                detail.transform.Find("Name").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
-                detail.transform.Find("Name").gameObject.AddComponent<FontLoadScript>();
-                detail.transform.Find("Desc").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
-                detail.transform.Find("Desc").gameObject.AddComponent<FontLoadScript>();
-                detail.transform.Find("ScrollSpecialDesc").Find("SpecialDesc").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
-                detail.transform.Find("ScrollSpecialDesc").Find("SpecialDesc").gameObject.AddComponent<FontLoadScript>();
-                detail.SetActive(false);
-                //涉及价格的不能加那俩组件
-                /*
-                detail.transform.Find("BuyButton").Find("Text").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
-                detail.transform.Find("BuyButton").Find("Text").gameObject.AddComponent<FontLoadScript>();
-                */
-                //奇思设置
-
-                GameObject wonder = shopScene.transform.Find("WonderandDetail").Find("Wonder").gameObject;
-                wonder.transform.Find("Text").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
-                wonder.transform.Find("Text").gameObject.AddComponent<UpdateWonder>();
-
-
-                //购买按钮设置：价格和音效需要在点击模因按钮后再设置
-                GameObject buy = shopScene.transform.Find("WonderandDetail").Find("Detail").Find("BuyButton").gameObject;
-                UniversalButtonIntereaction btIn2 = buy.AddComponent<UniversalButtonIntereaction>();
-                btIn2.pointerEnterSound = true;
-                buy.transform.Find("Text").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
-
-                //刷新按钮设置
-                GameObject refresh = shopScene.transform.Find("RefreshButton").gameObject;
-                UniversalButtonIntereaction btIn3 = refresh.AddComponent<UniversalButtonIntereaction>();
-                btIn3.pointerEnterSound = true;
-                refresh.transform.Find("Text").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
-                refresh.transform.Find("Text").gameObject.GetComponent<Text>().text = LocalizeTextDataModel.instance.GetText("Shop_Refresh") + LocalizeTextDataModel.instance.GetText("Meme_Wonder") + "-" + RefreshPrice.ToString();
-                refresh.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => 
+                if (shopScene == null)
                 {
-                    if (RefreshShop())
-                    {
-                        refresh.GetComponent<UniversalButtonIntereaction>().Click(true, false, true);
-                    }
-                    else
-                    {
-                        refresh.GetComponent<UniversalButtonIntereaction>().Click(false, true, true);
-                    }
-                });
+                    AssetBundle bundle = AssetBundle.LoadFromFile(Harmony_Patch.path + "/AssetsBundle/universal_meme_scene");
+                    shopScene = UnityEngine.Object.Instantiate(bundle.LoadAsset<GameObject>("UniversalMemeScene"));
+                    shopScene.transform.SetParent(GameStatusUI.GameStatusUI.Window.gameObject.transform.Find("Canvas"));
+                    shopScene.transform.localPosition = new Vector3(0, 0, 0);
+                    shopScene.transform.localScale = new Vector3(0, 0, 1);
+                    //shopScene.AddComponent<Canvas>();
+                    shopScene.SetActive(false);
+                    bundle.Unload(false);//关闭AB包，但是保留已加载的资源
 
+                    //对于子对象的详细设置，例如哪些按钮应当播放哪些音效，以及对于文字的设置
+                    //离开按钮
+                    GameObject exitButton = shopScene.transform.Find("ExitButton").gameObject;
+                    UniversalButtonIntereaction btIn1 = exitButton.AddComponent<UniversalButtonIntereaction>();
+                    btIn1.pointerEnterSound = false;
+                    //关闭商店页面时，详情页也一并隐藏，避免下次打开商店后出现上次商店的商品
+                    exitButton.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => {
+                        btIn1.Click(true, false, false);
+                        shopScene.transform.DOScale(new Vector3(0, 0, 1), 1).SetEase(Ease.OutExpo).SetUpdate(true).OnComplete(() => {
+                            shopScene.SetActive(false);
+                            shopScene.transform.Find("WonderandDetail").Find("Detail").gameObject.SetActive(false);
+                        });
+                    });
+                    exitButton.transform.Find("Text").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>().id = "Shop_ExitButton";
+                    exitButton.transform.Find("Text").gameObject.AddComponent<FontLoadScript>();
+                    //单个模因按钮
+                    //GameObject singleMemeButton = MemeManager.memeScene.transform.Find("MemeButtons").Find("Buttons").GetChild(0).gameObject;
+
+                    //详情页的文本设置
+                    GameObject detail = shopScene.transform.Find("WonderandDetail").Find("Detail").gameObject;
+                    detail.transform.Find("Name").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
+                    detail.transform.Find("Name").gameObject.AddComponent<FontLoadScript>();
+                    detail.transform.Find("Desc").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
+                    detail.transform.Find("Desc").gameObject.AddComponent<FontLoadScript>();
+                    detail.transform.Find("ScrollSpecialDesc").Find("SpecialDesc").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
+                    detail.transform.Find("ScrollSpecialDesc").Find("SpecialDesc").gameObject.AddComponent<FontLoadScript>();
+                    detail.SetActive(false);
+                    //涉及价格的不能加那俩组件
+                    /*
+                    detail.transform.Find("BuyButton").Find("Text").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
+                    detail.transform.Find("BuyButton").Find("Text").gameObject.AddComponent<FontLoadScript>();
+                    */
+                    //奇思设置
+
+                    GameObject wonder = shopScene.transform.Find("WonderandDetail").Find("Wonder").gameObject;
+                    wonder.transform.Find("Text").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
+                    wonder.transform.Find("Text").gameObject.AddComponent<UpdateWonder>();
+
+
+                    //购买按钮设置：价格和音效需要在点击模因按钮后再设置
+                    GameObject buy = shopScene.transform.Find("WonderandDetail").Find("Detail").Find("BuyButton").gameObject;
+                    UniversalButtonIntereaction btIn2 = buy.AddComponent<UniversalButtonIntereaction>();
+                    btIn2.pointerEnterSound = true;
+                    buy.transform.Find("Text").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
+
+                    //刷新按钮设置
+                    GameObject refresh = shopScene.transform.Find("RefreshButton").gameObject;
+                    UniversalButtonIntereaction btIn3 = refresh.AddComponent<UniversalButtonIntereaction>();
+                    btIn3.pointerEnterSound = true;
+                    refresh.transform.Find("Text").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
+                    refresh.transform.Find("Text").gameObject.GetComponent<Text>().text = LocalizeTextDataModel.instance.GetText("Shop_Refresh") + LocalizeTextDataModel.instance.GetText("Meme_Wonder") + "-" + RefreshPrice.ToString();
+                    refresh.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() =>
+                    {
+                        if (RefreshShop())
+                        {
+                            refresh.GetComponent<UniversalButtonIntereaction>().Click(true, false, true);
+                        }
+                        else
+                        {
+                            refresh.GetComponent<UniversalButtonIntereaction>().Click(false, true, true);
+                        }
+                    });
+                }
+                
                 InitShopMeme();
                 InitShop();
             }
@@ -230,21 +233,31 @@ namespace NewGameMode
         public static void InitShopMeme()
         {
             // 需要满足：不是boss模因，等级为1或2，不是随机员工和随机装备，或者是诅咒模因。
+
             if (MemeManager.instance.all_dic != null)
             {
                 foreach (var dic in MemeManager.instance.all_dic)
                 {
                     if (!dic.Value.boss && dic.Value.grade == 1 && !dic.Value.curse && !specialMemeid.Contains(dic.Value.id))
                     {
-                        shopMemeVer1.Add(dic.Key, dic.Value);
+                        if (!shopMemeVer1.ContainsKey(dic.Value.id))
+                        {
+                            shopMemeVer1.Add(dic.Key, dic.Value);
+                        }
                     }
                     if (!dic.Value.boss && dic.Value.grade == 2 && !dic.Value.curse && !specialMemeid.Contains(dic.Value.id))
                     {
-                        shopMemeVer2.Add(dic.Key, dic.Value);
+                        if (!shopMemeVer2.ContainsKey(dic.Value.id))
+                        {
+                            shopMemeVer2.Add(dic.Key, dic.Value);
+                        }
                     }
                     if (!dic.Value.boss && dic.Value.curse)//诅咒模因
                     {
-                        shopMemeCurse.Add(dic.Key, dic.Value);
+                        if (!shopMemeCurse.ContainsKey(dic.Value.id))
+                        {
+                            shopMemeCurse.Add(dic.Key, dic.Value);
+                        }    
                     }
                 }
             }
@@ -282,33 +295,28 @@ namespace NewGameMode
             List<ShopProduct> shopProducts_sp = new List<ShopProduct>();
             try
             {
-                Dictionary<int, MemeInfo> nowMemeInfo = [];//模因id和模因信息，商店刷新用模因信息判断
+                //实例id和模因信息，商店刷新用模因信息判断
+                List<int> nowMemeId = [];
                 foreach (var dic in MemeManager.instance.current_dic)
                 {
-                    try
-                    {
-                        nowMemeInfo.Add(dic.Key, dic.Value.metaInfo);
-                    }
-                    finally
-                    {
-                        //如果不加这个try会导致nowMemeInfo里重复添加同一个模因而报错，后续程序不执行，商店刷新0个物品
-                    }
+                    nowMemeId.Add(dic.Value.metaInfo.id);
                 }
                 num++;
                 // 过滤掉已经拥有的模因（duplicate为true也可以通过）
                 Dictionary<int, MemeInfo> tempMemeVer1 = [];
                 foreach (var dic in shopMemeVer1)
                 {
-                    if ((dic.Value.duplicate == true || !nowMemeInfo.ContainsValue(dic.Value)) && dic.Value.CheckRequire())
+                    if ((dic.Value.duplicate == true || !nowMemeId.Contains(dic.Value.id)) && dic.Value.CheckRequire())
                     {
                         tempMemeVer1.Add(dic.Key, dic.Value);//模因id和信息
                     }
+                    Harmony_Patch.YKMTLogInstance.Info("  alreadyHave:" + nowMemeId.Contains(dic.Value.id).ToString());
                 }
                 num++;
                 Dictionary<int, MemeInfo> tempMemeVer2 = [];
                 foreach (var dic in shopMemeVer2)
                 {
-                    if (dic.Value.duplicate == true || !nowMemeInfo.ContainsValue(dic.Value) && dic.Value.CheckRequire())
+                    if (dic.Value.duplicate == true || !nowMemeId.Contains(dic.Value.id) && dic.Value.CheckRequire())
                     {
                         tempMemeVer2.Add(dic.Key, dic.Value);//模因id和信息
                     }
@@ -317,7 +325,7 @@ namespace NewGameMode
                 Dictionary<int, MemeInfo> tempMemeCurse = [];
                 foreach (var dic in shopMemeCurse)
                 {
-                    if (dic.Value.duplicate == true || !nowMemeInfo.ContainsValue(dic.Value) && dic.Value.CheckRequire())
+                    if (dic.Value.duplicate == true || !nowMemeId.Contains(dic.Value.id) && dic.Value.CheckRequire())
                     {
                         tempMemeCurse.Add(dic.Key, dic.Value);//模因id和信息
                     }
