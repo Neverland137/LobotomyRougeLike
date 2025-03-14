@@ -23,6 +23,7 @@ namespace NewGameMode
         public static string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "/LOG";
 
         public static GameMode rougeLike = (GameMode)666666;
+        public static UnitBufType rougeDifficultyBuf = (UnitBufType)111111;
         public static CustomRandom customRandom = new CustomRandom(0424);
 
         public static GameObject newRougeButton = new GameObject();
@@ -169,14 +170,11 @@ namespace NewGameMode
                 script.id = "Rouge_Title_Start_Button";
 
                 //ContentSizeFitter fitter1 = continueRougeButton.transform.GetChild(0).gameObject.AddComponent<ContentSizeFitter>();
-                //fitter1.verticalFit = ContentSizeFitter.FitMode.Unconstrained;//首选大小
-                //fitter1.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;//不调整
                 ContentSizeFitter fitter2 = newRougeButton.transform.GetChild(1).gameObject.AddComponent<ContentSizeFitter>();
                 fitter2.verticalFit = ContentSizeFitter.FitMode.PreferredSize;//首选大小
                 fitter2.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;//不调整
                 ContentSizeFitter fitter3 = newRougeButton.transform.GetChild(2).gameObject.AddComponent<ContentSizeFitter>();
-                //fitter3.verticalFit = ContentSizeFitter.FitMode.Unconstrained;//首选大小
-                //fitter3.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;//不调整
+
 
                 UnityEngine.UI.Text text = newRougeButton.transform.GetChild(1).GetComponent<UnityEngine.UI.Text>();
                 text.alignment = TextAnchor.MiddleCenter;
@@ -196,11 +194,8 @@ namespace NewGameMode
                 //image.color = new Color(1f, 1f, 1f, 0f);
                 GameObject.DestroyObject(newRougeButton.transform.GetChild(2).GetComponent<UnityEngine.UI.Image>());
                 GameObject.DestroyObject(newRougeButton.transform.GetChild(2).GetChild(0));
-                //.enabled = false;
+
                 button.targetGraphic = image;
-                //有办法把按钮的图像设成透明吗
-                //我这个按钮好像没法加载image 是白不拉几的一片
-                //好好好
                 button.transform.localScale *= 10f;
                 newRougeButton.transform.GetChild(0).transform.localPosition = image.transform.localPosition + new Vector3(0, 0, 10);
                 newRougeButton.transform.GetChild(0).transform.localScale = image.transform.localScale;
@@ -836,10 +831,6 @@ namespace NewGameMode
                     logger.Info("OnClearStage4");
                     SaveRougeLikeDayData();
                     logger.Info("OnClearStage5");
-                    if (PlayerModel.instance.GetDay() + 1 == 40)
-                    {
-                        ReturnToTitleOnGameOver();
-                    }
                 }
             }
             catch (Exception ex)
@@ -1513,6 +1504,10 @@ namespace NewGameMode
             }
         }
 
+        /// <summary>
+        /// 【已停用】
+        /// </summary>
+        /// <param name="__result"></param>
         public static void ObserveCostBoost(ref int __result)
         {
             if (GlobalGameManager.instance.gameMode == rougeLike)
@@ -1561,12 +1556,12 @@ namespace NewGameMode
                             UnitStatBuf unitStatBuf = new UnitStatBuf(float.MaxValue)
                             {
                                 duplicateType = BufDuplicateType.UNLIMIT,
-                                maxHp = 10,
-                                maxMental = 10,
-                                workProb = 10,
-                                cubeSpeed = 10,
-                                movementSpeed = 10,
-                                attackSpeed = 10
+                                maxHp = 5,
+                                maxMental = 5,
+                                workProb = 5,
+                                cubeSpeed = 5,
+                                movementSpeed = 5,
+                                attackSpeed = 5
                             };
 
                             __instance.AddUnitBuf(unitStatBuf);
@@ -1576,12 +1571,12 @@ namespace NewGameMode
                             UnitStatBuf unitStatBuf = new UnitStatBuf(float.MaxValue)
                             {
                                 duplicateType = BufDuplicateType.UNLIMIT,
-                                maxHp = 20,
-                                maxMental = 20,
-                                workProb = 20,
-                                cubeSpeed = 20,
-                                movementSpeed = 20,
-                                attackSpeed = 20
+                                maxHp = 12,
+                                maxMental = 12,
+                                workProb = 12,
+                                cubeSpeed = 12,
+                                movementSpeed = 12,
+                                attackSpeed = 12
                             };
 
                             __instance.AddUnitBuf(unitStatBuf);
@@ -1632,6 +1627,25 @@ namespace NewGameMode
             }
 
         }
+
+        [HPHelper(typeof(GameManager), "StartStage")]
+        [HPPostfix]
+        public static void ReturnToTitleOnSuccess()
+        {
+            if (GlobalGameManager.instance.gameMode == rougeLike)
+            {
+                //如果未部署员工数少于当前开放的部门数
+                if (PlayerModel.instance.GetDay() + 1 == 40)
+                {
+                    GameManager.currentGameManager.ReturnToTitle();
+                    File.Delete(path + "/Save/DayData.dat");
+                    File.Delete(path + "/Save/DayData.dat.backup");
+                    File.Delete(path + "/Save/GlobalData.dat");
+                    File.Delete(path + "/Save/GlobalData.backup");
+                }
+            }
+        }
+
         [HPHelper(typeof(ResultScreen), "OnSuccessManagement")]
         [HPPostfix]
         public static void ResultScreen_Board()

@@ -386,6 +386,7 @@ namespace NewGameMode
         {
             MemeManager.instance.OnCancelWeapon(actor);
         }
+        
         [HPHelper(typeof(WeaponModel), "OnAttack")]
         [HPPrefix]
         public static void Meme_OnAttack(UnitModel actor, UnitModel target)
@@ -398,7 +399,7 @@ namespace NewGameMode
         {
             MemeManager.instance.OnAttackEnd(__instance.owner, __instance.currentTarget);
         }
-
+        
         [HPHelper(typeof(CreatureModel), "Suppressed")]
         [HPPrefix]
         public static void OnCreatureSuppressed(CreatureModel __instance)
@@ -455,6 +456,8 @@ namespace NewGameMode
 
         }
         */
+
+        
         [HPHelper(typeof(WeaponModel), "OnGiveDamage")]
         [HPTranspiler]
         public static IEnumerable<CodeInstruction> Meme_OnGiveDamage(IEnumerable<CodeInstruction> instructions)
@@ -526,6 +529,8 @@ namespace NewGameMode
             return newCodes_copy;
 
         }
+
+        
         [HPHelper(typeof(WeaponModel), "OnGiveDamage")]
         [HPTranspiler]
         public static IEnumerable<CodeInstruction> Meme_OnGiveDamageAfter(IEnumerable<CodeInstruction> instructions)
@@ -560,10 +565,11 @@ namespace NewGameMode
                             methodTimes++;
                             newCodes.Add(new CodeInstruction(OpCodes.Ldsfld, instance));//在调用一个方法前，如果这个方法不是静态方法，那么必须先向栈内压入方法的实例
                             newCodes.Add(new CodeInstruction(OpCodes.Ldarg_1));//从被patch的方法中获取第一个参数并压入，按照从左至右，成为第一个参数
-                            newCodes.Add(new CodeInstruction(OpCodes.Ldarg_0));//将WeaponModel实例压入栈内。由于不属于UnitModel，它不会成为方法的参数
+                            
                             
                             if (methodTimes == 1)
                             {
+                                newCodes.Add(new CodeInstruction(OpCodes.Ldarg_0));
                                 newCodes.Add(new CodeInstruction(OpCodes.Ldfld, currentTarget));//从WeaponModel实例中获取target并压入，按照从左至右，成为第二个参数
                                 newCodes.Add(new CodeInstruction(OpCodes.Ldloc_S, 7));//压入被patch的方法的第七个局部参数。
                             }
@@ -587,31 +593,38 @@ namespace NewGameMode
             return newCodes_copy;
 
         }
+        
+
         [HPHelper(typeof(EquipmentScriptBase), "OnKillMainTarget")]
         [HPPostfix]
         public static void Meme_OnKillTargetWorker(UnitModel actor, UnitModel target)
         {
             MemeManager.instance.OnKillTargetWorker(actor, target);
         }
+
         [HPHelper(typeof(WorkerModel), "TakeDamage", typeof(UnitModel), typeof(DamageInfo))]
         [HPPrefix]
         public static void Meme_WorkerTakeDamage(WorkerModel __instance, UnitModel actor, DamageInfo dmg)
         {
             MemeManager.instance.WorkerTakeDamage(actor, __instance, dmg);
         }
+        
         public static void Meme_WorkerTakeDamage_After(WorkerModel __instance, UnitModel actor, float num, RwbpType type)//需要用trans
         {
             MemeManager.instance.OnWorkerTakeDamage_After(num, actor, __instance, type);
         }
+        
         [HPHelper(typeof(CreatureModel), "TakeDamage", typeof(UnitModel), typeof(DamageInfo))]
         [HPPrefix]
         public static void Meme_CreatureTakeDamage(CreatureModel __instance, UnitModel actor, DamageInfo dmg)
         {
             MemeManager.instance.CreatureTakeDamage(actor, __instance, dmg);
         }
+        
         public static void Meme_CreatureTakeDamage_After(CreatureModel __instance, UnitModel actor, float num, RwbpType type)//需要用trans
         {
             MemeManager.instance.OnCreatureTakeDamage_After(num, actor, __instance, type);
         }
+        
     }
 }

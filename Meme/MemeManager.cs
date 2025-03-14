@@ -308,10 +308,6 @@ namespace NewGameMode
                     }
                 }
                 instance.sprite_dic = dictionary2;
-                foreach (KeyValuePair<string, Sprite> kvp in instance.sprite_dic)
-                {
-                    Harmony_Patch.logger.Debug("Load All Meme Sprite Debug Key: " + kvp.Key);
-                }
 
                 LobotomyBaseMod.ModDebug.Log("RougeLike Load 2");
 
@@ -644,6 +640,7 @@ namespace NewGameMode
 
         public void OnGiveDamage(UnitModel actor, UnitModel target, ref DamageInfo dmg)
         {
+            
             foreach (MemeModel meme in current_list)
             {
                 meme.script.OnGiveDamage(actor, target, ref dmg);

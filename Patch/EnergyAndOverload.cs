@@ -29,9 +29,9 @@ namespace NewGameMode
         */
 
         /// <summary>
-        /// 随机事件的概率，依次为：奖励，疯员工，任务。商店概率独立。
+        /// 随机事件的概率，依次为：异想体，疯员工，任务。商店概率独立。
         /// </summary>
-        public static int[] randomEventRate = { 250, 100, 650 };
+        public static int[] randomEventRate = { 0, 1000, 0 };
         /// <summary>
         /// 奖励依次为：装备，员工，LOB点
         /// </summary>
@@ -42,6 +42,13 @@ namespace NewGameMode
         public static int[] randomAwardEquipmentRate = {700, 300, 0 };
         public static int[] randomAwardAgentStat = {60, 70};
         public static int[] randomAwardLOB = {2, 4};
+
+        public static Dictionary<CreatureModel, float> suppressCreatures = [];
+
+        public static int[] suppressAwardMeme_LevelHE = { 1000, 0 };
+        public static int[] suppressAwardMeme_LevelWAW = { 0, 1000 };
+        public static int[] suppressAwardWonder_LevelHE = { 30, 50 };
+        public static int[] suppressAwardWonder_LevelWAW = { 80, 100 };
 
         /// <summary>
         /// 疯员工装备，依次为：H，W，A
@@ -87,13 +94,11 @@ namespace NewGameMode
         public static int[] missionAwardWonder_Level2 = { 200, 250 };
         public static int[] missionAwardMemeRate_Level2 = { 300, 700 };
 
-        public static int randomAwardAgentCnt = 1;
         public static int missionAwardAgentCnt = 1;
         public static int memeAwardAgentCnt = 1;
-        public static int randomAwardEquipCnt = 1;
         public static int missionAwardEquipCnt = 1;
         public static int memeAwardEquipCnt = 1;
-        public static int randomAwardMemeCnt = 1;
+        public static int suppressAwardMemeCnt = 1;
         public static int missionAwardMemeCnt = 1;
         public static int memeAwardMemeCnt = 1;
 
@@ -104,7 +109,33 @@ namespace NewGameMode
         {
             if (GlobalGameManager.instance.gameMode == rougeLike)
             {
+                int day = PlayerModel.instance.GetDay() + 1;
                 __result = new List<OrdealBase>();
+                /*
+                if (day <= 32)
+                {
+                    __result.Add(new MachineNoonOrdeal());
+                }
+                else if (day <= 34)
+                {
+                    new MachineNoonOrdeal().OnOrdealStart();
+                    new OutterGodNoonOrdeal().OnOrdealStart();
+                }
+                else if (day <= 36)
+                {
+                    new MachineDuskOrdeal().OnOrdealStart();
+                }
+                else if (day <= 38)
+                {
+                    new FixerOrdeal(OrdealLevel.NOON).OnOrdealStart();
+                    OrdealManager.instance.InitAvailableFixers();
+                }
+                else
+                {
+                    new FixerOrdeal(OrdealLevel.DUSK).OnOrdealStart();
+                    OrdealManager.instance.InitAvailableFixers();
+                }
+                */
             }
         }
         [HPHelper(typeof(OrdealManager), "InitAvailableFixers")]
@@ -133,6 +164,42 @@ namespace NewGameMode
             if (GlobalGameManager.instance.gameMode == rougeLike)
             {
                 CreatureOverloadManager.instance.SetPrivateField("_qliphothOverloadMax", 4);
+            }
+        }
+
+        [HPHelper(typeof(GameManager), "FixedUpdate")]
+        [HPPostfix]
+        public static void OnFixedUpdate()
+        {
+            foreach (var kvp in suppressCreatures)
+            {
+                suppressCreatures[kvp.Key] = kvp.Value - Time.deltaTime;
+                if (kvp.Value <= 0)
+                {
+                    CreatureModel creature = kvp.Key;
+                    suppressCreatures.Remove(kvp.Key);
+                    creature.Suppressed();
+                }
+            }
+        }
+
+        [HPHelper(typeof(CreatureModel), "Suppressed")]
+        [HPPostfix]
+        public static void OnCreatureSuppressed(CreatureModel __instance)
+        {
+            if (suppressCreatures.ContainsKey(__instance))
+            {
+                suppressCreatures.Remove(__instance);
+                if (__instance.metaInfo.GetRiskLevel() == RiskLevel.HE)
+                {
+                    Award_GetMeme(suppressAwardMeme_LevelHE, suppressAwardMemeCnt);
+                    Award_GetWonder(suppressAwardWonder_LevelHE[0], suppressAwardWonder_LevelHE[1]);
+                }
+                else if (__instance.metaInfo.GetRiskLevel() == RiskLevel.WAW)
+                {
+                    Award_GetMeme(suppressAwardMeme_LevelWAW, suppressAwardMemeCnt);
+                    Award_GetWonder(suppressAwardWonder_LevelWAW[0], suppressAwardWonder_LevelWAW[1]);
+                }
             }
         }
         // Need Manual Patch
@@ -196,7 +263,7 @@ namespace NewGameMode
                     ///////////
                     int day = PlayerModel.instance.GetDay() + 1;
 
-                    float random3 = Harmony_Patch.customRandom.NextFloat();//如果是任务，则决定任务等级
+                    float random3 = Harmony_Patch.customRandom.NextFloat();//如果是任务，则决定任务等级；如果是异想体出逃，则决定异想体等级
 
                     //【3级任务没做】
                     //【3级任务没做】
@@ -204,62 +271,95 @@ namespace NewGameMode
 
                     if (overloadlevel == 4)//生成考验
                     {
+                        
                         if (day <= 32)
                         {
-                            new MachineNoonOrdeal().OnOrdealStart();
+                            OrdealManager.instance.ActivateOrdeal(new MachineNoonOrdeal(), false);
+                            //new MachineNoonOrdeal().OnOrdealStart();
                         }
                         else if (day <= 34)
                         {
-                            new MachineNoonOrdeal().OnOrdealStart();
-                            new OutterGodNoonOrdeal().OnOrdealStart();
+                            OrdealManager.instance.ActivateOrdeal(new MachineNoonOrdeal(), false);
+                            OrdealManager.instance.ActivateOrdeal(new OutterGodNoonOrdeal(), false);
+                            //new MachineNoonOrdeal().OnOrdealStart();
+                            //new OutterGodNoonOrdeal().OnOrdealStart();
                         }
                         else if (day <= 36)
                         {
-                            new MachineDuskOrdeal().OnOrdealStart();
+                            OrdealManager.instance.ActivateOrdeal(new MachineDuskOrdeal(), false);
+                            //new MachineDuskOrdeal().OnOrdealStart();
                         }
                         else if (day <= 38)
                         {
-                            new FixerOrdeal(OrdealLevel.NOON).OnOrdealStart();
+                            OrdealManager.instance.ActivateOrdeal(new FixerOrdeal(OrdealLevel.NOON), false);
+                            //new FixerOrdeal(OrdealLevel.NOON).OnOrdealStart();
                             OrdealManager.instance.InitAvailableFixers();
                         }
                         else
                         {
-                            new FixerOrdeal(OrdealLevel.DUSK).OnOrdealStart();
+                            OrdealManager.instance.ActivateOrdeal(new FixerOrdeal(OrdealLevel.DUSK), false);
+                            //new FixerOrdeal(OrdealLevel.DUSK).OnOrdealStart();
                             OrdealManager.instance.InitAvailableFixers();
                         }
-                        ///////////
-                        //get level不是当前等级吗 还是说当前等级+1
-                        //但是4级也没生效啊
-                        //argument cant be null那个报错是咋回事
-                        //原方法是null？没获取到原方法？
                     }
-                    //奖励事件
+                    //事件
                     else
                     {
                         int index = Extension.WeightedRandomChoice(randomEventRate);
                         
-                        int index3 = Extension.WeightedRandomChoice(randomAwardTypeRate);
                         switch (index)
                         {
-                            case 0://奖励
-                                int index0_1 = Extension.WeightedRandomChoice(randomAwardTypeRate);
-                                switch (index0_1)
+                            case 0://H或W出逃，60秒内镇压H得一级模因+30-50奇思，120秒内镇压W得2级模因+80-100奇思
+                                Harmony_Patch.logger.Info("Suppress");
+                                if (random3 <= 0.5)
                                 {
-                                    case 0: 
-                                        Award_GetEquipment(randomAwardEquipmentRate, randomAwardEquipCnt);
-                                        break;
-                                    case 1: 
-                                        Award_GetAgent(randomAwardAgentStat[0], randomAwardAgentStat[1], randomAwardAgentCnt, set_sefira:false);
-                                        break;
-                                    case 2: 
-                                        Award_GetLOB(randomAwardLOB[0], randomAwardLOB[1]);
-                                        break;
-                                    default://选中奖励事件但是没有生成
+                                    List<CreatureModel> creatures = [];
+                                    foreach (CreatureModel creature in CreatureManager.instance.GetCreatureList())
+                                    {
+                                        if (creature.metaInfo.GetRiskLevel() == RiskLevel.HE && creature.metaInfo.isEscapeAble)
+                                        {
+                                            creatures.Add(creature);
+                                        }
+                                    }
+                                    if (creatures.Count != 0)
+                                    {
+                                        Harmony_Patch.logger.Info("SuppressHE");
+                                        CreatureModel target = creatures[Harmony_Patch.customRandom.NextInt(0, creatures.Count)];
+                                        target.SetQliphothCounter(0);
+                                        suppressCreatures.Add(target, 60);
+                                        AngelaConversationUI.instance.AddAngelaMessage(LocalizeTextDataModel.instance.GetText("RandomEvent_SuppressHE"));
+                                    }
+                                    else
+                                    {
                                         AngelaConversationUI.instance.AddAngelaMessage(LocalizeTextDataModel.instance.GetText("RandomEvent_Fail"));
-                                        break;
+                                    }
+                                }
+                                else
+                                {
+                                    List<CreatureModel> creatures = [];
+                                    foreach (CreatureModel creature in CreatureManager.instance.GetCreatureList())
+                                    {
+                                        if (creature.metaInfo.GetRiskLevel() == RiskLevel.WAW && creature.metaInfo.isEscapeAble)
+                                        {
+                                            creatures.Add(creature);
+                                        }
+                                    }
+                                    if (creatures.Count != 0)
+                                    {
+                                        Harmony_Patch.logger.Info("SuppressWAW");
+                                        CreatureModel target = creatures[Harmony_Patch.customRandom.NextInt(0, creatures.Count)];
+                                        target.SetQliphothCounter(0);
+                                        suppressCreatures.Add(target, 120);
+                                        AngelaConversationUI.instance.AddAngelaMessage(LocalizeTextDataModel.instance.GetText("RandomEvent_SuppressWAW"));
+                                    }
+                                    else
+                                    {
+                                        AngelaConversationUI.instance.AddAngelaMessage(LocalizeTextDataModel.instance.GetText("RandomEvent_Fail"));
+                                    }
                                 }
                                 break;
                             case 1://疯员工
+                                Harmony_Patch.logger.Info("PanicAgent");
                                 CreatePanicAgent(panicAgentStat[0], panicAgentStat[1], panicAgentEquipmentRate);
                                 break;
                             case 2://任务
@@ -355,6 +455,19 @@ namespace NewGameMode
                 agentModel.SetCurrentSefira(sefiras[Harmony_Patch.customRandom.NextInt(0, PlayerModel.instance.GetOpenedAreaCount())].name);
 
                 agentModel.SetCurrentNode(agentModel.GetCurrentSefira().GetDepartNodeByRandom(0));
+
+                if (agentModel.Equipment.weapon.metaInfo.damageInfo.type == RwbpType.P)
+                {
+                    agentModel.forcelyPanicType = RwbpType.R;
+                    agentModel.Panic();
+                }
+                else
+                {
+                    agentModel.forcelyPanicType = RwbpType.P;
+                    agentModel.Panic();
+                }
+                agentModel.hp = agentModel.maxHp;
+                agentModel.mental = 0;
 
                 //装备
                 int level = Extension.WeightedRandomChoice(rate);
@@ -486,21 +599,12 @@ namespace NewGameMode
                             }
                             break;
                     }
-                    if (weaponLoopCnt >= 50)
+                    if (armorLoopCnt >= 50)
                     {
                         break;
                     }
                 }
-                if (agentModel.Equipment.weapon.metaInfo.damageInfo.type == RwbpType.P)
-                {
-                    agentModel.ForcelyPanic(RwbpType.R);
-                }
-                else
-                {
-                    agentModel.ForcelyPanic(RwbpType.P);
-                }
-                agentModel.hp = agentModel.maxHp;
-                agentModel.mental = 0;
+                
 
                 panicAgentList.Add(agentModel);
 
@@ -778,8 +882,8 @@ namespace NewGameMode
                     mission.type = EXTRAMissionType.Cleard;
                     string text = LocalizeTextDataModel.instance.GetText("RandomEvent_MissionEnd");
                     AngelaConversationUI.instance.AddAngelaMessage(text);
-                    AngelaConversationUI.instance.FadeOut = false;
-                    AngelaConversationUI.instance.FadeIn = true;
+                    //AngelaConversationUI.instance.FadeOut = false;
+                    //AngelaConversationUI.instance.FadeIn = true;
                     AssetBundle bundle = AssetBundle.LoadFromFile(Harmony_Patch.path + "/AssetsBundle/missionrewardbutton");
                     try
                     {
@@ -1171,8 +1275,10 @@ namespace NewGameMode
 
                     for (int i = 0; i < equipCnt; i++)
                     {
+                        Harmony_Patch.logger.Info("TotalCnt:" + equipCnt.ToString() + "  CurrentCnt:" + i.ToString());
                         EquipmentModel equip = InventoryModel.Instance.CreateEquipment(id_list[Harmony_Patch.customRandom.NextInt(0, id_list.Count)]);
                         name += equip.metaInfo.Name + "  ";
+                        Harmony_Patch.logger.Info("Name:" + name);
                     }
 
                     if (angela)

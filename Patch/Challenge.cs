@@ -30,10 +30,10 @@ namespace NewGameMode
         {
             if (GlobalGameManager.instance.gameMode == rougeLike)
             {
-                if (PlayerModel.instance.GetDay() + 1 == 40)
+                if (PlayerModel.instance.GetDay() + 1 == 36)
                 {
                     ///////////
-                    List<SefiraEnum> challenges = new List<SefiraEnum>(new SefiraEnum[] { SefiraEnum.GEBURAH, SefiraEnum.BINAH });
+                    List<SefiraEnum> challenges = new List<SefiraEnum>(new SefiraEnum[] { SefiraEnum.GEBURAH});
                     foreach (Assembly assembly in Add_On.instance.AssemList)
                     {
                         if (assembly.Location.ToLower().Contains("bluearchive"))
