@@ -43,6 +43,7 @@ namespace NewGameMode
         public static int observeCubeMax = 50;
         public static int originMoney = 80;
         public static int originWonder = 100;
+        public static int originHealth = 3;
 
         public static List<int> dayResult = new List<int> { 0,0,0,0,0};//依次为：获得员工数，获得A级EGO数，完成任务数，获得模因数，获得奇思数
         public static List<int> gameResult = new List<int>{ 0, 0, 0, 0, 0 ,0,0,0};//依次为：获得员工数，获得A武数，获得A甲数，完成任务数，获得模因数，获得3级模因数，获得奇思数，击败BOSS数
@@ -57,7 +58,7 @@ namespace NewGameMode
         {
             try
             {
-                logger = new YKMTLog(path + "/LobotomyRougeLog", "LobotomyRougeLike", true);
+                logger = new YKMTLog(path + "/Logs", "LobotomyRougeLog", true);
                 LogInfo("NewGameMode by YKMT TEAM. Version " + VERSION);
                 LogInfo("ModPath: " + path);
                 HarmonyInstance harmony = HarmonyInstance.Create("ykmt.NewGameMode");
@@ -67,6 +68,7 @@ namespace NewGameMode
                 HPPatcher.PatchAll(harmony, typeof(EnergyAndOverload_Patch.RGRandomEventManager));
                 HPPatcher.PatchAll(harmony, typeof(Meme_Patch));
                 HPPatcher.PatchAll(harmony, typeof(DifficultyPatch));
+                HPPatcher.PatchAll(harmony, typeof(HealthPatch));
                 ManualPatch.PatchMethods(harmony);
                 // 初始化商店
                 ShopManager.InitShopMeme();
@@ -443,6 +445,7 @@ namespace NewGameMode
             MoneyModel.instance.Add(originMoney);
             //以下为肉鸽新增的内容初始化
             WonderModel.instance.Init(originWonder);
+            HealthManager.Instance.SetHealth(originHealth);
         }
 
         public static void SetDebugDayData()//设置新一局肉鸽的天数存档
@@ -556,7 +559,8 @@ namespace NewGameMode
                     { "wonder", WonderModel.instance.money },
                     { "meme", MemeManager.instance.current_dic },
                     { "memeData", MemeScriptBase.allMemeGameDataDic },
-                    { "memeNextInstanceId", MemeManager.instance._nextInstanceId }
+                    { "memeNextInstanceId", MemeManager.instance._nextInstanceId },
+                    { "health", HealthManager.Instance.GetHealth() }
                 };
 
                 SaveUtil.WriteSerializableFile(path + "/Save/RougeLikeDayData.dat", dictionary);
@@ -757,6 +761,7 @@ namespace NewGameMode
                 MemeManager.instance.LoadData(dic);
                 MemeScriptBase.LoadData(dic);
                 GameUtil.TryGetValue<int>(dic, "memeNextInstanceId", ref MemeManager.instance._nextInstanceId);
+                HealthManager.Instance.LoadData(dic);
             }
         }
         public static void LoadDay(Dictionary<string, object> data)//加载除天数以外的其它内容

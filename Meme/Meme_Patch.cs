@@ -1,26 +1,15 @@
-﻿using Assets.Scripts.UI.Utils;
-using DG.Tweening;
-using DG.Tweening.Plugins.Core.PathCore;
-using GameStatusUI;
+﻿using DG.Tweening;
 using Harmony;
 using HPHelper;
 using NewGameMode.Diffculty;
-using Steamworks.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.UI;
-using static Mono.Security.X509.X520;
 using static NewGameMode.EnergyAndOverload_Patch.RGRandomEventManager;
-using static UnityEngine.Analytics.EnumCase;
-using static WorkerSprite.WorkerSpriteSaveData;
 
 namespace NewGameMode
 {
@@ -189,8 +178,15 @@ namespace NewGameMode
                             GameStatusUI.GameStatusUI.Window.logController.script.DeleteAll();
                         }
                     }
-                    
-                    
+                    else if (type == "health")
+                    {
+                        if (type2 == "set")
+                        {
+                            HealthManager.Instance.SetHealth(Convert.ToInt32(value));
+                            Harmony_Patch.LogInfo($"Set Health to {Convert.ToInt32(value)}");
+                        }
+                    }
+
                 }
             }
             catch (Exception ex)
@@ -228,10 +224,10 @@ namespace NewGameMode
                 GameObject exitButton = MemeManager.memeScene.transform.Find("ExitButton").gameObject;
                 UniversalButtonIntereaction btIn1 = exitButton.AddComponent<UniversalButtonIntereaction>();
                 btIn1.pointerEnterSound = false;
-                exitButton.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => 
+                exitButton.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() =>
                 {
                     btIn1.Click(true, false, false);
-                    MemeManager.memeScene.transform.DOScale(new Vector3(0, 0, 1), 1).SetEase(Ease.OutExpo).SetUpdate(true).OnComplete(() => 
+                    MemeManager.memeScene.transform.DOScale(new Vector3(0, 0, 1), 1).SetEase(Ease.OutExpo).SetUpdate(true).OnComplete(() =>
                     {
                         MemeManager.memeScene.SetActive(false);
                     });
@@ -239,7 +235,7 @@ namespace NewGameMode
                 exitButton.transform.Find("Text").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>().id = "Meme_ExitButton";
                 exitButton.transform.Find("Text").gameObject.AddComponent<FontLoadScript>();
                 //单个模因按钮写在CreateMemeModel里
-                
+
                 //详情页的文本设置
                 GameObject detail = MemeManager.memeScene.transform.Find("WonderandDetail").Find("Detail").gameObject;
                 detail.transform.Find("Name").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
@@ -255,7 +251,7 @@ namespace NewGameMode
                 detail.transform.Find("BuyButton").Find("Text").gameObject.AddComponent<FontLoadScript>();
                 */
                 //奇思设置
-                
+
                 GameObject wonder = MemeManager.memeScene.transform.Find("WonderandDetail").Find("Wonder").gameObject;
                 wonder.transform.Find("Text").gameObject.AddComponent<LocalizeTextLoadScriptWithOutFontLoadScript>();
                 wonder.transform.Find("Text").gameObject.AddComponent<UpdateWonder>();
@@ -301,7 +297,7 @@ namespace NewGameMode
         [HPPrefix]
         public static bool TurnRestartToMemeScene()
         {
-            
+
             if (GlobalGameManager.instance.gameMode == rougeLike)
             {
                 Harmony_Patch.logger.Info("ShowMemeScene");
@@ -342,7 +338,7 @@ namespace NewGameMode
                             memeScene.transform.Find("MemeButtons").Find("Buttons").GetChild(i).Find("Image").gameObject.GetComponent<UnityEngineImage>().sprite = 
                         }
                         */
-                        
+
                     }
                 }
                 catch (Exception ex)
@@ -360,7 +356,7 @@ namespace NewGameMode
             if (GameManager.currentGameManager.state == global::GameState.PLAYING)
             {
                 MemeManager.instance.OnFixedUpdate();
-            }  
+            }
         }
         [HPHelper(typeof(GameManager), "StartStage")]
         [HPPostfix]
@@ -386,7 +382,7 @@ namespace NewGameMode
         {
             MemeManager.instance.OnCancelWeapon(actor);
         }
-        
+
         [HPHelper(typeof(WeaponModel), "OnAttack")]
         [HPPrefix]
         public static void Meme_OnAttack(UnitModel actor, UnitModel target)
@@ -399,7 +395,7 @@ namespace NewGameMode
         {
             MemeManager.instance.OnAttackEnd(__instance.owner, __instance.currentTarget);
         }
-        
+
         [HPHelper(typeof(CreatureModel), "Suppressed")]
         [HPPrefix]
         public static void OnCreatureSuppressed(CreatureModel __instance)
@@ -457,7 +453,7 @@ namespace NewGameMode
         }
         */
 
-        
+
         [HPHelper(typeof(WeaponModel), "OnGiveDamage")]
         [HPTranspiler]
         public static IEnumerable<CodeInstruction> Meme_OnGiveDamage(IEnumerable<CodeInstruction> instructions)
@@ -530,7 +526,7 @@ namespace NewGameMode
 
         }
 
-        
+
         [HPHelper(typeof(WeaponModel), "OnGiveDamage")]
         [HPTranspiler]
         public static IEnumerable<CodeInstruction> Meme_OnGiveDamageAfter(IEnumerable<CodeInstruction> instructions)
@@ -565,8 +561,8 @@ namespace NewGameMode
                             methodTimes++;
                             newCodes.Add(new CodeInstruction(OpCodes.Ldsfld, instance));//在调用一个方法前，如果这个方法不是静态方法，那么必须先向栈内压入方法的实例
                             newCodes.Add(new CodeInstruction(OpCodes.Ldarg_1));//从被patch的方法中获取第一个参数并压入，按照从左至右，成为第一个参数
-                            
-                            
+
+
                             if (methodTimes == 1)
                             {
                                 newCodes.Add(new CodeInstruction(OpCodes.Ldarg_0));
@@ -593,7 +589,7 @@ namespace NewGameMode
             return newCodes_copy;
 
         }
-        
+
 
         [HPHelper(typeof(EquipmentScriptBase), "OnKillMainTarget")]
         [HPPostfix]
@@ -608,23 +604,23 @@ namespace NewGameMode
         {
             MemeManager.instance.WorkerTakeDamage(actor, __instance, dmg);
         }
-        
+
         public static void Meme_WorkerTakeDamage_After(WorkerModel __instance, UnitModel actor, float num, RwbpType type)//需要用trans
         {
             MemeManager.instance.OnWorkerTakeDamage_After(num, actor, __instance, type);
         }
-        
+
         [HPHelper(typeof(CreatureModel), "TakeDamage", typeof(UnitModel), typeof(DamageInfo))]
         [HPPrefix]
         public static void Meme_CreatureTakeDamage(CreatureModel __instance, UnitModel actor, DamageInfo dmg)
         {
             MemeManager.instance.CreatureTakeDamage(actor, __instance, dmg);
         }
-        
+
         public static void Meme_CreatureTakeDamage_After(CreatureModel __instance, UnitModel actor, float num, RwbpType type)//需要用trans
         {
             MemeManager.instance.OnCreatureTakeDamage_After(num, actor, __instance, type);
         }
-        
+
     }
 }
