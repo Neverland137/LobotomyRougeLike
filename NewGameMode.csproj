@@ -41,6 +41,8 @@
     <Compile Include="Diffculty\DifficultyStruct.cs" />
     <Compile Include="Extension.cs" />
     <Compile Include="Furnace\FurnaceManager.cs" />
+    <Compile Include="Health\HealthManager.cs" />
+    <Compile Include="Health\HealthPatch.cs" />
     <Compile Include="HPHelper.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="ManualPatch.cs" />
@@ -71,6 +73,10 @@
     <Content Include="lib\0Harmony.dll" />
     <Content Include="lib\Assembly-CSharp-firstpass.dll" />
     <Content Include="lib\Assembly-CSharp.dll" />
+    <Content Include="lib\DOTween.dll" />
+    <Content Include="lib\DOTween43.dll" />
+    <Content Include="lib\DOTween46.dll" />
+    <Content Include="lib\DOTween50.dll" />
     <Content Include="lib\Facepunch.Steamworks.Win64.dll" />
     <Content Include="lib\LobotomyBaseModLib.dll" />
     <Content Include="lib\Mono.Security.dll" />

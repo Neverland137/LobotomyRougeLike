@@ -71,9 +71,18 @@ namespace NewGameMode
             {
                 var NowDifficulty = DifficultyManager.GetNowDifficulty();
                 float CreatureMaxHPTimes = NowDifficulty.CreatureMaxHPTimes() * MemeManager.instance.CreatureMaxHPTimes() - 1;
-
-                UnitBuf buf = new UnitBuf();
-                
+                __instance.AddUnitBuf(new CreatureHpAdderBuf(__instance, CreatureMaxHPTimes));
+            }
+        }
+        [HPHelper(typeof(ChildCreatureModel), "Escape")]
+        [HPPrefix]
+        public static void PatchChildCreatureMaxHP(ref ChildCreatureModel __instance)
+        {
+            if (GlobalGameManager.instance.gameMode == Harmony_Patch.rougeLike)
+            {
+                var NowDifficulty = DifficultyManager.GetNowDifficulty();
+                float CreatureMaxHPTimes = NowDifficulty.CreatureMaxHPTimes() * MemeManager.instance.CreatureMaxHPTimes() - 1;
+                __instance.AddUnitBuf(new CreatureHpAdderBuf(__instance, CreatureMaxHPTimes));
             }
         }
         [HPHelper(typeof(CreatureModel), "SetFeelingStateInWork")]
@@ -100,7 +109,7 @@ namespace NewGameMode
 
             public override void Init(UnitModel model)
             {
-                if (model is CreatureModel)
+                if (model is CreatureModel || model is ChildCreatureModel)
                 {
                     originHp = model.baseMaxHp;
                     model.baseMaxHp += (int)(originHp * times);
